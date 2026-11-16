@@ -18,6 +18,7 @@ import {
     IconBoxMultiple,
     IconAffiliate,
     IconHistory,
+    IconHash,
 } from '@tabler/icons-vue';
 import ProfileConfig from '../../base/profile.ts';
 import ContactManager from '../../base/contact.ts';
@@ -175,6 +176,14 @@ export default class MenuManager {
                 tooltip: 'Routes',
                 description: 'Plan and manage route overlays',
                 icon: IconRoute,
+            },
+            {
+                key: 'hashtags',
+                label: 'Hashtags',
+                route: '/menu/hashtags',
+                tooltip: 'Hashtags',
+                description: 'Features grouped by the hashtags in their remarks',
+                icon: IconHash,
             },
             {
                 key: 'files',

@@ -619,7 +619,7 @@ async function addMarker(callsign: string, coordinates: [number, number]): Promi
             type: 'Point' as const,
             coordinates
         }
-    });
+    }, { created: true });
 }
 
 async function select(option: Option, opts: { fly?: boolean } = {}): Promise<void> {

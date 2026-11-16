@@ -206,7 +206,8 @@ async function generateRoute(): Promise<void> {
         if (route && route.features.length > 0) {
             // @ts-expect-error Feature types are slightly incompatible
             const cot = await mapStore.worker.db.add(route.features[0], {
-                authored: true
+                authored: true,
+                created: true
             });
 
             if (!cot) throw new Error('Failed to add route');

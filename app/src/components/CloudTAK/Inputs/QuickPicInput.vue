@@ -187,7 +187,7 @@ async function submit(file: File): Promise<void> {
             altitude: gps ? mapStore.gpsAltitude : null,
         });
 
-        await mapStore.worker.db.add(feat, { authored: true });
+        await mapStore.worker.db.add(feat, { authored: true, created: true });
 
         mapStore.map.flyTo({
             center: coordinates as LngLatLike,

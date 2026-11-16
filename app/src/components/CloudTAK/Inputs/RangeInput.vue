@@ -126,7 +126,8 @@ async function submitPoint() {
             coordinates: [toRaw(config.value.coordinates), end.geometry.coordinates]
         }
     }, {
-        authored: true
+        authored: true,
+        created: true
     });
 
     if (mapStore.map) {

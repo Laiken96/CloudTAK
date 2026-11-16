@@ -219,7 +219,8 @@ async function submitRings() {
             coordinates: toRaw(config.value.coordinates)
         }
     }, {
-        authored: true
+        authored: true,
+        created: true
     });
 
     for (let i = 0; i < config.value.rings.length; i++) {
@@ -266,7 +267,8 @@ async function submitRings() {
                 }
             ).geometry
         }, {
-            authored: true
+            authored: true,
+            created: true
         });
     }
 

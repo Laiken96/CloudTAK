@@ -477,6 +477,8 @@
                         @submit='updateProperty("remarks", $event)'
                     />
 
+                    <PropertyHashtags :remarks='cot.properties.remarks' />
+
                     <PropertyAttachments
                         v-if='!cot.properties.contact'
                         :key='cot.properties.id'
@@ -592,6 +594,7 @@ import AppearanceRow from './Appearance/AppearanceRow.vue';
 import PropertyMission from './Property/PropertyMission.vue';
 import PropertyOrigin from './Property/PropertyOrigin.vue';
 import PropertyRemarks from './Property/PropertyRemarks.vue';
+import PropertyHashtags from './Property/PropertyHashtags.vue';
 import PropertyBattery from './Property/PropertyBattery.vue';
 import PropertyFactRow from './util/PropertyFactRow.vue';
 import PropertyTabs, { type PropertyTab } from './util/PropertyTabs.vue';

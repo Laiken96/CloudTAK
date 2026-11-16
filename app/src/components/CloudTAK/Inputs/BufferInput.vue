@@ -105,7 +105,7 @@ async function applyBuffer(): Promise<void> {
         geometry: buffered.geometry
     };
 
-    await mapStore.worker.db.add(feat, { authored: true });
+    await mapStore.worker.db.add(feat, { authored: true, created: true });
     await mapStore.refresh();
 
     emit('close');

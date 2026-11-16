@@ -869,6 +869,7 @@ async function handleRadial(event: string): Promise<void> {
 
         await mapStore.worker.db.add(feat, {
             authored: true,
+            created: true,
             // Fresh id from the contextmenu - it cannot already be in a Mission
             skipMissionLookup: true
         });
@@ -915,6 +916,7 @@ async function handleRadial(event: string): Promise<void> {
 
         await mapStore.worker.db.add(feat, {
             authored: true,
+            created: true,
             // Fresh id - it cannot already be in a Mission
             skipMissionLookup: true
         });

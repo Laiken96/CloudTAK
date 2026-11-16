@@ -471,6 +471,7 @@ export default class DrawTool {
 
                     await this.mapStore.worker.db.add(feat, {
                         authored: true,
+                        created: true,
                         // Newly drawn - its id cannot already be in a Mission
                         skipMissionLookup: true
                     });
@@ -808,7 +809,7 @@ export default class DrawTool {
 
                 this.removeFeature(drawn.id as string);
                 await this.stop();
-                await this.mapStore.worker.db.add(feat, { authored: true });
+                await this.mapStore.worker.db.add(feat, { authored: true, created: true });
                 await this.mapStore.refresh();
                 router.push(`/cot/${feat.properties.id}`);
             } else {

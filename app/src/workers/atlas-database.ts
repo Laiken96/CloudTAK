@@ -11,6 +11,8 @@ import jsonata from 'jsonata';
 import type Atlas from './atlas.ts';
 import Subscription from '../base/subscription.ts';
 import FeatureWriter from '../base/feature-writer.ts';
+import StickyHashtags from '../base/sticky-hashtags.ts';
+import { indexHashtags } from '../utils/hashtags.ts';
 import { coordEach } from '@turf/meta'
 import COT, { OriginMode } from '../base/cot.ts';
 import FeatureOutbox, { OutboxState, isPendingFeature } from '../base/feature-outbox.ts';
@@ -564,6 +566,52 @@ export default class AtlasDatabase {
     }
 
     /**
+     * Every hashtag in the remarks of the loaded Features, each with the Features
+     * that carry it, sorted by tag - the content of ATAK's Hashtag Manager
+     */
+    async hashtags(
+        opts: {
+            mission?: boolean,
+        } = {}
+    ): Promise<Array<{ tag: string; key: string; features: Feature[] }>> {
+        const features = new Map<string, Feature>();
+
+        for (const cot of this.cots.values()) {
+            if (this.pendingDelete.has(cot.id)) continue;
+            if (typeof cot.properties.remarks !== 'string' || !cot.properties.remarks.includes('#')) continue;
+
+            features.set(cot.id, cot.as_feature());
+        }
+
+        if (opts.mission) {
+            for (const sub of await Subscription.localList({
+                subscribed: true
+            })) {
+                const store = await Subscription.from(sub.guid, {
+                    subscribed: true
+                });
+
+                if (!store) continue;
+
+                for (const feat of await store.feature.list()) {
+                    if (features.has(feat.id)) continue;
+                    if (typeof feat.properties.remarks !== 'string' || !feat.properties.remarks.includes('#')) continue;
+
+                    const cot = await COT.load(feat, {
+                        mode: OriginMode.MISSION,
+                        mode_id: sub.guid
+                    });
+
+                    features.set(cot.id, cot.as_feature());
+                }
+            }
+        }
+
+        return indexHashtags(features.values(), (feat) => feat.properties.remarks)
+            .map((entry) => ({ tag: entry.tag, key: entry.key, features: entry.items }));
+    }
+
+    /**
      * Find CoTs whose callsign or remarks contain the query, callsign matches first
      */
     async search(
@@ -1093,6 +1141,7 @@ export default class AtlasDatabase {
      * @param opts.authored - If the COT is authored, append creator information if the CoT is new & potentially add it to a mission
      * @param opts.render - Defaults to true. When false, suppress the Mission_Change_Feature notification that reloads & re-renders the mission overlay. Callers adding many features to a mission at once (eg. a lasso import) should pass false and trigger a single loadMission() when finished.
      * @param opts.skipDatabase - Don't persist a newly created COT back to the Dexie feature table. Used when the feature already originates from that table (eg. startup hydrate) so we avoid a redundant IndexedDB write per feature.
+     * @param opts.created - The user just created this Feature (drawn, placed, entered): the enabled Sticky Hashtags are appended to its remarks, as ATAK does. Not set for imports, restores or copies.
      * @param opts.skipMissionLookup - Don't scan subscribed mission stores when checking for an existing COT. Used when the caller knows the feature is a CONNECTION-origin profile feature (eg. startup hydrate) or was just created with a fresh id (eg. a dropped point), so we avoid an IndexedDB mission read the drop would otherwise wait on.
      */
     async add(
@@ -1104,6 +1153,7 @@ export default class AtlasDatabase {
             render?: boolean,
             skipDatabase?: boolean,
             skipMissionLookup?: boolean,
+            created?: boolean,
         }
     ): Promise<COT | void> {
         if (!opts) opts = {};
@@ -1118,6 +1168,10 @@ export default class AtlasDatabase {
 
         if (opts.authored && !exists) {
             feat.properties.creator = await this.atlas.profile.creator();
+        }
+
+        if (opts.created && !exists) {
+            feat.properties.remarks = await StickyHashtags.apply(feat.properties.remarks);
         }
 
         if (
