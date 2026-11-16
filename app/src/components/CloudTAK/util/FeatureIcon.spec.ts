@@ -39,12 +39,12 @@ describe('FeatureIcon', () => {
         mapStore._map = {};
 
         const image = { data: { data: new Uint8ClampedArray(4), width: 1, height: 1 } };
-        mapStore.map.getImage.mockImplementation((id) => id === 'a-f-G-U-C-I-colored-00FF00' ? image : undefined);
+        mapStore.map.getImage.mockImplementation((id) => id === 'b-r-f-h-c-colored-00FF00' ? image : undefined);
 
         const wrapper = mount(FeatureIcon, {
             props: {
                 feature: {
-                    properties: { type: 'a-f-G-U-C-I', 'marker-color': '#00FF00' },
+                    properties: { type: 'b-r-f-h-c', 'marker-color': '#00FF00' },
                     geometry: { type: 'Point', coordinates: [0, 0] },
                 }
             }
@@ -53,8 +53,8 @@ describe('FeatureIcon', () => {
         await wrapper.vm.$nextTick();
 
         expect(wrapper.find('canvas').exists()).toBe(true);
-        expect(mapStore.map.getImage).toHaveBeenCalledWith('a-f-G-U-C-I-colored-00FF00');
-        expect(mapStore.map.getImage).not.toHaveBeenCalledWith('a-f-G-U-C-I');
+        expect(mapStore.map.getImage).toHaveBeenCalledWith('b-r-f-h-c-colored-00FF00');
+        expect(mapStore.map.getImage).not.toHaveBeenCalledWith('b-r-f-h-c');
         expect(mapStore.icons.resolve).not.toHaveBeenCalled();
     });
 

@@ -28,7 +28,7 @@ import IconsetManager from '../../base/iconset.ts';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { stdurl } from '../../std.ts';
 import { db, type DBSprite } from '../../database.ts';
-import { isMilsymIcon, symbolCanvas } from '../../utils/milsymbol.ts';
+import { isMilsymIcon, symbolImage } from '../../utils/milsymbol.ts';
 
 /** Target render width (px) used when rasterizing SVG iconset icons; height preserves the source aspect ratio. */
 const SVG_RENDER_WIDTH = 32;
@@ -178,7 +178,8 @@ export default class IconManager {
                 { imageId: id }
             );
         } else if (isMilsymIcon(id)) {
-            this.addImage(id, await createImageBitmap(symbolCanvas(id)));
+            const { image, pixelRatio } = await symbolImage(id);
+            this.addImage(id, await createImageBitmap(image), { pixelRatio });
         } else if (id.includes('-colored-')) {
             const separator = id.lastIndexOf('-colored-');
             const baseId = id.slice(0, separator);
@@ -250,9 +251,9 @@ export default class IconManager {
         this.remote.set(id, work);
     }
 
-    private addImage(id: string, image: ImageBitmap | ImageData): void {
+    private addImage(id: string, image: ImageBitmap | ImageData, options?: { pixelRatio?: number }): void {
         if (!this.map.hasImage(id)) {
-            this.map.addImage(id, image);
+            this.map.addImage(id, image, options);
         }
     }
 

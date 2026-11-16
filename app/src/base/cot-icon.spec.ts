@@ -30,8 +30,20 @@ describe('renderedIcon', () => {
         }))).toEqual('f7f71666-8b28-4b57-9fbb-e38e61d33b79:Vehicle/Ambulance.png');
     });
 
-    it('falls back to the CoT Type for a non MIL-STD Feature', () => {
-        expect(renderedIcon(properties({ type: 'a-f-G-U-C-I' }))).toEqual('a-f-G-U-C-I');
+    it('draws a CoT Atom Type as the 2525C symbol ATAK renders for it', () => {
+        expect(renderedIcon(properties({ type: 'a-f-G-U-C-I' }))).toEqual('2525C:SFGPUCI--------');
+        expect(renderedIcon(properties({ type: 'a-h-G-U-C-I' }))).toEqual('2525C:SHGPUCI--------');
+    });
+
+    it('draws a stored CoT Type icon as its 2525C symbol', () => {
+        expect(renderedIcon(properties({
+            type: 'a-f-G',
+            icon: 'a-f-G-U-C-A'
+        }))).toEqual('2525C:SFGPUCA--------');
+    });
+
+    it('falls back to the CoT Type for a non Atom Feature', () => {
+        expect(renderedIcon(properties({ type: 'b-r-f-h-c' }))).toEqual('b-r-f-h-c');
     });
 
     it('returns nothing for Types with no spritesheet icon', () => {
@@ -58,15 +70,16 @@ describe('renderedIconImage', () => {
     const ICONSET = 'f7f71666-8b28-4b57-9fbb-e38e61d33b79:Vehicle/Ambulance';
 
     it('is the rendered icon when there is no marker-color', () => {
-        expect(renderedIconImage(properties({ type: 'a-f-G-U-C-I' }))).toEqual('a-f-G-U-C-I');
+        expect(renderedIconImage(properties({ type: 'a-f-G-U-C-I' }))).toEqual('2525C:SFGPUCI--------');
+        expect(renderedIconImage(properties({ type: 'b-r-f-h-c' }))).toEqual('b-r-f-h-c');
         expect(renderedIconImage(properties({ icon: ICONSET }))).toEqual(ICONSET);
     });
 
     it('requests the marker-color variant of a spritesheet or Iconset icon', () => {
         expect(renderedIconImage(properties({
-            type: 'a-f-G-U-C-I',
+            type: 'b-r-f-h-c',
             'marker-color': '#00FF00'
-        }))).toEqual('a-f-G-U-C-I-colored-00FF00');
+        }))).toEqual('b-r-f-h-c-colored-00FF00');
 
         expect(renderedIconImage(properties({
             icon: ICONSET,
@@ -79,6 +92,11 @@ describe('renderedIconImage', () => {
             type: SIDC,
             'marker-color': '#00FF00'
         }))).toEqual(`2525E:${SIDC}`);
+
+        expect(renderedIconImage(properties({
+            type: 'a-f-G-U-C-I',
+            'marker-color': '#00FF00'
+        }))).toEqual('2525C:SFGPUCI--------');
     });
 
     it('is nothing when there is no icon', () => {
@@ -120,7 +138,8 @@ describe('renderedIconImage', () => {
 
         for (const [name, props] of Object.entries({
             'spritesheet icon': properties({ type: 'a-f-G-U-C-I', callsign: 'A' }),
-            'coloured spritesheet icon': properties({ type: 'a-f-G-U-C-I', callsign: 'A', 'marker-color': '#00FF00' }),
+            'coloured spritesheet icon': properties({ type: 'b-r-f-h-c', callsign: 'A', 'marker-color': '#00FF00' }),
+            'coloured ATAK 2525C symbol': properties({ type: 'a-f-G-U-C-I', callsign: 'A', 'marker-color': '#00FF00' }),
             'iconset icon': properties({ type: 'a-f-G', callsign: 'A', icon: ICONSET }),
             'coloured iconset icon': properties({ type: 'a-f-G', callsign: 'A', icon: ICONSET, 'marker-color': '#123abc' }),
             'MIL-STD symbol': properties({ type: SIDC, callsign: 'A' }),

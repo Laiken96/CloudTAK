@@ -1,5 +1,6 @@
 import { v4 as randomUUID } from 'uuid';
 import Type2525 from '@tak-ps/node-cot/2525';
+import { isCotAtomType, mil2525cFromCotType } from '../utils/atak-2525c.ts';
 import { server } from '../std.ts';
 import { db, isDatabaseSuspended, deferFeaturePersist, liveQuery, type DBTaxonomy } from '../database.ts';
 import { bbox } from '@turf/bbox'
@@ -105,7 +106,7 @@ function milsymSIDC(properties: Feature["properties"]): string | undefined {
  * `usericon` iconsetpath
  */
 export function renderedIcon(properties: Feature["properties"]): string | undefined {
-    if (properties.icon) return properties.icon;
+    if (properties.icon) return atak2525cIcon(properties.icon) ?? properties.icon;
 
     // A Contact renders as its team coloured skittle. The skittle and icon map
     // layers filter on `group` and `icon` independently and neither excludes the
@@ -117,10 +118,22 @@ export function renderedIcon(properties: Feature["properties"]): string | undefi
 
     // Everything else keys the built-in spritesheet off the CoT Type
     if (properties.type && !TYPES_WITHOUT_ICON.includes(properties.type)) {
-        return properties.type;
+        return atak2525cIcon(properties.type) ?? properties.type;
     }
 
     return undefined;
+}
+
+/**
+ * A CoT Atom Type spritesheet key (`a-f-G-U-C-A`) is drawn the way ATAK draws
+ * it: converted to its 2525C code and rendered by the Mission Command 2525C
+ * renderer (see utils/milsymbol.ts) rather than from the bundled PNG
+ */
+function atak2525cIcon(key: string): string | undefined {
+    if (!isCotAtomType(key)) return undefined;
+
+    const code = mil2525cFromCotType(key);
+    return code ? `2525C:${code.toUpperCase()}` : undefined;
 }
 
 /**
