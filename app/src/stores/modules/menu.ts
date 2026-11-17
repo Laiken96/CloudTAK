@@ -20,6 +20,7 @@ import {
     IconHistory,
     IconHash,
     IconGrid3x3,
+    IconPhotoPin,
 } from '@tabler/icons-vue';
 import ProfileConfig from '../../base/profile.ts';
 import ContactManager from '../../base/contact.ts';
@@ -193,6 +194,14 @@ export default class MenuManager {
                 tooltip: 'Fire Grid',
                 description: 'Einheitsfeuerplan grids, cell lookup like D2/6',
                 icon: IconGrid3x3,
+            },
+            {
+                key: 'rubber-sheets',
+                label: 'Rubber Sheets',
+                route: '/menu/rubber-sheets',
+                tooltip: 'Rubber Sheets',
+                description: 'Lay sketches and scans on the map by their corners',
+                icon: IconPhotoPin,
             },
             {
                 key: 'files',

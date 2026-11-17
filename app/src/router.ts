@@ -229,6 +229,10 @@ const router = VueRouter.createRouter({
                     name: 'home-menu-fire-grids',
                     component: () => import('./components/CloudTAK/Menu/MenuFireGrids.vue')
                 },{
+                    path: 'rubber-sheets',
+                    name: 'home-menu-rubber-sheets',
+                    component: () => import('./components/CloudTAK/Menu/MenuRubberSheets.vue')
+                },{
                     path: 'routes/new',
                     name: 'home-menu-routes-new',
                     component: () => import('./components/CloudTAK/Menu/MenuRoutesNew.vue')

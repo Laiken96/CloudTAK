@@ -177,6 +177,21 @@ export interface DBKV {
     value: string;
 }
 
+/** A rubber sheet: an image laid on the map by its four corners, kept on this device */
+export interface DBRubberSheet {
+    id: string;
+    name: string;
+    visible: boolean;
+    opacity: number;
+    /** Top left, top right, bottom right, bottom left as [lng, lat] */
+    corners: [[number, number], [number, number], [number, number], [number, number]];
+    /** Image size in pixels */
+    width: number;
+    height: number;
+    image: Blob;
+    created: string;
+}
+
 export interface DBVideo {
     id: string;
     created: string;
@@ -321,6 +336,7 @@ export type DatabaseType = Dexie & {
     feature: EntityTable<DBFeature, 'id'>,
     breadcrumb: EntityTable<DBBreadcrumb, 'id'>,
     feature_history: EntityTable<DBFeatureHistory, 'id'>,
+    rubber_sheet: EntityTable<DBRubberSheet, 'id'>,
     chatroom: EntityTable<DBChatroom, 'id'>,
     chatroom_chats: EntityTable<DBChatroomChat, 'id'>,
     notification: EntityTable<DBNotification, 'id'>,
@@ -398,6 +414,10 @@ db.version(5).stores({
 
 db.version(6).stores({
     feature_history: 'id, uid, time, [uid+time]',
+});
+
+db.version(7).stores({
+    rubber_sheet: 'id, name',
 });
 
 let reopenPromise: Promise<void> | null = null;

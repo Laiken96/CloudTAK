@@ -16,6 +16,7 @@ import {
     lv95ToWgs,
     parseDesignation,
     parseFireGridLink,
+    parseLv95,
     spoken,
     validateFireGrid,
     wgsToLv95,
@@ -101,6 +102,21 @@ describe('LV95', () => {
         const [E, N] = wgsToLv95(47.45077000975388, 7.053562823310347);
         expect(E).toBeCloseTo(2570958.3333, 3);
         expect(N).toBeCloseTo(1255625, 3);
+    });
+});
+
+describe('parseLv95', () => {
+    it('reads LV95 pairs as written on Swiss maps and lists', () => {
+        for (const text of ['2570958 1255625', '2570958/1255625', "2'570'958, 1'255'625", '2 570 958 / 1 255 625', 'E 2570958 N 1255625']) {
+            expect(parseLv95(text)).toEqual([2570958, 1255625]);
+        }
+        expect(parseLv95('2570958.4 1255625.6')).toEqual([2570958.4, 1255625.6]);
+    });
+
+    it('rejects other coordinates', () => {
+        for (const text of ['570958 255625', '32TLT5327257094', '47.45, 7.05', '1255625 2570958']) {
+            expect(parseLv95(text)).toBeNull();
+        }
     });
 });
 

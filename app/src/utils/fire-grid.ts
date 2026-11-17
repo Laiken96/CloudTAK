@@ -198,6 +198,19 @@ export function lv95ToLngLat(E: number, N: number): [number, number] {
     return [lng, lat];
 }
 
+/**
+ * Read an LV95 coordinate pair as written on Swiss maps and lists:
+ * `2570958 1255625`, `2 570 958 / 1 255 625`, `2'570'958, 1'255'625`.
+ * Null if the text is no LV95 pair.
+ */
+export function parseLv95(text: string): [number, number] | null {
+    const clean = text.trim().replace(/(\d)['’\u2009\u202f ](?=\d{3}(?!\d))/g, '$1');
+    const m = clean.match(/^E?\s*(2\d{6}(?:\.\d+)?)\s*(?:[,/;]|\s)\s*N?\s*(1\d{6}(?:\.\d+)?)\s*$/i);
+    if (!m) return null;
+
+    return [Number(m[1]), Number(m[2])];
+}
+
 /** The cell and fine field at a GeoJSON position, null outside the grid or Switzerland */
 export function cellAt(P: FireGridParams, lng: number, lat: number): Required<FireGridCell> | null {
     if (!inSwitzerland(lat, lng)) return null;
