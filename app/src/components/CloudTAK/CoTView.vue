@@ -355,6 +355,8 @@
                             @update:model-value='updateCoordinates($event)'
                         />
 
+                        <PropertyFireGrid :coordinates='center' />
+
                         <PropertyElevation
                             v-if='center.length > 2'
                             :key='String(route.params.uid)'
@@ -595,6 +597,7 @@ import PropertyMission from './Property/PropertyMission.vue';
 import PropertyOrigin from './Property/PropertyOrigin.vue';
 import PropertyRemarks from './Property/PropertyRemarks.vue';
 import PropertyHashtags from './Property/PropertyHashtags.vue';
+import PropertyFireGrid from './Property/PropertyFireGrid.vue';
 import PropertyBattery from './Property/PropertyBattery.vue';
 import PropertyFactRow from './util/PropertyFactRow.vue';
 import PropertyTabs, { type PropertyTab } from './util/PropertyTabs.vue';

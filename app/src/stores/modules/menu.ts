@@ -19,6 +19,7 @@ import {
     IconAffiliate,
     IconHistory,
     IconHash,
+    IconGrid3x3,
 } from '@tabler/icons-vue';
 import ProfileConfig from '../../base/profile.ts';
 import ContactManager from '../../base/contact.ts';
@@ -184,6 +185,14 @@ export default class MenuManager {
                 tooltip: 'Hashtags',
                 description: 'Features grouped by the hashtags in their remarks',
                 icon: IconHash,
+            },
+            {
+                key: 'fire-grids',
+                label: 'Fire Grid',
+                route: '/menu/fire-grids',
+                tooltip: 'Fire Grid',
+                description: 'Einheitsfeuerplan grids, cell lookup like D2/6',
+                icon: IconGrid3x3,
             },
             {
                 key: 'files',

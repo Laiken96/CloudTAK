@@ -168,6 +168,8 @@ import { server } from '../../../std.ts'
 import { useMapStore } from '../../../stores/map.ts';
 import COT from '../../../base/cot.ts';
 import OverlayManager from '../../../base/overlay.ts';
+import FireGrids, { type FireGridHit } from '../../../base/fire-grids.ts';
+import { fireGridCenter, fireGridShowZoom, lv95ToLngLat } from '../../../utils/fire-grid.ts';
 import type { DBOverlay } from '../../../database.ts';
 import type { SearchSuggest } from '../../../types.ts';
 import {
@@ -193,6 +195,7 @@ import {
     IconMapSearch,
     IconMapPinStar,
     IconCurrentLocation,
+    IconGrid3x3,
     IconBuildingHospital,
     IconBuildingCommunity
 } from '@tabler/icons-vue';
@@ -214,6 +217,7 @@ type Option = {
     overlay?: DBOverlay;
     coordinates?: [number, number];
     item?: SuggestItem;
+    fireGrid?: FireGridHit;
 };
 
 const typeIcons: Record<SearchType, Component> = {
@@ -324,6 +328,7 @@ const activeIndex = ref(0);
 const listRef = ref<HTMLElement | null>(null);
 
 const coordinate = ref<[number, number] | null>(null);
+const fireGridHits = ref<Array<FireGridHit>>([]);
 const cots = ref<Array<{ cot: COT, detail?: string }>>([]);
 const overlayMatches = ref<Array<DBOverlay>>([]);
 const places = ref<Array<SuggestItem>>([]);
@@ -341,6 +346,20 @@ const options = computed<Array<Option>>(() => {
             detail: 'Go to coordinate',
             icon: IconCurrentLocation,
             coordinates: [lon, lat]
+        });
+    }
+
+    for (const hit of fireGridHits.value) {
+        const [E, N] = fireGridCenter(hit.grid, hit.cell);
+        list.push({
+            index: list.length,
+            id: `fire-grid-${hit.grid.id}`,
+            kind: 'coordinate',
+            label: hit.designation,
+            detail: `${hit.spoken} · ${hit.grid.name}`,
+            icon: IconGrid3x3,
+            coordinates: lv95ToLngLat(E, N),
+            fireGrid: hit
         });
     }
 
@@ -402,6 +421,8 @@ function optionId(option: Option): string {
 }
 
 onMounted(() => {
+    void FireGrids.load();
+
     if (props.initialValue) {
         selectedLabel.value = props.initialValue;
         filter.value = props.initialValue;
@@ -500,6 +521,7 @@ async function search(value: string): Promise<void> {
     const text = value.trim();
 
     coordinate.value = text ? parseCoordinate(text) : null;
+    fireGridHits.value = text && !coordinate.value ? FireGrids.find(text) : [];
 
     if (!text || coordinate.value) {
         cots.value = [];
@@ -623,7 +645,9 @@ async function addMarker(callsign: string, coordinates: [number, number]): Promi
 }
 
 async function select(option: Option, opts: { fly?: boolean } = {}): Promise<void> {
-    if (option.kind === 'coordinate' && option.coordinates) {
+    if (option.fireGrid && option.coordinates) {
+        selectFireGrid(option.fireGrid, option.coordinates);
+    } else if (option.kind === 'coordinate' && option.coordinates) {
         await selectCoordinate(option.coordinates);
     } else if (option.kind === 'feature' && option.cot) {
         await selectFeature(option.cot, opts.fly === true);
@@ -645,6 +669,18 @@ async function selectCoordinate(coordinates: [number, number]): Promise<void> {
     await addMarker('Search Feature', coordinates);
 
     applySelection(`${lat.toFixed(5)}, ${lon.toFixed(5)}`, coordinates);
+}
+
+/** Show an Einheitsfeuerplan cell or fine field; no marker, the outline fades */
+function selectFireGrid(hit: FireGridHit, coordinates: [number, number]): void {
+    mapStore.map.flyTo({
+        center: coordinates,
+        zoom: fireGridShowZoom(hit.grid)
+    });
+
+    mapStore.fireGrid.highlight(hit.grid, hit.cell);
+
+    applySelection(hit.designation, coordinates);
 }
 
 async function selectFeature(cot: COT, fly: boolean): Promise<void> {

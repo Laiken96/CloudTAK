@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto';
 import { mount, flushPromises } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,6 +7,7 @@ const push = vi.fn();
 const overlayList = vi.fn(async () => [] as unknown[]);
 const loadedFrom = vi.fn();
 const flyTo = vi.fn();
+const highlight = vi.fn();
 const fitBounds = vi.fn();
 const dbAdd = vi.fn();
 const dbSearch = vi.fn<(query: string, opts: unknown) => Promise<Set<unknown>>>(async () => new Set());
@@ -21,6 +23,7 @@ vi.mock('../../../stores/map.ts', () => ({
             flyTo,
             fitBounds
         },
+        fireGrid: { highlight },
         worker: {
             db: { search: dbSearch, add: dbAdd },
             profile: { creator: async () => ({ uid: 'me', callsign: 'Me', type: 'a-f-G' }) }
@@ -44,6 +47,8 @@ vi.mock('./FeatureRow.vue', () => ({
 }));
 
 import SearchBox from './SearchBox.vue';
+import FireGrids from '../../../base/fire-grids.ts';
+import { FIRE_GRID_DEFAULTS, fireGridCenter, fireGridShowZoom, lv95ToLngLat } from '../../../utils/fire-grid.ts';
 
 const icons: Record<string, string> = {
     address: 'tabler-icon-home',
@@ -94,6 +99,8 @@ describe('CloudTAK/util/SearchBox', () => {
         loadedFrom.mockReset();
         overlayList.mockReset();
         overlayList.mockResolvedValue([]);
+        highlight.mockReset();
+        FireGrids.state.grids = [];
     });
 
     it('shows a distinct icon for every search type', async () => {
@@ -299,6 +306,33 @@ describe('CloudTAK/util/SearchBox', () => {
             name: '39.73920, -104.99030',
             coordinates: [-104.9903, 39.7392]
         }]]);
+    });
+
+    it('finds an Einheitsfeuerplan cell in a shown fire grid and outlines it', async () => {
+        const grid = { id: 'efp', name: 'EFP MERKUR', visible: true, ...FIRE_GRID_DEFAULTS };
+        FireGrids.state.grids = [grid];
+        FireGrids.state.loaded = true;
+
+        const wrapper = await search([], 'd2/6');
+        expect(labels(wrapper)[0]).toEqual('D2/6');
+        expect(wrapper.text()).toContain('Delta Two Six · EFP MERKUR');
+
+        await wrapper.find('input').trigger('keydown', { key: 'Enter' });
+        await flushPromises();
+
+        const center = lv95ToLngLat(...fireGridCenter(grid, { i: 4, j: 2, k: 6 }));
+        expect(flyTo).toHaveBeenCalledWith({ center, zoom: fireGridShowZoom(grid) });
+        expect(highlight).toHaveBeenCalledWith(grid, { i: 4, j: 2, k: 6 });
+        expect(dbAdd).not.toHaveBeenCalled();
+        expect(wrapper.emitted('select')).toEqual([[{ name: 'D2/6', coordinates: center }]]);
+    });
+
+    it('offers no cell of a hidden fire grid', async () => {
+        FireGrids.state.grids = [{ id: 'efp', name: 'EFP MERKUR', visible: false, ...FIRE_GRID_DEFAULTS }];
+        FireGrids.state.loaded = true;
+
+        const wrapper = await search([], 'D2/6');
+        expect(labels(wrapper)).not.toContain('D2/6');
     });
 
     it('only searches overlays when enabled', async () => {

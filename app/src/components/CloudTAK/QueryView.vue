@@ -46,6 +46,11 @@
             class='mx-2 py-2'
         />
 
+        <PropertyFireGrid
+            v-if='coords'
+            :coordinates='coords'
+        />
+
         <template v-if='coords && coords.length >= 2'>
             <div class='px-2 py-2'>
                 <button
@@ -116,6 +121,7 @@ import {
     TablerIconButton
 } from '@tak-ps/vue-tabler';
 import Coordinate from './util/Coordinate.vue';
+import PropertyFireGrid from './Property/PropertyFireGrid.vue';
 import MenuTemplate from './util/MenuTemplate.vue';
 import CreateCoreEntity from './util/CreateCoreEntity.vue';
 
