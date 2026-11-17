@@ -43,26 +43,27 @@ export function clearOverlayTileJSON(id: number): void {
     entries.delete(id);
 }
 
-// API host plus the hosted PMTiles host, cached in KV so it resolves offline
+// API host plus the hosted PMTiles host. Asked from the server on every start so
+// a changed tile server URL takes effect; the copy in KV only serves offline.
 async function resolveTokenHosts(): Promise<{ hosts: Set<string>; complete: boolean }> {
     const hosts = new Set<string>([new URL(serverUrl).hostname]);
 
-    let tilesUrl = await KV.value(TILES_URL_KEY);
+    let tilesUrl: string | undefined;
     let complete = true;
 
-    if (!tilesUrl) {
-        try {
-            const res = await server.GET('/api/config/tiles');
-            if (res.data?.url) {
-                tilesUrl = res.data.url;
-                await KV.generate(TILES_URL_KEY, tilesUrl);
-            } else {
-                complete = false;
-            }
-        } catch (err) {
-            complete = false;
-            console.warn('Failed to resolve hosted tile server URL', err);
+    try {
+        const res = await server.GET('/api/config/tiles');
+        if (res.data?.url) {
+            tilesUrl = res.data.url;
+            if (await KV.value(TILES_URL_KEY) !== tilesUrl) await KV.update(TILES_URL_KEY, tilesUrl);
         }
+    } catch (err) {
+        console.warn('Failed to resolve hosted tile server URL', err);
+    }
+
+    if (!tilesUrl) {
+        tilesUrl = await KV.value(TILES_URL_KEY);
+        if (!tilesUrl) complete = false;
     }
 
     if (tilesUrl) {
