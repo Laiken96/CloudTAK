@@ -14,7 +14,7 @@
             role='alert'
         >
             <div class='d-flex align-items-center'>
-                <IconInfoCircle /><span class='mx-1'>Select up to&nbsp;<span v-text='props.limit' />&nbsp;Channel<span v-text='props.limit > 1 ? "s" : ""' /></span>
+                <IconInfoCircle /><span class='mx-1'>Select up to&nbsp;<span v-text='props.limit' />&nbsp;<span v-text='props.limit > 1 ? "Channels" : "Channel"' /></span>
             </div>
         </div>
 

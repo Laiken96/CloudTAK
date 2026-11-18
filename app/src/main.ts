@@ -1,4 +1,5 @@
 import { createApp, watch } from 'vue'
+import i18n from './i18n/index.ts';
 import { PluginAPI } from '../plugin.ts';
 import type { PluginStatic, PluginInstance } from '../plugin.ts'
 import router from './router.ts'
@@ -93,6 +94,7 @@ window.addEventListener('error', async (e) => {
 }, true);
 
 const app = createApp(App);
+app.use(i18n);
 const pinia = createPinia()
 
 app.config.errorHandler = vueErrorHandler;

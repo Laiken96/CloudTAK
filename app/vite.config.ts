@@ -3,6 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vue from '@vitejs/plugin-vue'
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { createI18nTransform } from './src/i18n/compiler.ts';
+import { i18nScriptPlugin } from './src/i18n/script-transform.ts';
+
+// UI translations: static template text with an entry here becomes a $tr() lookup
+const i18nDictionary = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, 'src/i18n/de.json'), 'utf8')) as Record<string, string>;
+const i18nValues = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, 'src/i18n/de.values.json'), 'utf8')) as Record<string, string>;
 
 const milsymbolBrowserBundle = path.resolve(import.meta.dirname, 'node_modules/milsymbol/dist/milsymbol.js');
 
@@ -69,10 +75,12 @@ export default defineConfig(({ mode }) => {
             'import.meta.env.HASH': JSON.stringify(Math.random().toString(36).substring(2, 15)),
         },
         plugins: [
+            i18nScriptPlugin(i18nDictionary, path.resolve(import.meta.dirname, 'src')),
             vue({
                 template: {
                     compilerOptions: {
                         isCustomElement: (tag) => videoJsElements.has(tag),
+                        nodeTransforms: [createI18nTransform(i18nDictionary, i18nValues)],
                     },
                 },
             }),

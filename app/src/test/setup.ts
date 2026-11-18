@@ -41,3 +41,9 @@ globalThis.process = {
 if (typeof self === 'undefined') {
   (globalThis as any).self = globalThis
 }
+
+// Templates compiled with the i18n transform call $tr(); components mounted
+// in tests get the same global as the real app (English in tests).
+import { config as testUtilsConfig } from '@vue/test-utils'
+import { tr, trValue } from '../i18n/index.ts'
+testUtilsConfig.global.mocks = { ...testUtilsConfig.global.mocks, $tr: tr, $trv: trValue }

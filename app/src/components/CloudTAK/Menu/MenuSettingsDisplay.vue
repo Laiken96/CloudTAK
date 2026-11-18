@@ -11,6 +11,8 @@
                     placeholder='Search settings...'
                 />
 
+                <LanguageSetting />
+
                 <div class='d-flex flex-column gap-2'>
                     <StandardItem
                         v-for='item of filteredSettings'
@@ -94,6 +96,7 @@ import {
 } from '@tabler/icons-vue';
 import MenuTemplate from '../util/MenuTemplate.vue';
 import StandardItem from '../util/StandardItem.vue';
+import LanguageSetting from '../../../i18n/LanguageSetting.vue';
 import type { Profile, Profile_Update } from '../../../types.ts';
 import {
     TablerEnum,
