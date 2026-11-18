@@ -308,6 +308,87 @@ describe('service-worker registration lifecycle', () => {
         expect(event.detail.registration).toBeNull();
     });
 
+    it('activates a waiting worker of the running build without announcing', async () => {
+        const waiting = { scriptURL: 'https://example.com/sw.js?build=same', postMessage: vi.fn() };
+        const registration = makeRegistration({ waiting: waiting as unknown as ServiceWorker });
+        installServiceWorkerMock({
+            controller: { scriptURL: 'https://example.com/sw.js?build=same' } as ServiceWorker,
+            registration,
+        });
+        vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{"manifest":"a"}', { status: 200 }));
+
+        const updateHandler = vi.fn();
+        window.addEventListener('sw:update-available', updateHandler);
+
+        initServiceWorker();
+        windowLoadListener?.();
+        await flushPromises();
+        await flushPromises();
+
+        expect(updateHandler).not.toHaveBeenCalled();
+        expect(waiting.postMessage).toHaveBeenCalledWith('SKIP_WAITING');
+    });
+
+    it('does not announce a reinstalled worker of the running build', async () => {
+        const registration = makeRegistration();
+        installServiceWorkerMock({
+            controller: { scriptURL: 'https://example.com/sw.js?build=same' } as ServiceWorker,
+            registration,
+        });
+        vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{"manifest":"a"}', { status: 200 }));
+
+        const updateHandler = vi.fn();
+        window.addEventListener('sw:update-available', updateHandler);
+
+        initServiceWorker();
+        windowLoadListener?.();
+        await flushPromises();
+        await flushPromises();
+
+        const updatefound = registration.addEventListener.mock.calls
+            .find((c: unknown[]) => c[0] === 'updatefound')?.[1] as (() => void) | undefined;
+
+        const worker = {
+            state: 'installing',
+            scriptURL: 'https://example.com/sw.js?build=same',
+            addEventListener: vi.fn(),
+            postMessage: vi.fn(),
+        };
+        registration.installing = worker as unknown as ServiceWorker;
+        updatefound?.();
+
+        const statechange = worker.addEventListener.mock.calls
+            .find((c: unknown[]) => c[0] === 'statechange')?.[1] as (() => void) | undefined;
+        worker.state = 'installed';
+        statechange?.();
+
+        expect(updateHandler).not.toHaveBeenCalled();
+        expect(worker.postMessage).toHaveBeenCalledWith('SKIP_WAITING');
+    });
+
+    it('ignores a controllerchange that keeps the same build', async () => {
+        installServiceWorkerMock({
+            controller: { scriptURL: 'https://example.com/sw.js?build=same' } as ServiceWorker,
+        });
+        vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{"manifest":"a"}', { status: 200 }));
+
+        const reload = vi.fn();
+        window.location.reload = reload;
+        const updateHandler = vi.fn();
+        window.addEventListener('sw:update-available', updateHandler);
+
+        initServiceWorker();
+        windowLoadListener?.();
+        await flushPromises();
+        await flushPromises();
+
+        container.controller = { scriptURL: 'https://example.com/sw.js?build=same' } as ServiceWorker;
+        controllerChangeListener?.();
+
+        expect(reload).not.toHaveBeenCalled();
+        expect(updateHandler).not.toHaveBeenCalled();
+    });
+
     it('applyServiceWorkerUpdate activates the waiting worker and reloads on controllerchange', async () => {
         installServiceWorkerMock({
             controller: { scriptURL: 'https://example.com/sw.js?build=old' } as ServiceWorker,

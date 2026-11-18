@@ -66,6 +66,30 @@ export function applyServiceWorkerUpdate(registration: ServiceWorkerRegistration
     }
 }
 
+/**
+ * The build id a worker was registered with (`/sw.js?build=<id>`).
+ */
+export function workerBuildId(scriptURL: string | null | undefined): string | null {
+    if (!scriptURL) return null;
+
+    try {
+        return new URL(scriptURL, 'http://localhost').searchParams.get('build');
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * True only when both workers carry the same known build id. WebKit (iOS
+ * Safari and Home Screen web apps) can install, wait or swap in a worker for
+ * the build that already controls the page; that is not an update and must
+ * not raise the banner.
+ */
+function isSameBuild(a: string | null | undefined, b: string | null | undefined): boolean {
+    const buildA = workerBuildId(a);
+    return buildA !== null && buildA === workerBuildId(b);
+}
+
 function announceUpdate(registration: ServiceWorkerRegistration | null): void {
     window.dispatchEvent(new CustomEvent('sw:update-available', {
         detail: { registration }
@@ -81,8 +105,13 @@ function observeRegistration(registration: ServiceWorkerRegistration): void {
     });
 
     if (registration.waiting && navigator.serviceWorker.controller) {
-        console.log('[SW] waiting worker already present on load — announcing update');
-        announceUpdate(registration);
+        if (isSameBuild(registration.waiting.scriptURL, navigator.serviceWorker.controller.scriptURL)) {
+            console.log('[SW] waiting worker is the build already running — activating without prompt');
+            registration.waiting.postMessage('SKIP_WAITING');
+        } else {
+            console.log('[SW] waiting worker already present on load — announcing update');
+            announceUpdate(registration);
+        }
     }
 
     registration.addEventListener('updatefound', () => {
@@ -93,6 +122,11 @@ function observeRegistration(registration: ServiceWorkerRegistration): void {
         worker.addEventListener('statechange', () => {
             console.log('[SW] installing worker statechange →', worker.state);
             if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                if (isSameBuild(worker.scriptURL, navigator.serviceWorker.controller.scriptURL)) {
+                    console.log('[SW] installed worker is the build already running — activating without prompt');
+                    worker.postMessage('SKIP_WAITING');
+                    return;
+                }
                 console.log('[SW] new worker installed while page is controlled — announcing update');
                 announceUpdate(registration);
             }
@@ -165,9 +199,12 @@ export function initServiceWorker(): void {
         // only a change away from an existing controller means another tab
         // activated a new build.
         let wasControlled = Boolean(navigator.serviceWorker.controller);
+        let controllerURL = navigator.serviceWorker.controller?.scriptURL ?? null;
 
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('[SW] controllerchange — new controller:', navigator.serviceWorker.controller?.scriptURL ?? 'none');
+            const previousURL = controllerURL;
+            controllerURL = navigator.serviceWorker.controller?.scriptURL ?? null;
+            console.log('[SW] controllerchange — new controller:', controllerURL ?? 'none');
 
             if (updateRequestedByThisTab) {
                 updateRequestedByThisTab = false;
@@ -179,6 +216,11 @@ export function initServiceWorker(): void {
             if (!wasControlled) {
                 console.log('[SW] controllerchange from first-install claim — ignoring');
                 wasControlled = true;
+                return;
+            }
+
+            if (isSameBuild(controllerURL, previousURL)) {
+                console.log('[SW] controllerchange kept the same build — ignoring');
                 return;
             }
 
