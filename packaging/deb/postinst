@@ -1,0 +1,17 @@
+#!/bin/sh
+# Nach der Installation bzw. einem Paket-Update
+set -e
+
+case "$1" in
+    configure)
+        if [ -f /opt/cloudtak/.env ]; then
+            echo "CloudTAK: Version $(cat /opt/cloudtak/VERSION) installiert, lade Images und starte neu"
+            cloudtak-pzbat12 update || echo "WARNUNG: Update der Container fehlgeschlagen - später 'sudo cloudtak-pzbat12 update' ausführen" >&2
+        else
+            echo "CloudTAK installiert. Einrichtung: sudo cloudtak-pzbat12 setup <domain>"
+            echo "Anleitung: /usr/share/doc/cloudtak-pzbat12/README.md"
+        fi
+        ;;
+esac
+
+exit 0

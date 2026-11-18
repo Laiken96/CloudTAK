@@ -1,0 +1,13 @@
+#!/bin/sh
+# Nach dem Entfernen: Daten werden bewusst nicht gelöscht
+set -e
+
+case "$1" in
+    purge)
+        echo "CloudTAK entfernt. Daten bleiben erhalten und müssen bei Bedarf von Hand gelöscht werden:"
+        echo "  /opt/cloudtak/.env, /opt/cloudtak/.docker-garage, Docker-Volume cloudtak_postgis-data"
+        echo "  Backups: /var/backups/cloudtak-pzbat12"
+        ;;
+esac
+
+exit 0

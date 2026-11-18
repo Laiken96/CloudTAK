@@ -1,0 +1,231 @@
+#!/usr/bin/env bash
+# cloudtak-pzbat12 – Betrieb des CloudTAK-Servers (PzBat 12)
+#
+# Teil des Debian-Pakets cloudtak-pzbat12. Die Container-Images der
+# installierten Paketversion stehen fest in /opt/cloudtak/IMAGE_TAG.
+set -euo pipefail
+
+APP_DIR="${CLOUDTAK_DIR:-/opt/cloudtak}"
+ENV_FILE="$APP_DIR/.env"
+BACKUP_DIR="${CLOUDTAK_BACKUP_DIR:-/var/backups/cloudtak-pzbat12}"
+CADDYFILE=/etc/caddy/Caddyfile
+COMPOSE_FILES="docker-compose.yml:docker-compose.pzbat12.yml"
+# Dienste der Anwendung (ohne Datenbank und Dateispeicher)
+APP_SERVICES=(api tiles events retention media)
+
+die() { echo "Fehler: $*" >&2; exit 1; }
+info() { echo "==> $*"; }
+
+usage() {
+    cat <<EOF
+Verwendung: cloudtak-pzbat12 <befehl>
+
+  setup <domain> [--no-caddy]  Ersteinrichtung: Geheimnisse erzeugen, HTTPS (Caddy)
+                               für <domain> und tiles.<domain>, Images laden, starten
+  start | stop | restart       Dienste starten, anhalten, neu starten
+  status                       Zustand der Container
+  logs [dienst]                Logs verfolgen (api, tiles, events, media, …)
+  update                       Images der installierten Paketversion laden und
+                               neu starten (macht apt bei einem Paket-Update selbst)
+  backup                       Datenbank, .env und Dateispeicher sichern
+                               nach $BACKUP_DIR
+  restore <archiv.tar.gz>      Sicherung zurückspielen (überschreibt alle Daten)
+  version                      Paket- und Image-Version
+EOF
+}
+
+need_root() {
+    [[ $EUID -eq 0 ]] || die "bitte mit sudo ausführen"
+}
+
+need_setup() {
+    [[ -f "$ENV_FILE" ]] || die "noch nicht eingerichtet – zuerst: sudo cloudtak-pzbat12 setup <domain>"
+}
+
+compose() {
+    (cd "$APP_DIR" && COMPOSE_FILE="$COMPOSE_FILES" docker compose "$@")
+}
+
+secret() {
+    openssl rand -hex "$1"
+}
+
+cmd_setup() {
+    need_root
+    local domain="" caddy=1
+    for arg in "$@"; do
+        case "$arg" in
+            --no-caddy) caddy=0 ;;
+            -*) die "unbekannte Option: $arg" ;;
+            *) domain="$arg" ;;
+        esac
+    done
+    [[ -n "$domain" ]] || die "Domain fehlt, z. B.: sudo cloudtak-pzbat12 setup cloudtak.example.ch"
+    [[ "$domain" =~ ^[A-Za-z0-9.-]+$ ]] || die "ungültige Domain: $domain"
+    [[ -f "$ENV_FILE" ]] && die "$ENV_FILE existiert bereits – Einrichtung ist schon erfolgt (Geheimnisse bleiben unverändert)"
+
+    for host in "$domain" "tiles.$domain"; do
+        getent hosts "$host" > /dev/null || echo "Warnung: $host löst (noch) nicht auf – DNS-Eintrag prüfen, sonst bekommt Caddy kein Zertifikat"
+    done
+
+    info "Erzeuge $ENV_FILE mit zufälligen Geheimnissen"
+    umask 077
+    cat > "$ENV_FILE" <<EOF
+# CloudTAK PzBat 12 – erzeugt von cloudtak-pzbat12 setup am $(date -I)
+# Enthält Geheimnisse: nicht weitergeben, im Backup enthalten.
+COMPOSE_FILE=$COMPOSE_FILES
+CLOUDTAK_Mode=docker-compose
+CLOUDTAK_Config_media_url=http://media
+SigningSecret=$(secret 32)
+ASSET_BUCKET=cloudtak
+AWS_S3_Endpoint=http://store:3900
+AWS_S3_AccessKeyId=GK$(secret 12)
+AWS_S3_SecretAccessKey=$(secret 32)
+GARAGE_RPC_SECRET=$(secret 32)
+POSTGRES=postgres://docker:docker@postgis:5432/gis
+API_URL=https://$domain
+PMTILES_URL=https://tiles.$domain
+WEB_PLUGINS=
+EOF
+    umask 022
+
+    if [[ $caddy -eq 1 ]]; then
+        command -v caddy > /dev/null || die "Caddy fehlt: sudo apt install caddy (oder setup mit --no-caddy)"
+        if [[ -f "$CADDYFILE" ]]; then
+            cp "$CADDYFILE" "$CADDYFILE.vor-cloudtak-$(date +%Y%m%d%H%M%S)"
+            info "Bisheriges Caddyfile gesichert"
+        fi
+        cat > "$CADDYFILE" <<EOF
+# cloudtak-pzbat12
+$domain {
+    reverse_proxy localhost:5000
+}
+
+tiles.$domain {
+    reverse_proxy localhost:5002
+}
+EOF
+        systemctl reload caddy || systemctl restart caddy
+        info "HTTPS über Caddy für $domain und tiles.$domain eingerichtet"
+    fi
+
+    cmd_update_images
+    echo
+    echo "Fertig. Weiter mit der Ersteinrichtung im Browser: https://$domain"
+    echo "Dort TAK-Server (Streaming 8089, API 8443, WebTAK 8446) und Admin-Zertifikat angeben."
+}
+
+cmd_update_images() {
+    info "Lade Images (Version $(cat "$APP_DIR/IMAGE_TAG"))"
+    compose pull
+    info "Starte Dienste"
+    compose up -d --remove-orphans
+    docker image prune -f > /dev/null || true
+}
+
+cmd_update() {
+    need_root
+    need_setup
+    cmd_update_images
+}
+
+cmd_backup() {
+    need_root
+    need_setup
+    local stamp work archive
+    stamp=$(date +%Y%m%d-%H%M%S)
+    work=$(mktemp -d)
+    archive="$BACKUP_DIR/cloudtak-$stamp.tar.gz"
+    mkdir -p "$BACKUP_DIR"
+    chmod 700 "$BACKUP_DIR"
+
+    info "Sichere Datenbank"
+    compose exec -T postgis pg_dump -U docker -d gis > "$work/gis.sql"
+    cp "$ENV_FILE" "$work/env"
+    info "Sichere Dateispeicher"
+    tar -C "$APP_DIR" -czf "$work/garage.tar.gz" .docker-garage
+    cat "$APP_DIR/VERSION" > "$work/VERSION"
+
+    tar -C "$work" -czf "$archive" .
+    chmod 600 "$archive"
+    rm -rf "$work"
+    info "Backup: $archive"
+}
+
+cmd_restore() {
+    need_root
+    local archive="${1:-}" work answer
+    [[ -f "$archive" ]] || die "Backup-Archiv fehlt oder nicht gefunden: $archive"
+
+    echo "Das überschreibt Datenbank, Dateispeicher und .env dieses Servers mit"
+    echo "  $archive"
+    read -r -p "Fortfahren? Zum Bestätigen 'ja' eingeben: " answer
+    [[ "$answer" == "ja" ]] || die "abgebrochen"
+
+    work=$(mktemp -d)
+    tar -C "$work" -xzf "$archive"
+    for f in gis.sql env garage.tar.gz; do
+        [[ -f "$work/$f" ]] || die "Archiv unvollständig, $f fehlt"
+    done
+
+    if [[ -f "$ENV_FILE" ]]; then
+        info "Halte Dienste an"
+        compose stop
+        # Adressen dieses Servers behalten (Backup kann von einem anderen stammen)
+        local key line
+        for key in API_URL PMTILES_URL COMPOSE_FILE; do
+            line=$(grep "^$key=" "$ENV_FILE" || true)
+            [[ -n "$line" ]] || continue
+            grep -v "^$key=" "$work/env" > "$work/env.tmp" || true
+            echo "$line" >> "$work/env.tmp"
+            mv "$work/env.tmp" "$work/env"
+        done
+    fi
+
+    info "Stelle .env und Dateispeicher wieder her"
+    install -m 600 "$work/env" "$ENV_FILE"
+    rm -rf "$APP_DIR/.docker-garage"
+    tar -C "$APP_DIR" -xzf "$work/garage.tar.gz"
+
+    info "Stelle Datenbank wieder her"
+    compose up -d postgis
+    for _ in $(seq 1 30); do
+        compose exec -T postgis pg_isready -U docker > /dev/null 2>&1 && break
+        sleep 2
+    done
+    compose exec -T postgis psql -U docker -d postgres -v ON_ERROR_STOP=1 \
+        -c 'DROP DATABASE IF EXISTS gis WITH (FORCE);' \
+        -c 'CREATE DATABASE gis OWNER docker;'
+    compose exec -T postgis psql -U docker -d gis -v ON_ERROR_STOP=1 -q < "$work/gis.sql" > /dev/null
+
+    rm -rf "$work"
+    info "Starte Dienste"
+    compose up -d --remove-orphans
+    info "Wiederherstellung abgeschlossen"
+}
+
+cmd_version() {
+    echo "Paket:  $(cat "$APP_DIR/VERSION")"
+    echo "Images: $(cat "$APP_DIR/IMAGE_TAG")"
+}
+
+main() {
+    local cmd="${1:-}"
+    [[ $# -gt 0 ]] && shift
+    case "$cmd" in
+        setup) cmd_setup "$@" ;;
+        start) need_root; need_setup; compose up -d --remove-orphans ;;
+        stop) need_root; need_setup; compose stop ;;
+        restart) need_root; need_setup; compose restart "${APP_SERVICES[@]}" ;;
+        status) need_setup; compose ps ;;
+        logs) need_setup; compose logs -f --tail 200 "$@" ;;
+        update) cmd_update ;;
+        backup) cmd_backup ;;
+        restore) cmd_restore "$@" ;;
+        version) cmd_version ;;
+        -h|--help|help|"") usage ;;
+        *) usage; exit 1 ;;
+    esac
+}
+
+main "$@"

@@ -1,0 +1,15 @@
+Package: cloudtak-pzbat12
+Version: {{VERSION}}
+Section: net
+Priority: optional
+Architecture: all
+Maintainer: Laiken96 <laiken96@users.noreply.github.com>
+Homepage: https://github.com/Laiken96/CloudTAK
+Depends: docker-ce | docker.io | moby-engine, docker-compose-plugin (>= 2.24.4) | docker-compose-v2 (>= 2.24.4), openssl, ca-certificates
+Recommends: caddy
+Description: CloudTAK für PzBat 12 (TAK-Web-App, deutsche Oberfläche)
+ Betriebsdateien für den CloudTAK-Fork von PzBat 12: Docker-Compose-Konfiguration
+ und der Befehl cloudtak-pzbat12 für Einrichtung, Update und Backup. Die
+ Anwendung läuft in Containern; die Images dieser Paketversion
+ (ghcr.io/laiken96/cloudtak-*) werden bei der Einrichtung bzw. beim Update
+ geladen.

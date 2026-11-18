@@ -1,24 +1,39 @@
 # CloudTAK-Server für PzBat 12
 
 Betrieb der eigenen CloudTAK-Version (deutsche Oberfläche, ATAK-Funktionen)
-auf einem Linux-Server mit fertigen Container-Images.
+auf einem Linux-Server. Installiert wird ein Debian-Paket, die Anwendung
+selbst läuft in fertigen Container-Images.
 
-## Wie die Images entstehen
+## Ablauf: vom Code zum Server
 
-Bei jedem Push auf den Branch `atak-symbole` baut GitHub Actions
-(`.github/workflows/pzbat12-images.yml`) vier Images und legt sie in der
-GitHub Container Registry ab:
+```
+Änderung am Mac ──git push──▶ GitHub Actions (Pipeline "PzBat12 Build")
+  (Branch atak-symbole)          1. baut die Container-Images → ghcr.io/laiken96/cloudtak-*
+                                 2. baut das Paket cloudtak-pzbat12_<version>_all.deb
+                                 3. veröffentlicht es als GitHub-Release
+                                          │
+Server ◀──── sudo apt install ./cloudtak-pzbat12_<version>_all.deb  (von Hand)
+```
 
-| Image | Aufgabe |
-|---|---|
-| `ghcr.io/laiken96/cloudtak-api` | Web-App und API |
-| `ghcr.io/laiken96/cloudtak-pmtiles` | Kachel-Server |
-| `ghcr.io/laiken96/cloudtak-events` | Importe (Datenpakete, Dateien) |
-| `ghcr.io/laiken96/cloudtak-retention` | Aufräumen alter Daten |
+- Pipeline: `.github/workflows/pzbat12-build.yml`, läuft bei jedem Push auf
+  `atak-symbole` (Dauer etwa 10 Minuten). Status: GitHub → Actions.
+- Jede Paketversion ist fest an die Images ihres Commits gebunden. Ein
+  Paket-Update ist damit das Update der ganzen Anwendung, ein älteres Paket
+  installieren ist der Weg zurück.
+- Auf den Server kommt nichts automatisch: neue Version = neues Paket installieren.
+- Releases: https://github.com/Laiken96/CloudTAK/releases
 
-Tags: `atak-symbole` (neuester Stand) und der volle Commit-SHA (feste Version).
-Datenbank, Dateispeicher und Video-Server kommen als öffentliche Standard-Images.
-Auf dem Server wird nichts gebaut.
+### Eigene Änderungen
+
+1. Am Mac ändern und lokal prüfen (Dev-Container `cloudtak-dev`:
+   `npx vitest run`, `npm run lint`, `npm run check`, `npm run build`;
+   Web-App unter `http://localhost:5080`).
+2. Committen und auf `atak-symbole` pushen.
+3. Warten, bis die Pipeline grün ist; das neue Release erscheint unter
+   Releases.
+4. Auf dem Server das neue Paket installieren (siehe Update).
+
+Texte der Oberfläche: `app/src/i18n/de.json` (englischer Text → deutsch).
 
 ## Voraussetzungen
 
@@ -32,98 +47,92 @@ Auf dem Server wird nichts gebaut.
 ## Installation
 
 ```bash
-# 1. Docker und Caddy (Webserver mit automatischem HTTPS)
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker "$USER"          # danach ab- und wieder anmelden
-sudo apt-get install -y caddy git
-
-# 2. Code holen (nur für Compose-Dateien und Skripte)
-sudo mkdir -p /opt/cloudtak && sudo chown "$USER" /opt/cloudtak
-git clone -b atak-symbole https://github.com/Laiken96/CloudTAK.git /opt/cloudtak
-cd /opt/cloudtak
-
-# 3. Konfiguration mit zufälligen Geheimnissen
-DOMAIN=cloudtak.example.ch               # anpassen
-cat > .env <<EOF
-COMPOSE_FILE=docker-compose.yml:docker-compose.pzbat12.yml
-CLOUDTAK_IMAGE_TAG=atak-symbole
-CLOUDTAK_Mode=docker-compose
-CLOUDTAK_Config_media_url=http://media
-SigningSecret=$(openssl rand -hex 32)
-ASSET_BUCKET=cloudtak
-AWS_S3_Endpoint=http://store:3900
-AWS_S3_AccessKeyId=GK$(openssl rand -hex 12)
-AWS_S3_SecretAccessKey=$(openssl rand -hex 32)
-GARAGE_RPC_SECRET=$(openssl rand -hex 32)
-POSTGRES=postgres://docker:docker@postgis:5432/gis
-API_URL=https://$DOMAIN
-PMTILES_URL=https://tiles.$DOMAIN
-WEB_PLUGINS=
-EOF
-chmod 600 .env
-
-# 4. HTTPS über Caddy
-sudo tee /etc/caddy/Caddyfile > /dev/null <<EOF
-$DOMAIN {
-    reverse_proxy localhost:5000
-}
-
-tiles.$DOMAIN {
-    reverse_proxy localhost:5002
-}
-EOF
-sudo systemctl reload caddy
-
-# 5. Images laden und starten
-docker compose pull
-docker compose up -d
+curl -LO https://github.com/Laiken96/CloudTAK/releases/latest/download/cloudtak-pzbat12.deb
+sudo apt install ./cloudtak-pzbat12.deb          # bringt Docker, Compose und Caddy mit
+sudo cloudtak-pzbat12 setup cloudtak.example.ch  # Domain anpassen
 ```
 
-Danach `https://cloudtak.example.ch` öffnen. Die Ersteinrichtung fragt nach
-dem TAK-Server (Streaming `ssl://…:8089`, API `https://…:8443`,
-WebTAK `https://…:8446`) und dem Admin-Zertifikat. Danach melden sich alle mit
-ihrem TAK-Konto an.
+`setup` erzeugt `/opt/cloudtak/.env` mit zufälligen Geheimnissen, richtet HTTPS
+über Caddy für die Domain und `tiles.<domain>` ein, lädt die Images und startet
+alles. Danach `https://cloudtak.example.ch` öffnen: Die Ersteinrichtung fragt
+nach dem TAK-Server (Streaming `ssl://…:8089`, API `https://…:8443`,
+WebTAK `https://…:8446`) und dem Admin-Zertifikat. Anschliessend melden sich
+alle mit ihrem TAK-Konto an.
 
-Die `.env` enthält die Geheimnisse des Servers: nicht ins Git, sicher aufbewahren.
+## Betrieb
+
+```bash
+sudo cloudtak-pzbat12 status            # Zustand der Container
+sudo cloudtak-pzbat12 logs api          # Logs verfolgen (api, tiles, events, media, …)
+sudo cloudtak-pzbat12 restart           # Anwendung neu starten
+sudo cloudtak-pzbat12 stop | start
+cloudtak-pzbat12 version                # installierte Paket- und Image-Version
+```
+
+Die Container starten nach einem Neustart des Servers von selbst.
 
 ## Update
 
-```bash
-cd /opt/cloudtak
-git pull
-docker compose pull
-docker compose up -d
-```
-
-Eine geprüfte Version festhalten: in der `.env` `CLOUDTAK_IMAGE_TAG=<commit-sha>`
-setzen (SHA aus `git log` oder aus der Registry), dann `docker compose up -d`.
-
-## Backup
+Neues Paket aus den Releases installieren, das Paket lädt die passenden Images
+und startet neu:
 
 ```bash
-./cloudtak.sh backup        # Datenbank nach ~/cloudtak-backups/cloudtak-<datum>.sql
+curl -LO https://github.com/Laiken96/CloudTAK/releases/latest/download/cloudtak-pzbat12.deb
+sudo apt install ./cloudtak-pzbat12.deb
 ```
 
-Zusätzlich sichern: `.env` und den Dateispeicher `.docker-garage/`
-(hochgeladene Dateien, Datenpakete). Ohne beide lässt sich ein Datenbank-Backup
-nicht vollständig wiederherstellen.
+Eine bestimmte (auch ältere) Version: die versionierte Datei aus dem jeweiligen
+Release installieren (`sudo apt install --allow-downgrades ./cloudtak-pzbat12_<version>_all.deb`).
+
+## Backup und Wiederherstellung
+
+```bash
+sudo cloudtak-pzbat12 backup                    # → /var/backups/cloudtak-pzbat12/cloudtak-<datum>.tar.gz
+sudo cloudtak-pzbat12 restore <archiv.tar.gz>   # überschreibt alle Daten, fragt nach
+```
+
+Das Archiv enthält Datenbank, `.env` (Geheimnisse) und Dateispeicher. Es
+gehört nicht auf den Server allein: regelmässig an einen zweiten Ort kopieren.
+Beim Wiederherstellen auf einem anderen Server bleiben dessen Adressen
+(`API_URL`, `PMTILES_URL`) erhalten.
+
+## Dateien auf dem Server
+
+| Pfad | Inhalt |
+|---|---|
+| `/opt/cloudtak/docker-compose*.yml`, `garage.toml` | vom Paket, bei Updates ersetzt |
+| `/opt/cloudtak/.env` | Konfiguration und Geheimnisse (von `setup`, bleibt bei Updates) |
+| `/opt/cloudtak/.docker-garage/` | Dateispeicher (Uploads, Datenpakete) |
+| Docker-Volume `cloudtak_postgis-data` | Datenbank |
+| `/etc/caddy/Caddyfile` | HTTPS (von `setup`) |
+| `/var/backups/cloudtak-pzbat12/` | Backups |
+
+Eigene Anpassungen an der Compose-Konfiguration (z. B. Video-Ports) nicht in
+die Dateien des Pakets schreiben, sondern in `/opt/cloudtak/docker-compose.local.yml`
+und in der `.env` an `COMPOSE_FILE` anhängen:
+`COMPOSE_FILE=docker-compose.yml:docker-compose.pzbat12.yml:docker-compose.local.yml`.
+
+Entfernen: `sudo apt remove cloudtak-pzbat12` hält die Container an, Daten
+bleiben erhalten.
 
 ## Sicherheit
 
 - Nur 22, 80 und 443 offen. API, Kacheln, Datenbank und Video-Server sind nur
   lokal gebunden (`docker-compose.pzbat12.yml`).
 - Die Instanz hält das Admin-Zertifikat des TAK-Servers: Server aktuell halten
-  (`sudo apt-get install unattended-upgrades`), SSH nur mit Schlüssel.
-- **Variante ohne öffentlichen Zugang:** Statt DNS und Caddy Tailscale auf dem
-  Server installieren und `tailscale serve` für 5000 und 5002 einrichten (wie auf
-  dem Mac). Dann braucht jedes Gerät die Tailscale-App, dafür ist keine
-  Firewall-Öffnung nötig.
+  (`sudo apt install unattended-upgrades`), SSH nur mit Schlüssel.
+- **Variante ohne öffentlichen Zugang:** `setup <domain> --no-caddy`, dann
+  Tailscale auf dem Server installieren und `tailscale serve` für 5000 und 5002
+  einrichten (wie auf dem Mac); `API_URL`/`PMTILES_URL` in der `.env` auf die
+  ts.net-Adressen setzen. Jedes Gerät braucht dann die Tailscale-App, dafür ist
+  keine Firewall-Öffnung nötig.
 
 ## Video-Streaming
 
 Die Video-Ports (RTSP 8554, RTMP 1935, HLS 8888, SRT 8890) sind nur lokal
-gebunden. Für Video in `docker-compose.pzbat12.yml` die benötigten Ports ohne
-`127.0.0.1:` eintragen und in der Firewall öffnen.
+gebunden. Für Video in `docker-compose.local.yml` beim Dienst `media` mit
+`ports: !override` alle Ports neu angeben, die benötigten ohne `127.0.0.1:`
+(siehe oben), und diese in der Firewall öffnen.
 
 ## Lizenz
 

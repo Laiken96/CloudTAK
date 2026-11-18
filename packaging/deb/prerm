@@ -1,0 +1,13 @@
+#!/bin/sh
+# Vor dem Entfernen: Container anhalten (Daten bleiben erhalten)
+set -e
+
+case "$1" in
+    remove)
+        if [ -f /opt/cloudtak/.env ]; then
+            cloudtak-pzbat12 stop || true
+        fi
+        ;;
+esac
+
+exit 0
