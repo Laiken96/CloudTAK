@@ -1,0 +1,57 @@
+# Server-Betrieb PzBat 12: fertige Images aus der GitHub Container Registry
+# statt lokal zu bauen. Wird zusammen mit docker-compose.yml verwendet, am
+# einfachsten über diese Zeile in der .env:
+#
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.pzbat12.yml
+#
+# Anleitung: SERVER-PZBAT12.md
+#
+# CLOUDTAK_IMAGE_TAG wählt die Version: "atak-symbole" (neuester Stand) oder
+# ein fester Commit-SHA, um eine geprüfte Version festzuhalten.
+services:
+    api:
+        build: !reset null
+        image: ghcr.io/laiken96/cloudtak-api:${CLOUDTAK_IMAGE_TAG:-atak-symbole}
+        # Nur Caddy (HTTPS) auf demselben Server spricht mit der API
+        ports: !override
+            - "127.0.0.1:5000:5000"
+
+    tiles:
+        build: !reset null
+        image: ghcr.io/laiken96/cloudtak-pmtiles:${CLOUDTAK_IMAGE_TAG:-atak-symbole}
+        ports: !override
+            - "127.0.0.1:5002:5002"
+        # Interne Dienste sprechen die API im Docker-Netz an
+        environment:
+            - API_URL=http://api:5000
+
+    events:
+        build: !reset null
+        image: ghcr.io/laiken96/cloudtak-events:${CLOUDTAK_IMAGE_TAG:-atak-symbole}
+        environment:
+            - API_URL=http://api:5000
+
+    retention:
+        build: !reset null
+        image: ghcr.io/laiken96/cloudtak-retention:${CLOUDTAK_IMAGE_TAG:-atak-symbole}
+        environment:
+            API_URL: http://api:5000
+
+    media:
+        environment:
+            - API_URL=http://api:5000
+        # Video-Ports nur lokal; für Video-Streaming gezielt öffnen
+        ports: !override
+            - "127.0.0.1:${MEDIA_PORT_API:-9997}:9997"
+            - "127.0.0.1:${MEDIA_PORT_RTSP:-8554}:8554"
+            - "127.0.0.1:${MEDIA_PORT_RTMP:-1935}:1935"
+            - "127.0.0.1:${MEDIA_PORT_HLS:-8888}:8888"
+            - "127.0.0.1:${MEDIA_PORT_SRT:-8890}:8890"
+
+    postgis:
+        # Benanntes Volume: Daten überleben das Neuerstellen des Containers
+        volumes:
+            - postgis-data:/var/lib/postgresql/data
+
+volumes:
+    postgis-data:
