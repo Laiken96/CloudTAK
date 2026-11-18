@@ -233,6 +233,10 @@ const router = VueRouter.createRouter({
                     name: 'home-menu-rubber-sheets',
                     component: () => import('./components/CloudTAK/Menu/MenuRubberSheets.vue')
                 },{
+                    path: 'grid-lines',
+                    name: 'home-menu-grid-lines',
+                    component: () => import('./components/CloudTAK/Menu/MenuGridLines.vue')
+                },{
                     path: 'routes/new',
                     name: 'home-menu-routes-new',
                     component: () => import('./components/CloudTAK/Menu/MenuRoutesNew.vue')

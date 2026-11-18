@@ -4,6 +4,7 @@ import type { useMapStore } from '../map.ts';
 import RubberSheets, { type RubberSheet } from '../../base/rubber-sheets.ts';
 import { moveQuad, quadCenter, type LngLat, type Quad } from '../../utils/rubbersheet.ts';
 import { FIRE_GRID_PREFIX } from './fire-grid.ts';
+import { GRID_LINES_LAYERS } from './grid-lines.ts';
 
 export const RUBBER_SHEET_PREFIX = 'rubber-sheet-';
 
@@ -167,8 +168,10 @@ export default class RubberSheetLayer {
         if (!this.initialized) return;
         const map = this.mapStore.map;
 
+        // Below the grid lines and fire grids, so their lines stay on top of the image
         const order = map.getLayersOrder();
-        const anchor = order.find((id) => id.startsWith(FIRE_GRID_PREFIX))
+        const anchor = order.find((id) => id === GRID_LINES_LAYERS[0])
+            ?? order.find((id) => id.startsWith(FIRE_GRID_PREFIX))
             ?? order.find((id) => id.startsWith('cloudtak-history'))
             ?? order.find((id) => id === '-1' || id.startsWith('-1-'));
         if (!anchor) return;

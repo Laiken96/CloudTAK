@@ -21,6 +21,7 @@ import {
     IconHash,
     IconGrid3x3,
     IconPhotoPin,
+    IconGrid4x4,
 } from '@tabler/icons-vue';
 import ProfileConfig from '../../base/profile.ts';
 import ContactManager from '../../base/contact.ts';
@@ -202,6 +203,14 @@ export default class MenuManager {
                 tooltip: 'Rubber Sheets',
                 description: 'Lay sketches and scans on the map by their corners',
                 icon: IconPhotoPin,
+            },
+            {
+                key: 'grid-lines',
+                label: 'Grid Lines',
+                route: '/menu/grid-lines',
+                tooltip: 'Grid Lines',
+                description: 'MGRS grid or latitude/longitude lines, as in ATAK',
+                icon: IconGrid4x4,
             },
             {
                 key: 'files',

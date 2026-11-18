@@ -19,6 +19,7 @@ import BottomBarManager from './modules/bottombar.ts';
 import HistoryLayer from './modules/history.ts';
 import FireGridLayer from './modules/fire-grid.ts';
 import RubberSheetLayer from './modules/rubber-sheet.ts';
+import GridLinesLayer from './modules/grid-lines.ts';
 import { useDeviceStore, type BatteryInfo, type NativeDeliveryOptions } from './device.ts';
 import { useAppStore } from './app.ts';
 import * as Comlink from 'comlink';
@@ -112,6 +113,7 @@ export const useMapStore = defineStore('cloudtak', {
         _history?: unknown;
         _fireGrid?: unknown;
         _rubberSheet?: unknown;
+        _gridLines?: unknown;
 
         _removeOrientationListener?: () => Promise<void>;
         _cotResync?: Promise<void>;
@@ -307,6 +309,10 @@ export const useMapStore = defineStore('cloudtak', {
         rubberSheet: function(): RubberSheetLayer {
             if (!this._rubberSheet) throw new Error('Rubber Sheet Layer has not yet initialized');
             return this._rubberSheet as RubberSheetLayer;
+        },
+        gridLines: function(): GridLinesLayer {
+            if (!this._gridLines) throw new Error('Grid Lines Layer has not yet initialized');
+            return this._gridLines as GridLinesLayer;
         },
         worker: function(): Comlink.Remote<Atlas> {
             if (!this._worker) throw new Error('Atlas worker has not yet started');
@@ -722,6 +728,15 @@ export const useMapStore = defineStore('cloudtak', {
                     console.error('Failed to destroy rubber sheet layer:', err);
                 }
                 this._rubberSheet = undefined;
+            }
+
+            if (this._gridLines) {
+                try {
+                    this.gridLines.destroy();
+                } catch (err) {
+                    console.error('Failed to destroy grid lines layer:', err);
+                }
+                this._gridLines = undefined;
             }
 
             if (this._map) {
@@ -1708,6 +1723,11 @@ export const useMapStore = defineStore('cloudtak', {
                 console.error('Failed to initialize rubber sheet layer:', err);
             });
 
+            this._gridLines = markRaw(new GridLinesLayer(this));
+            this.gridLines.init().catch((err: unknown) => {
+                console.error('Failed to initialize grid lines layer:', err);
+            });
+
             await FeatureVisibility.apply();
 
             // Mission loading is fire-and-forget so it does not block map init;
@@ -1849,6 +1869,7 @@ export const useMapStore = defineStore('cloudtak', {
             if (this._history) this.history.restack();
             if (this._fireGrid) this.fireGrid.restack();
             if (this._rubberSheet) this.rubberSheet.restack();
+            if (this._gridLines) this.gridLines.restack();
 
             this.updateBackground();
             await this.updateAttribution();
