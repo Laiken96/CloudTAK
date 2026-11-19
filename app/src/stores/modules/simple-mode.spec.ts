@@ -79,7 +79,7 @@ describe('simple mode', () => {
         expect(mode.isSimpleMode()).toBe(true);
     });
 
-    it('keeps only map layers and signatures in the main menu', async () => {
+    it('keeps only map layers, signatures and help in the main menu', async () => {
         const mode = await load();
         const { default: MenuManager } = await import('./menu.ts');
 
@@ -92,7 +92,7 @@ describe('simple mode', () => {
         expect(full).toContain('settings');
 
         mode.setSimpleMode(true);
-        expect(menu.items.value.map((item) => item.key)).toEqual(['signatures', 'overlays', 'basemaps']);
+        expect(menu.items.value.map((item) => item.key)).toEqual(['signatures', 'overlays', 'basemaps', 'help']);
 
         mode.setSimpleMode(false);
         expect(menu.items.value.map((item) => item.key)).toEqual(full);
