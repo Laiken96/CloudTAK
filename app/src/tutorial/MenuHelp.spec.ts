@@ -120,6 +120,7 @@ describe('MenuHelp', () => {
         expect(ids).toContain('menu-signatures');
         expect(ids).not.toContain('menu-fire-grids');
         expect(ids).not.toContain('draw-tools');
+        expect(ids).not.toContain('medevac');
 
         await wrapper.find('[data-testid="help-full-view"]').trigger('click');
         expect(isSimpleMode()).toBe(false);
