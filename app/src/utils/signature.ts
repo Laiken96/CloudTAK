@@ -63,3 +63,14 @@ export function signatureProperties(sig: Signature): Pick<Feature['properties'],
 
     return properties;
 }
+
+/**
+ * Readable name of an Iconset icon from its key or path - the file name
+ * without folders and extension, underscores as spaces:
+ * "<uid>:Taktische Punkte/Endpunkt_EP" => "Endpunkt EP"
+ */
+export function iconDisplayName(icon: string): string {
+    const path = icon.includes(':') ? icon.split(':').slice(1).join(':') : icon;
+    const file = (path.split('/').pop() || path).replace(/\.png$/i, '');
+    return file.replace(/_+/g, ' ').replace(/\s+/g, ' ').trim() || file;
+}

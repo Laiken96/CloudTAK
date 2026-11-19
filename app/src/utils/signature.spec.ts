@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { signatureFrom, signatureKey, signatureProperties } from './signature.ts';
+import { iconDisplayName, signatureFrom, signatureKey, signatureProperties } from './signature.ts';
 import { applyAppearance, draftFrom } from './appearance.ts';
 import type { Feature } from '../types.ts';
 
@@ -65,5 +65,14 @@ describe('signatureProperties', () => {
 
     it('tints a military symbol white so the affiliation colour shows', () => {
         expect(signatureProperties({ type: SIDC, color: '#FF0000' })).toEqual({ type: SIDC, 'marker-color': '#FFFFFF', 'marker-opacity': 1 });
+    });
+});
+
+describe('iconDisplayName', () => {
+    it('is the file name with underscores as spaces, for any Iconset', () => {
+        expect(iconDisplayName('11111111-2222-3333-4444-555555555555:Taktische Punkte/Endpunkt_EP')).toBe('Endpunkt EP');
+        expect(iconDisplayName('11111111-2222-3333-4444-555555555555/Waffen/Panzer__abwehr_kanone.png')).toBe('Panzer abwehr kanone');
+        expect(iconDisplayName('uid:Incident/Fire')).toBe('Fire');
+        expect(iconDisplayName('Fire.png')).toBe('Fire');
     });
 });
