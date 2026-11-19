@@ -97,8 +97,10 @@ import {
     IconCompass,
     IconCursorText,
     IconPencilPlus,
+    IconMedicalCross,
 } from '@tabler/icons-vue';
 import { useMapStore } from '../../stores/map';
+import { startMedevac } from './Medevac/medevac-draw.ts';
 import { useFloatStore } from '../../stores/float.ts';
 import {
     TablerNone,
@@ -127,6 +129,7 @@ const drawTools: DrawToolItem[] = [
     { key: 'range', label: 'Range & Bearing', icon: IconCompass, action: () => { openPane('range-bearing-input', 'Range & Bearing', RangeInput, 560); } },
     { key: 'range_rings', label: 'Range Rings', icon: IconTarget, action: () => { openPane('range-rings-input', 'Range Rings', RangeRingsInput, 640); } },
     { key: 'point', label: 'Draw Point', icon: IconPoint, action: () => { mapStore.draw.start(DrawToolMode.POINT); } },
+    { key: 'medevac', label: 'MEDEVAC', icon: IconMedicalCross, action: () => { void startMedevac(mapStore); } },
     { key: 'line', label: 'Draw Line', icon: IconLine, action: () => { mapStore.draw.start(DrawToolMode.LINESTRING); } },
     { key: 'polygon', label: 'Draw Polygon', icon: IconPolygon, action: () => { mapStore.draw.start(DrawToolMode.POLYGON); } },
     { key: 'rectangle', label: 'Draw Rectangle', icon: IconVector, action: () => { mapStore.draw.start(DrawToolMode.RECTANGLE); } },

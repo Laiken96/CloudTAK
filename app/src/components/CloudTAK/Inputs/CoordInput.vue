@@ -37,6 +37,7 @@
                 v-model='config.type'
                 class='pt-3'
                 :size='24'
+                :medevac='true'
             />
         </div>
 
