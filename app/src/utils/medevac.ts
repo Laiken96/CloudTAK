@@ -332,25 +332,25 @@ export function detailFromForm(form: MedevacForm, base?: MedevacDetail): Medevac
  * the choices, a choice clears None, and clearing everything falls back to
  * None - the state ATAK writes for a line nobody filled in
  */
-export function toggleChoice<K extends string>(
-    flags: Record<K, boolean>,
-    key: K,
+export function toggleChoice<F extends Record<string, boolean>>(
+    flags: F,
+    key: keyof F & string,
     value: boolean,
-    noneKey: K
-): Record<K, boolean> {
-    const next = { ...flags, [key]: value } as Record<K, boolean>;
+    noneKey: keyof F & string
+): F {
+    const next: Record<string, boolean> = { ...flags, [key]: value };
 
     if (key === noneKey && value) {
-        for (const k of Object.keys(next) as K[]) {
+        for (const k of Object.keys(next)) {
             if (k !== noneKey) next[k] = false;
         }
     } else if (key !== noneKey && value) {
         next[noneKey] = false;
     }
 
-    if (!(Object.keys(next) as K[]).some((k) => next[k])) next[noneKey] = true;
+    if (!Object.values(next).some(Boolean)) next[noneKey] = true;
 
-    return next;
+    return next as F;
 }
 
 // --- Line texts & readout (MedLineView.loadData / GenerateReadout) ---------

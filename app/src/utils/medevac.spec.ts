@@ -49,9 +49,14 @@ const ATAK_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     </detail>
 </event>`;
 
+/** The `_medevac_` element of a parsed CoT (node-cot does not type it) */
+function rawMedevac(cot: ReturnType<typeof CoTParser.from_xml>): unknown {
+    return (cot.raw.event.detail as Record<string, unknown> | undefined)?._medevac_;
+}
+
 /** The detail as parsed from the XML - independent of the node-cot patch */
 function atakDetail(): MedevacDetail {
-    return JSON.parse(JSON.stringify(CoTParser.from_xml(ATAK_XML).raw.event.detail._medevac_));
+    return JSON.parse(JSON.stringify(rawMedevac(CoTParser.from_xml(ATAK_XML))));
 }
 
 async function atakFeature() {
@@ -66,13 +71,13 @@ describe('node-cot _medevac_ pass-through (app/patches/@tak-ps+node-cot)', () =>
         const { cot, feat } = await atakFeature();
 
         expect(feat.properties.type).toBe(MEDEVAC_TYPE);
-        expect(feat.properties.medevac).toEqual(JSON.parse(JSON.stringify(cot.raw.event.detail._medevac_)));
+        expect(feat.properties.medevac).toEqual(JSON.parse(JSON.stringify(rawMedevac(cot))));
         expect(feat.properties.medevac.zMistsMap.zMist).toHaveLength(2);
     });
 
     it('round trips ATAK XML -> GeoJSON -> XML without losing the detail', async () => {
         const { cot, feat } = await atakFeature();
-        const original = JSON.parse(JSON.stringify(cot.raw.event.detail._medevac_));
+        const original = JSON.parse(JSON.stringify(rawMedevac(cot)));
 
         const xml = CoTParser.to_xml(await CoTParser.from_geojson(feat));
         expect(xml).toContain('<_medevac_ ');
@@ -80,7 +85,7 @@ describe('node-cot _medevac_ pass-through (app/patches/@tak-ps+node-cot)', () =>
         expect(xml).toContain('terrain_other_detail="Wires &amp; poles &lt;10m"');
 
         const reparsed = CoTParser.from_xml(xml);
-        expect(reparsed.raw.event.detail._medevac_).toEqual(original);
+        expect(rawMedevac(reparsed)).toEqual(original);
         expect(reparsed.type()).toBe(MEDEVAC_TYPE);
         expect(reparsed.callsign()).toBe('TEST.19.101500');
     });
@@ -95,7 +100,7 @@ describe('node-cot _medevac_ pass-through (app/patches/@tak-ps+node-cot)', () =>
         feat.properties.medevac = detailFromForm(form, feat.properties.medevac);
 
         const xml = CoTParser.to_xml(await CoTParser.from_geojson(feat));
-        const medevac = CoTParser.from_xml(xml).raw.event.detail._medevac_ as MedevacDetail;
+        const medevac = rawMedevac(CoTParser.from_xml(xml)) as MedevacDetail;
 
         expect(medevac._attributes).toMatchObject({
             routine: '4',
@@ -116,7 +121,7 @@ describe('node-cot _medevac_ pass-through (app/patches/@tak-ps+node-cot)', () =>
             geometry: { type: 'Point', coordinates: [7.5, 46.5] }
         });
 
-        expect(cot.raw.event.detail?._medevac_).toBeUndefined();
+        expect(rawMedevac(cot)).toBeUndefined();
         expect((await CoTParser.to_geojson(cot)).properties).not.toHaveProperty('medevac');
     });
 });
