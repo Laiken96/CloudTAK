@@ -13,6 +13,8 @@
 
                 <LanguageSetting />
 
+                <SimpleModeSetting data-testid='simple-mode-setting' />
+
                 <div class='d-flex flex-column gap-2'>
                     <StandardItem
                         v-for='item of filteredSettings'
@@ -97,6 +99,7 @@ import {
 import MenuTemplate from '../util/MenuTemplate.vue';
 import StandardItem from '../util/StandardItem.vue';
 import LanguageSetting from '../../../i18n/LanguageSetting.vue';
+import SimpleModeSetting from '../util/SimpleModeSetting.vue';
 import type { Profile, Profile_Update } from '../../../types.ts';
 import {
     TablerEnum,

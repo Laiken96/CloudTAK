@@ -92,7 +92,7 @@
                 @set-location='setLocation'
                 @to-location='toLocation'
             />
-            <PluginPane v-if='mode === "Default" && !isDrawing' />
+            <PluginPane v-if='mode === "Default" && !isDrawing && !simpleMode' />
             <FavoritesBar v-if='mode === "Default" && !isDrawing && !mapStore.selected.size' />
             <div
                 v-if='mapStore.selected.size'
@@ -127,6 +127,7 @@
             >
                 <div class='cloudtak-ctrl-group cloudtak-panel'>
                     <div
+                        v-if='!simpleMode'
                         role='button'
                         tabindex='0'
                         title='Search Button'
@@ -356,6 +357,7 @@ import { ref, watch, computed, toRaw, nextTick, onMounted, onBeforeUnmount, useT
 import GPSPanel from './GPSPanel/GPSPanel.vue';
 import PluginPane from './PluginPane.vue';
 import FavoritesBar from './FavoritesBar.vue';
+import { simpleMode } from '../../stores/modules/simple-mode.ts';
 import {useRoute, useRouter } from 'vue-router';
 import Navigating from './Navigating.vue';
 import TopBar from './TopBar.vue';

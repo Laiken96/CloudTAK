@@ -8,7 +8,14 @@
             :class='compact ? "flex-grow-1" : "cloudtak-panel px-2"'
             style='min-width: 0;'
         >
-            <ActiveMission :compact='compact' />
+            <SimpleModeExit
+                v-if='simpleMode'
+                :compact='compact'
+            />
+            <ActiveMission
+                v-else
+                :compact='compact'
+            />
         </div>
 
         <div
@@ -21,7 +28,11 @@
                 style='height: 32px;'
             />
 
-            <div class='position-relative'>
+            <!-- The simple view has no notifications or drawing tools -->
+            <div
+                v-if='!simpleMode'
+                class='position-relative'
+            >
                 <TablerDropdown>
                     <TablerIconButton
                         id='map-notifications'
@@ -54,9 +65,10 @@
                 />
             </div>
 
-            <DrawTools />
+            <DrawTools v-if='!simpleMode' />
 
             <div
+                v-if='!simpleMode'
                 class='border-start mx-1'
                 style='height: 32px;'
             />
@@ -105,6 +117,8 @@ import {
 import ActiveMission from './ActiveMission.vue';
 import Notifications from './Notifications.vue';
 import DrawTools from './DrawTools.vue';
+import SimpleModeExit from './util/SimpleModeExit.vue';
+import { simpleMode } from '../../stores/modules/simple-mode.ts';
 import TAKNotification, { NotificationType } from '../../base/notification.ts';
 import { useAppStore } from '../../stores/app.ts';
 

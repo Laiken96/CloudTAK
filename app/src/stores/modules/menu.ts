@@ -29,6 +29,7 @@ import ContactManager from '../../base/contact.ts';
 import Chatroom from '../../base/chatroom.ts';
 import type { Profile } from '../../types.ts';
 import { isNativePlatform } from '../../utils/capacitor.ts';
+import { menuItemVisible } from './simple-mode.ts';
 
 export type MenuItemConfig = {
     key: string;
@@ -295,6 +296,7 @@ export default class MenuManager {
                 if (item.routeExternal && native) return false;
                 if (item.requiresSystemAdmin && !this.isSystemAdmin.value) return false;
                 if (item.requiresAgencyAdmin && !(this.isAgencyAdmin.value || this.isSystemAdmin.value)) return false;
+                if (!menuItemVisible(item.key)) return false;
                 return true;
             });
 
