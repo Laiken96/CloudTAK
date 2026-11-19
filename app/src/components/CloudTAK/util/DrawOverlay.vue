@@ -14,6 +14,7 @@
                     </div>
                     <CoordinateType
                         v-model='mapStore.draw.point.type'
+                        :medevac='true'
                     />
                 </div>
 

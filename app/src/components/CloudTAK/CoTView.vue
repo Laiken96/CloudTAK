@@ -339,6 +339,16 @@
                         </div>
 
                         <div
+                            v-if='isMedevac(cot.properties)'
+                            class='px-2 py-2'
+                        >
+                            <MedevacRow
+                                :properties='cot.properties'
+                                @click='router.push(`/cot/${cot.id}/medevac`)'
+                            />
+                        </div>
+
+                        <div
                             v-for='guid of missionLinks'
                             :key='guid'
                             class='px-2 pb-2'
@@ -598,6 +608,8 @@ import PropertyOrigin from './Property/PropertyOrigin.vue';
 import PropertyRemarks from './Property/PropertyRemarks.vue';
 import PropertyHashtags from './Property/PropertyHashtags.vue';
 import PropertyFireGrid from './Property/PropertyFireGrid.vue';
+import MedevacRow from './Medevac/MedevacRow.vue';
+import { isMedevac } from '../../utils/medevac.ts';
 import PropertyBattery from './Property/PropertyBattery.vue';
 import PropertyFactRow from './util/PropertyFactRow.vue';
 import PropertyTabs, { type PropertyTab } from './util/PropertyTabs.vue';
