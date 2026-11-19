@@ -51,6 +51,7 @@ import { isNativePlatform, whenForegrounded } from '../utils/capacitor.ts';
 import { withTimeout } from '../utils/async.ts';
 import { db, suspendDatabase, resumeDatabase, liveQuery } from '../database.ts';
 import { serializeWorkerBootConfig } from '../utils/worker-boot.ts';
+import { isSignatureArmed } from '../base/signature-placement.ts';
 
 import type { ProfileOverlay, Feature } from '../types.ts';
 import type { LngLat, LngLatLike, Point, MapMouseEvent, MapGeoJSONFeature, GeoJSONSource, LayerSpecification, PropertyValueSpecification } from 'maplibre-gl';
@@ -1555,6 +1556,8 @@ export const useMapStore = defineStore('cloudtak', {
 
             map.on('click', async (e: MapMouseEvent) => {
                 if (this.draw.mode !== DrawToolMode.STATIC) return;
+                // A tap places the armed signature - see FavoritesBar
+                if (isSignatureArmed()) return;
 
                 if (this.radial.mode) {
                     this.radial.mode = undefined;
