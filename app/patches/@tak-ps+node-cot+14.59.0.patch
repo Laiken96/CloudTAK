@@ -1,0 +1,100 @@
+diff --git a/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js b/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js
+index 9074cf4..82b0dad 100644
+--- a/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js
++++ b/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js
+@@ -324,6 +324,10 @@ export async function from_geojson(feature, opts = {}) {
+             }
+         }
+     }
++    // PzBat12: ATAK MEDEVAC 9-Line detail (_medevac_) - see to_geojson
++    if (feature.properties.medevac && typeof feature.properties.medevac === 'object' && !Array.isArray(feature.properties.medevac)) {
++        cot.event.detail._medevac_ = JSON.parse(JSON.stringify(feature.properties.medevac));
++    }
+     cot.event.detail.remarks = { _attributes: {}, _text: feature.properties.remarks || '' };
+     if (!feature.geometry) {
+         throw new Err(400, null, 'Must have Geometry');
+diff --git a/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js b/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js
+index 93b425b..2be5970 100644
+--- a/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js
++++ b/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js
+@@ -531,6 +531,14 @@ export async function to_geojson(cot, opts = {}) {
+             delete feat.properties.icon;
+         }
+     }
++    // PzBat12: the ATAK MEDEVAC 9-Line detail (_medevac_) is passed through
++    // unchanged - attributes & child elements (eg zMistsMap) in xml-js compact
++    // form - so it survives the GeoJSON round trip
++    if (raw.event.detail._medevac_ && typeof raw.event.detail._medevac_ === 'object') {
++        const medevac = Array.isArray(raw.event.detail._medevac_) ? raw.event.detail._medevac_[0] : raw.event.detail._medevac_;
++        if (medevac && typeof medevac === 'object')
++            feat.properties.medevac = medevac;
++    }
+     feat.properties.metadata = cot.metadata;
+     feat.path = cot.path;
+     return feat;
+diff --git a/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js b/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js
+index 36a1793..cf5d024 100644
+--- a/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js
++++ b/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js
+@@ -118,6 +118,9 @@ export const Properties = Type.Object({
+     'fill': Type.Optional(Type.String()),
+     'fill-opacity': Type.Optional(Type.Number({ minimum: 0, maximum: 1 })),
+     metadata: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
++    medevac: Type.Optional(Type.Record(Type.String(), Type.Unknown(), {
++        description: 'PzBat12: ATAK MEDEVAC 9-Line detail (_medevac_) in xml-js compact form - attributes in _attributes, child elements (eg zMistsMap) unchanged'
++    })),
+     archived: Type.Optional(Type.Boolean({
+         description: 'Presence of the detail.archive tag - instructs the TAK client to locally archive this feature'
+     })),
+diff --git a/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts b/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts
+index 2631354..b8ef7be 100644
+--- a/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts
++++ b/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts
+@@ -411,6 +411,11 @@ export async function from_geojson(
+         }
+     }
+ 
++    // PzBat12: ATAK MEDEVAC 9-Line detail (_medevac_) - see to_geojson
++    if (feature.properties.medevac && typeof feature.properties.medevac === 'object' && !Array.isArray(feature.properties.medevac)) {
++        (cot.event.detail as Record<string, unknown>)._medevac_ = JSON.parse(JSON.stringify(feature.properties.medevac));
++    }
++
+     cot.event.detail.remarks = { _attributes: { }, _text: feature.properties.remarks || '' };
+ 
+     if (!feature.geometry) {
+diff --git a/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts b/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts
+index 01f7df9..21aa60e 100644
+--- a/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts
++++ b/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts
+@@ -669,6 +669,17 @@ export async function to_geojson(
+         }
+     }
+ 
++    // PzBat12: the ATAK MEDEVAC 9-Line detail (_medevac_) is passed through
++    // unchanged - attributes & child elements (eg zMistsMap) in xml-js compact
++    // form - so it survives the GeoJSON round trip
++    const rawMedevac = (raw.event.detail as Record<string, unknown>)._medevac_;
++    if (rawMedevac && typeof rawMedevac === 'object') {
++        const medevac = Array.isArray(rawMedevac) ? rawMedevac[0] : rawMedevac;
++        if (medevac && typeof medevac === 'object') {
++            feat.properties.medevac = medevac as Record<string, unknown>;
++        }
++    }
++
+     feat.properties.metadata = cot.metadata;
+     feat.path = cot.path;
+ 
+diff --git a/node_modules/@tak-ps/node-cot/lib/types/feature.ts b/node_modules/@tak-ps/node-cot/lib/types/feature.ts
+index b5f70a8..2407a69 100644
+--- a/node_modules/@tak-ps/node-cot/lib/types/feature.ts
++++ b/node_modules/@tak-ps/node-cot/lib/types/feature.ts
+@@ -164,6 +164,9 @@ export const Properties = Type.Object({
+     'fill': Type.Optional(Type.String()),
+     'fill-opacity': Type.Optional(Type.Number({ minimum: 0, maximum: 1 })),
+     metadata: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
++    medevac: Type.Optional(Type.Record(Type.String(), Type.Unknown(), {
++        description: 'PzBat12: ATAK MEDEVAC 9-Line detail (_medevac_) in xml-js compact form - attributes in _attributes, child elements (eg zMistsMap) unchanged'
++    })),
+     archived: Type.Optional(Type.Boolean({
+         description: 'Presence of the detail.archive tag - instructs the TAK client to locally archive this feature'
+     })),

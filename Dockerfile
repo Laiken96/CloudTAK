@@ -52,6 +52,15 @@ RUN npm install
 COPY api/ $HOME/api/
 COPY app/ $HOME/app/
 
+# PzBat12: npm install ran before app/patches was copied, so apply the
+# patch-package patches now. The node-cot patch (ATAK MEDEVAC _medevac_
+# pass-through) is needed by the API as well - git apply fails the build
+# if it no longer fits the installed node-cot.
+RUN cd $HOME/app \
+    && ./node_modules/.bin/patch-package --error-on-fail \
+    && cd $HOME/api \
+    && git apply --verbose ../app/patches/@tak-ps+node-cot+14.59.0.patch
+
 WORKDIR $HOME/api
 
 RUN WEB_PLUGINS="$WEB_PLUGINS" node bin/plugin.ts

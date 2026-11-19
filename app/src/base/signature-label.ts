@@ -1,7 +1,7 @@
 import COT from './cot.ts';
 import Icon from './icon.ts';
 import { describeAppearance, isTyped } from '../utils/appearance.ts';
-import { signatureProperties, type Signature } from '../utils/signature.ts';
+import { iconDisplayName, signatureProperties, type Signature } from '../utils/signature.ts';
 import type { Feature } from '../types.ts';
 
 /**
@@ -10,12 +10,11 @@ import type { Feature } from '../types.ts';
  */
 export async function signatureLabel(sig: Signature): Promise<string> {
     if (sig.icon) {
-        const path = sig.icon.split(':').slice(1).join(':').replace(/\.png$/i, '');
-        let name = path.split('/').pop() || path;
+        let name = iconDisplayName(sig.icon);
 
         try {
             const entry = await Icon.get(sig.icon.replace(/\.png$/i, ''));
-            if (entry) name = entry.path.split('/').pop()?.replace(/\.png$/i, '') || name;
+            if (entry) name = iconDisplayName(entry.path) || name;
         } catch (err) {
             console.warn('Could not resolve icon label:', err);
         }

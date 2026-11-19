@@ -49,7 +49,9 @@ describe('DrawOverlay point mode', () => {
         const wrapper = mount(DrawOverlay);
 
         expect(wrapper.find('.card-header .flex-column .point-label').text()).toBe('Draw Point');
-        expect(wrapper.findAll('.card-header input[name="point-type"]')).toHaveLength(5);
+        // Custom, Unknown, Friendly, Hostile, Neutral & MEDEVAC
+        expect(wrapper.findAll('.card-header input[name="point-type"]')).toHaveLength(6);
+        expect(wrapper.find('.card-header [title="MEDEVAC"]').exists()).toBe(true);
         expect(wrapper.find('.card-body').exists()).toBe(false);
         expect(wrapper.find('[title="Open Settings"]').exists()).toBe(false);
         expect(wrapper.find('[title="Finish Drawing"]').exists()).toBe(true);

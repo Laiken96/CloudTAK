@@ -14,6 +14,8 @@ import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { pipeline } from 'node:stream/promises';
 import { CoTParser, DataPackage, Iconset, Basemap } from '@tak-ps/node-cot';
 import { createImportResult } from './api.ts';
+import { withMedevac } from './medevac.ts';
+import { openNestedIconset } from './nested-iconset.ts';
 import { fetch } from '@tak-ps/node-safeurl';
 
 const SHAPEFILE_SIDECAR_EXTENSIONS = new Set(['.dbf', '.prj', '.qix', '.sbn', '.sbx', '.shx']);
@@ -106,7 +108,7 @@ export default class Worker extends EventEmitter {
 
         const cots = await pkg.cots();
         for (const cot of cots) {
-            const feat = await CoTParser.to_geojson(cot);
+            const feat = withMedevac(cot.raw, await CoTParser.to_geojson(cot));
 
             if (feat.properties.attachments) {
                 const attachments = await pkg.attachments();
@@ -219,6 +221,19 @@ export default class Worker extends EventEmitter {
 
                 if (['.zip', '.kmz'].includes(extLower) && !(await isZipFile(raw))) {
                     throw new Error(`Package content '${base}' is not a valid ZIP archive`);
+                }
+
+                // PzBat12: an Iconset zip inside a Data Package is installed as an Iconset
+                if (extLower === '.zip') {
+                    const nested = await openNestedIconset(raw);
+                    if (nested) {
+                        try {
+                            await this.processIconset(nested.xml, nested.pkg);
+                        } finally {
+                            await nested.pkg.destroy();
+                        }
+                        continue;
+                    }
                 }
 
                 await this.processFile({
