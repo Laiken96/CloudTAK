@@ -52,6 +52,7 @@ import { withTimeout } from '../utils/async.ts';
 import { db, suspendDatabase, resumeDatabase, liveQuery } from '../database.ts';
 import { serializeWorkerBootConfig } from '../utils/worker-boot.ts';
 import { isSignatureArmed } from '../base/signature-placement.ts';
+import { attachMapLongPress } from '../base/long-press.ts';
 
 import type { ProfileOverlay, Feature } from '../types.ts';
 import type { LngLat, LngLatLike, Point, MapMouseEvent, MapGeoJSONFeature, GeoJSONSource, LayerSpecification, PropertyValueSpecification } from 'maplibre-gl';
@@ -1661,6 +1662,9 @@ export const useMapStore = defineStore('cloudtak', {
                     lngLat
                 });
             });
+
+            // iOS Safari fires no contextmenu for a long press - see long-press.ts
+            attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC);
 
             OverlayManager.clearLoaded();
             const profileOverlays = await OverlayManager.list({ localFirst: true });
