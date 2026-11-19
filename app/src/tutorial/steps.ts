@@ -198,7 +198,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
         section: 'map',
         icon: IconHandClick,
         title: 'Long Press on the Map',
-        description: 'Long press an empty spot: the pencil creates a new object there, the question mark shows the position with fire grid cell, height and more.',
+        description: 'Long press an empty spot, with a mouse right-click: the pencil creates a new object there, the question mark shows the position with fire grid cell, height and more.',
     },
     { id: 'search', section: 'map', step: 'search', icon: IconSearch, views: ['full'] },
     { id: 'compass', section: 'map', step: 'compass', icon: IconCompass },
