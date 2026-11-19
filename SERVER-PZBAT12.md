@@ -59,6 +59,14 @@ nach dem TAK-Server (Streaming `ssl://…:8089`, API `https://…:8443`,
 WebTAK `https://…:8446`) und dem Admin-Zertifikat. Anschliessend melden sich
 alle mit ihrem TAK-Konto an.
 
+### Login mit Bat-Wappen
+
+Logo und Texte der Login-Seite sind Einstellungen der Instanz, nicht Teil des
+Pakets. Nach der Ersteinrichtung einmal setzen: im Admin-Bereich unter
+Konfiguration > Login-Einstellungen das Wappen als Logo hochladen (PNG oder SVG, mindestens
+etwa 450 Pixel hoch, sonst unscharf; die Login-Seite zeigt es 150 Pixel hoch
+und das App-Icon auf dem iPhone wird daraus in 512 Pixel erzeugt).
+
 ## Betrieb
 
 ```bash
