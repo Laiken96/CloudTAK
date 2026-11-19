@@ -10,8 +10,13 @@
  * Give the element it explains a `data-testid` and point `target` at it; set
  * `route` when the element is not on the map itself (e.g. `/menu`). A step
  * whose element is not shown is skipped, so a step for something hidden in
- * the simple view needs nothing more; `views` limits a step without an
- * element to one view.
+ * the simple view needs nothing more; `views` limits a step to one view (e.g.
+ * a text that only fits the full view).
+ *
+ * A function in the overview: one entry in HELP_ENTRIES - for a main menu
+ * entry with its `menuKey` (a test checks that every menu entry has one),
+ * for a control on the map with `step` (reusing a tour step) or its own
+ * `title`, `description` and `target`.
  */
 import type { Component } from 'vue';
 import {
@@ -30,6 +35,7 @@ import {
     IconCurrentLocation,
     IconBroadcast,
     IconCrosshair,
+    IconMedicalCross,
 } from '@tabler/icons-vue';
 import type { TourStep, TourView } from './tour.ts';
 
@@ -78,14 +84,16 @@ export const TOUR_STEPS: TourStep[] = [
         description: 'Tap an object to open its ring menu: the pencil moves or reshapes it, the bin deletes it, the list opens details such as name, remarks and appearance, the lock keeps the map on it (Lock On).',
     },
     {
-        id: 'search',
-        target: testid('map-search'),
-        title: 'Search',
-        description: 'Finds places, coordinates in degrees or LV95, callsigns, remarks and fire grid cells such as D2/6.',
+        id: 'map-controls',
+        target: testid('map-controls'),
+        views: ['full'],
+        title: 'Search and Compass',
+        description: 'The magnifier finds places, coordinates in degrees or LV95, callsigns and fire grid cells such as D2/6. The arrow turns the map back to north, a further tap turns it with your heading.',
     },
     {
         id: 'compass',
         target: testid('map-compass'),
+        views: ['simple'],
         title: 'North and Compass',
         description: 'If the map is rotated, a tap turns it back to north. Another tap makes the map turn with your heading, the next tap stops that.',
     },
@@ -106,6 +114,12 @@ export const TOUR_STEPS: TourStep[] = [
         target: testid('top-bar-draw-tools'),
         title: 'Drawing Tools',
         description: 'Draw points, lines, areas, circles and sectors, measure with Range & Bearing and Range Rings, enter coordinates or take a Quick Pic.',
+    },
+    {
+        id: 'medevac',
+        target: testid('top-bar-draw-tools'),
+        title: 'MEDEVAC 9-Line',
+        description: 'Report casualties: choose MEDEVAC in the drawing tools and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form; copy the readout for the radio.',
     },
     {
         id: 'menu-button',
@@ -188,9 +202,25 @@ export const HELP_ENTRIES: HelpEntry[] = [
         title: 'Long Press on the Map',
         description: 'Long press an empty spot: the pencil creates a new object there, the question mark shows the position with fire grid cell, height and more.',
     },
-    { id: 'search', section: 'map', step: 'search', icon: IconSearch, views: ['full'] },
+    {
+        id: 'search',
+        section: 'map',
+        icon: IconSearch,
+        views: ['full'],
+        target: testid('map-search'),
+        title: 'Search',
+        description: 'Finds places, coordinates in degrees or LV95, callsigns, remarks and fire grid cells such as D2/6.',
+    },
     { id: 'compass', section: 'map', step: 'compass', icon: IconCompass },
     { id: 'draw-tools', section: 'map', step: 'draw-tools', icon: IconPencilPlus, views: ['full'] },
+    {
+        id: 'medevac',
+        section: 'map',
+        step: 'medevac',
+        icon: IconMedicalCross,
+        views: ['full'],
+        description: 'Choose MEDEVAC in the drawing tools, or MEDEVAC as point type, and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form with the nine lines; it saves as you type and ATAK can read it. Copy the readout for the radio; patient details (ZMIST) are deliberately not shown.',
+    },
     {
         id: 'notifications',
         section: 'map',
@@ -380,7 +410,8 @@ export function resolveHelpEntry(entry: HelpEntry): ResolvedHelpEntry {
         title: entry.title ?? step?.title ?? '',
         description: entry.description ?? step?.description ?? '',
         icon: entry.icon,
-        views: entry.views ?? step?.views,
+        // The views of a tour step are about the tour, not about the function
+        views: entry.views,
     };
 
     if (target) {

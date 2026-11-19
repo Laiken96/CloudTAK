@@ -67,6 +67,12 @@ describe('function overview', () => {
         expect(text('grid-lines')).toContain('MGRS');
         expect(text('signatures').length).toBeGreaterThan(20);
         expect(tourStep('coordinates')?.description).toContain('LV95');
+
+        const medevac = resolveHelpEntry(HELP_ENTRIES.find((entry) => entry.id === 'medevac')!);
+        expect(medevac.description).toContain('MEDEVAC');
+        expect(medevac.description).toContain('readout');
+        expect(medevac.description).toContain('ZMIST');
+        expect(tourStep('medevac')?.target).toBe(tourStep('draw-tools')?.target);
     });
 });
 

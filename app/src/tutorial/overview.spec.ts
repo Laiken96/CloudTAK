@@ -60,8 +60,10 @@ describe('helpOverview', () => {
 
         expect(ids(sections, 'menu')).toEqual(['signatures', 'overlays', 'basemaps', 'help']);
         expect(ids(sections, 'map')).toContain('favorites-bar');
+        expect(ids(sections, 'map')).toContain('compass');
         expect(ids(sections, 'map')).not.toContain('search');
         expect(ids(sections, 'map')).not.toContain('draw-tools');
+        expect(ids(sections, 'map')).not.toContain('medevac');
         expect(ids(sections, 'map')).not.toContain('mission');
     });
 
@@ -112,5 +114,16 @@ describe('helpOverview', () => {
         expect(ids(gpx, 'menu')).toEqual(['routes']);
 
         expect(helpOverview(HELP_ENTRIES, menu.items.value, 'full', 'xyzzy')).toEqual([]);
+    });
+
+    it('explains MEDEVAC in the full view and highlights the drawing tools for it', () => {
+        const map = helpOverview(HELP_ENTRIES, [], 'full').find((s) => s.id === 'map')!;
+        const medevac = map.entries.find((entry) => entry.id === 'medevac')!;
+
+        expect(medevac.title).toBe('MEDEVAC 9-Line');
+        expect(medevac.description).toContain('ZMIST');
+        expect(medevac.show?.target).toBe('[data-testid="top-bar-draw-tools"]');
+        expect(map.entries.map((entry) => entry.id)).toContain('compass');
+        expect(map.entries.map((entry) => entry.id)).toContain('search');
     });
 });

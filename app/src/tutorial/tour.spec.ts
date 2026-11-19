@@ -89,6 +89,7 @@ const MAP_SIMPLE = [
     testid('gps-panel-coordinates'),
     testid('favorites-bar'),
     testid('favorites-bar-more'),
+    testid('map-controls'),
     testid('map-compass'),
     testid('simple-mode-indicator'),
     testid('top-bar-menu-open'),
@@ -99,6 +100,7 @@ const MAP_FULL = [
     testid('gps-panel-coordinates'),
     testid('favorites-bar'),
     testid('favorites-bar-more'),
+    testid('map-controls'),
     testid('map-search'),
     testid('map-compass'),
     testid('active-mission'),
@@ -295,8 +297,10 @@ describe('the tour of the app', () => {
 
         expect(shown).toContain('simple-indicator');
         expect(shown).toContain('favorites-bar');
-        expect(shown).not.toContain('search');
+        expect(shown).toContain('compass');
+        expect(shown).not.toContain('map-controls');
         expect(shown).not.toContain('draw-tools');
+        expect(shown).not.toContain('medevac');
         expect(shown).not.toContain('mission');
         expect(shown.length).toBeGreaterThanOrEqual(10);
         expect(shown.length).toBeLessThanOrEqual(15);
@@ -309,7 +313,8 @@ describe('the tour of the app', () => {
         const shown = await walk(controller, TOUR_STEPS);
 
         expect(shown).not.toContain('simple-indicator');
-        for (const id of ['gps-panel', 'coordinates', 'favorites-bar', 'objects', 'mission', 'menu-button', 'simple-toggle', 'overlays', 'basemaps', 'help']) {
+        expect(shown).not.toContain('compass');
+        for (const id of ['gps-panel', 'coordinates', 'favorites-bar', 'objects', 'map-controls', 'mission', 'draw-tools', 'medevac', 'menu-button', 'simple-toggle', 'overlays', 'basemaps', 'help']) {
             expect(shown).toContain(id);
         }
         expect(shown.length).toBeGreaterThanOrEqual(10);
