@@ -22,12 +22,14 @@ import {
     IconGrid3x3,
     IconPhotoPin,
     IconGrid4x4,
+    IconStar,
 } from '@tabler/icons-vue';
 import ProfileConfig from '../../base/profile.ts';
 import ContactManager from '../../base/contact.ts';
 import Chatroom from '../../base/chatroom.ts';
 import type { Profile } from '../../types.ts';
 import { isNativePlatform } from '../../utils/capacitor.ts';
+import { menuItemVisible } from './simple-mode.ts';
 
 export type MenuItemConfig = {
     key: string;
@@ -107,6 +109,14 @@ export default class MenuManager {
                 tooltip: 'Features',
                 description: 'Saved features, events, and devices',
                 icon: IconMapPin,
+            },
+            {
+                key: 'signatures',
+                label: 'Signatures',
+                route: '/menu/signatures',
+                tooltip: 'Signatures',
+                description: 'Favorite signatures for quick placement on the map',
+                icon: IconStar,
             },
             {
                 key: 'overlays',
@@ -286,6 +296,7 @@ export default class MenuManager {
                 if (item.routeExternal && native) return false;
                 if (item.requiresSystemAdmin && !this.isSystemAdmin.value) return false;
                 if (item.requiresAgencyAdmin && !(this.isAgencyAdmin.value || this.isSystemAdmin.value)) return false;
+                if (!menuItemVisible(item.key)) return false;
                 return true;
             });
 

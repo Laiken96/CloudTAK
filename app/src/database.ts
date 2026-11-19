@@ -192,6 +192,24 @@ export interface DBRubberSheet {
     created: string;
 }
 
+/**
+ * A favourite signature for quick placement, kept on this device. The id is
+ * the signature key (type, icon & colour) so the same signature is only kept once
+ */
+export interface DBFavoriteSignature {
+    id: string;
+    label: string;
+    /** CoT type or MIL-STD-2525 SIDC the placed object carries */
+    type: string;
+    /** Iconset icon key "<iconsetUid>:<path>" - unset for a military symbol or spot */
+    icon?: string;
+    /** marker-color for an icon or spot */
+    color?: string;
+    /** Position in the favourites bar, ascending */
+    sort: number;
+    created: string;
+}
+
 export interface DBVideo {
     id: string;
     created: string;
@@ -337,6 +355,7 @@ export type DatabaseType = Dexie & {
     breadcrumb: EntityTable<DBBreadcrumb, 'id'>,
     feature_history: EntityTable<DBFeatureHistory, 'id'>,
     rubber_sheet: EntityTable<DBRubberSheet, 'id'>,
+    favorite_signature: EntityTable<DBFavoriteSignature, 'id'>,
     chatroom: EntityTable<DBChatroom, 'id'>,
     chatroom_chats: EntityTable<DBChatroomChat, 'id'>,
     notification: EntityTable<DBNotification, 'id'>,
@@ -418,6 +437,10 @@ db.version(6).stores({
 
 db.version(7).stores({
     rubber_sheet: 'id, name',
+});
+
+db.version(8).stores({
+    favorite_signature: 'id, sort',
 });
 
 let reopenPromise: Promise<void> | null = null;

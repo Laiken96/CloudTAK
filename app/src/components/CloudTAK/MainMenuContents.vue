@@ -158,6 +158,9 @@
             </TablerIconButton>
         </template>
 
+        <div class='px-3 pt-3'>
+            <SimpleModeSetting data-testid='simple-mode-toggle' />
+        </div>
         <div
             class='px-3 pt-3 pb-2'
         >
@@ -327,6 +330,8 @@ import MenuItemCard from './Menu/MenuItemCard.vue';
 import MenuTemplate from './util/MenuTemplate.vue';
 import ServerStatus from './ServerStatus.vue';
 import ProfileConfig from '../../base/profile.ts';
+import SimpleModeSetting from './util/SimpleModeSetting.vue';
+import { simpleMode } from '../../stores/modules/simple-mode.ts';
 
 const router = useRouter();
 
@@ -384,7 +389,8 @@ let sortable: Sortable | undefined;
 const sortableRef = ref<HTMLElement | null>(null);
 const isDraggable = ref(false);
 
-const canEditOrder = computed(() => !menuFilter.value.trim().length && filteredMenuItems.value.length > 1);
+// The simple view lists only some entries - saving that order would drop the rest
+const canEditOrder = computed(() => !simpleMode.value && !menuFilter.value.trim().length && filteredMenuItems.value.length > 1);
 
 watch(menuFilter, () => {
     if (isDraggable.value && !canEditOrder.value) {
