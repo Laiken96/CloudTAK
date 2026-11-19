@@ -32,9 +32,12 @@ function fakeApp(opts: {
     view?: TourView;
     route?: string;
     shown: Record<string, string[]>;
+    /** Tapping this element (key) brings up these elements on the current route */
+    opens?: Record<string, string[]>;
 }) {
     let route = opts.route ?? '/';
     const navigations: string[] = [];
+    const activated: string[] = [];
     const elements = new Map<string, Element>();
 
     function element(selector: string): Element | null {
@@ -50,6 +53,12 @@ function fakeApp(opts: {
             route = next;
             navigations.push(next);
         },
+        activate: async (selector: string) => {
+            if (!element(selector)) return false;
+            activated.push(selector);
+            opts.shown[route] = [...(opts.shown[route] ?? []), ...(opts.opens?.[selector] ?? [])];
+            return true;
+        },
         findTarget: (selector: string) => element(selector),
         waitForTarget: async (selector: string) => element(selector),
     };
@@ -57,6 +66,7 @@ function fakeApp(opts: {
     return {
         env,
         navigations,
+        activated,
         shown: opts.shown,
         route: () => route,
     };
@@ -275,6 +285,24 @@ describe('TourController', () => {
         expect(controller.state.missing).toBe(true);
     });
 
+    it('opens a dropdown first when its entry is the element', async () => {
+        const app = fakeApp({
+            shown: { '/': ['#draw-button'] },
+            opens: { '#draw-button': ['#medevac-entry'] },
+        });
+        const controller = new TourController(app.env);
+        const step: TourStep = { id: 'medevac', title: 'MEDEVAC', description: 'Entry', open: '#draw-button', target: '#medevac-entry' };
+
+        await controller.show(step);
+        expect(app.activated).toEqual(['#draw-button']);
+        expect(controller.state.target).not.toBeNull();
+        expect(controller.state.missing).toBe(false);
+
+        // Already open: a further tap would close it again
+        await controller.show(step);
+        expect(app.activated).toEqual(['#draw-button']);
+    });
+
     it('does not move the router when the map page goes away', async () => {
         const app = fakeApp({ route: '/menu/help', shown: { '/': ['#gps', '#bar'], '/menu': ['#entry'] } });
         const controller = new TourController(app.env);
@@ -298,9 +326,8 @@ describe('the tour of the app', () => {
         expect(shown).toContain('simple-indicator');
         expect(shown).toContain('favorites-bar');
         expect(shown).toContain('compass');
-        expect(shown).not.toContain('map-controls');
+        expect(shown).not.toContain('search');
         expect(shown).not.toContain('draw-tools');
-        expect(shown).not.toContain('medevac');
         expect(shown).not.toContain('mission');
         expect(shown.length).toBeGreaterThanOrEqual(10);
         expect(shown.length).toBeLessThanOrEqual(15);
@@ -313,8 +340,7 @@ describe('the tour of the app', () => {
         const shown = await walk(controller, TOUR_STEPS);
 
         expect(shown).not.toContain('simple-indicator');
-        expect(shown).not.toContain('compass');
-        for (const id of ['gps-panel', 'coordinates', 'favorites-bar', 'objects', 'map-controls', 'mission', 'draw-tools', 'medevac', 'menu-button', 'simple-toggle', 'overlays', 'basemaps', 'help']) {
+        for (const id of ['gps-panel', 'coordinates', 'favorites-bar', 'objects', 'search', 'compass', 'mission', 'draw-tools', 'menu-button', 'simple-toggle', 'overlays', 'basemaps', 'help']) {
             expect(shown).toContain(id);
         }
         expect(shown.length).toBeGreaterThanOrEqual(10);

@@ -170,6 +170,16 @@ const environment: TourEnvironment = {
         await nextTick();
         await nextFrame();
     },
+    activate: async (selector: string) => {
+        const el = findShown(selector);
+        if (!el) return false;
+
+        el.click();
+        // The dropdown renders and positions itself on the next tick
+        await nextTick();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        return true;
+    },
     findTarget: (selector: string) => findShown(selector),
     waitForTarget: async (selector: string) => {
         const el = await waitForShown(selector);
@@ -310,10 +320,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Above modals and above dropdown menus (9999), which a step may open */
 .tutorial-tour {
     position: fixed;
     inset: 0;
-    z-index: 2100;
+    z-index: 10000;
 }
 
 .tutorial-tour__blocker {

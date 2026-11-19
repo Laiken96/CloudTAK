@@ -8,7 +8,8 @@
  *
  * Adding a step: one entry in TOUR_STEPS, at the place it belongs in the tour.
  * Give the element it explains a `data-testid` and point `target` at it; set
- * `route` when the element is not on the map itself (e.g. `/menu`). A step
+ * `route` when the element is not on the map itself (e.g. `/menu`) and `open`
+ * when it only appears after a tap (e.g. an entry of a dropdown). A step
  * whose element is not shown is skipped, so a step for something hidden in
  * the simple view needs nothing more; `views` limits a step to one view (e.g.
  * a text that only fits the full view).
@@ -48,6 +49,9 @@ export function menuItemTarget(key: string): string {
     return testid(`menu-item-${key}`);
 }
 
+/** The button that opens the drawing tools (a dropdown) */
+export const DRAW_TOOLS_BUTTON = `${testid('top-bar-draw-tools')} [aria-haspopup]`;
+
 export const TOUR_STEPS: TourStep[] = [
     {
         id: 'welcome',
@@ -84,16 +88,14 @@ export const TOUR_STEPS: TourStep[] = [
         description: 'Tap an object to open its ring menu: the pencil moves or reshapes it, the bin deletes it, the list opens details such as name, remarks and appearance, the lock keeps the map on it (Lock On).',
     },
     {
-        id: 'map-controls',
-        target: testid('map-controls'),
-        views: ['full'],
-        title: 'Search and Compass',
-        description: 'The magnifier finds places, coordinates in degrees or LV95, callsigns and fire grid cells such as D2/6. The arrow turns the map back to north, a further tap turns it with your heading.',
+        id: 'search',
+        target: testid('map-search'),
+        title: 'Search',
+        description: 'Finds places, coordinates in degrees or LV95, callsigns, remarks and fire grid cells such as D2/6.',
     },
     {
         id: 'compass',
         target: testid('map-compass'),
-        views: ['simple'],
         title: 'North and Compass',
         description: 'If the map is rotated, a tap turns it back to north. Another tap makes the map turn with your heading, the next tap stops that.',
     },
@@ -113,13 +115,7 @@ export const TOUR_STEPS: TourStep[] = [
         id: 'draw-tools',
         target: testid('top-bar-draw-tools'),
         title: 'Drawing Tools',
-        description: 'Draw points, lines, areas, circles and sectors, measure with Range & Bearing and Range Rings, enter coordinates or take a Quick Pic.',
-    },
-    {
-        id: 'medevac',
-        target: testid('top-bar-draw-tools'),
-        title: 'MEDEVAC 9-Line',
-        description: 'Report casualties: choose MEDEVAC in the drawing tools and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form; copy the readout for the radio.',
+        description: 'Draw points, lines, areas, circles and sectors, measure with Range & Bearing and Range Rings, enter coordinates or take a Quick Pic. MEDEVAC sets a red cross for a 9-Line casualty report.',
     },
     {
         id: 'menu-button',
@@ -178,6 +174,8 @@ export interface HelpEntry {
     target?: string;
     /** ... on this route; default the map */
     route?: string;
+    /** Tapped first to bring the element up, e.g. the button of a dropdown */
+    open?: string;
     /** Views the function exists in; default both */
     views?: TourView[];
 }
@@ -202,24 +200,19 @@ export const HELP_ENTRIES: HelpEntry[] = [
         title: 'Long Press on the Map',
         description: 'Long press an empty spot: the pencil creates a new object there, the question mark shows the position with fire grid cell, height and more.',
     },
-    {
-        id: 'search',
-        section: 'map',
-        icon: IconSearch,
-        views: ['full'],
-        target: testid('map-search'),
-        title: 'Search',
-        description: 'Finds places, coordinates in degrees or LV95, callsigns, remarks and fire grid cells such as D2/6.',
-    },
+    { id: 'search', section: 'map', step: 'search', icon: IconSearch, views: ['full'] },
     { id: 'compass', section: 'map', step: 'compass', icon: IconCompass },
     { id: 'draw-tools', section: 'map', step: 'draw-tools', icon: IconPencilPlus, views: ['full'] },
     {
         id: 'medevac',
         section: 'map',
-        step: 'medevac',
         icon: IconMedicalCross,
         views: ['full'],
-        description: 'Choose MEDEVAC in the drawing tools, or MEDEVAC as point type, and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form with the nine lines; it saves as you type and ATAK can read it. Copy the readout for the radio; patient details (ZMIST) are deliberately not shown.',
+        // Show opens the drawing tools and points at the MEDEVAC entry
+        open: DRAW_TOOLS_BUTTON,
+        target: testid('draw-tool-medevac'),
+        title: 'MEDEVAC 9-Line',
+        description: 'Choose MEDEVAC in the drawing tools, or MEDEVAC as point type when drawing a point or entering coordinates, and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form with the nine lines; it saves as you type and ATAK can read it. Copy the readout for the radio; patient details (ZMIST) are deliberately not shown.',
     },
     {
         id: 'notifications',
@@ -421,6 +414,7 @@ export function resolveHelpEntry(entry: HelpEntry): ResolvedHelpEntry {
             description: resolved.description,
             target,
             route: entry.route ?? step?.route,
+            open: entry.open ?? step?.open,
         };
     }
 

@@ -49,6 +49,7 @@
                     <div
                         v-for='tool in filteredDrawTools'
                         :key='tool.key'
+                        :data-testid='`draw-tool-${tool.key}`'
                         class='col-12 py-1 px-2 cloudtak-hover cursor-pointer user-select-none'
                         @click='tool.action()'
                     >

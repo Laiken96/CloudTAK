@@ -72,7 +72,7 @@ describe('function overview', () => {
         expect(medevac.description).toContain('MEDEVAC');
         expect(medevac.description).toContain('readout');
         expect(medevac.description).toContain('ZMIST');
-        expect(tourStep('medevac')?.target).toBe(tourStep('draw-tools')?.target);
+        expect(tourStep('draw-tools')?.description).toContain('MEDEVAC');
     });
 });
 
@@ -89,6 +89,8 @@ describe('tour steps', () => {
             ...HELP_ENTRIES.map((entry) => entry.target),
         ].filter((target): target is string => Boolean(target));
 
+        const drawTools = fs.readFileSync(path.join(SRC, 'components/CloudTAK/DrawTools.vue'), 'utf8');
+
         for (const target of targets) {
             const match = /^\[data-testid="([^"]+)"\]$/.exec(target);
             expect(match, target).not.toBeNull();
@@ -97,9 +99,26 @@ describe('tour steps', () => {
             if (id.startsWith('menu-item-')) {
                 expect(menuKeys.has(id.slice('menu-item-'.length)), target).toBe(true);
                 expect(componentSource).toContain('`menu-item-${item.key}`');
+            } else if (id.startsWith('draw-tool-')) {
+                expect(drawTools, target).toContain(`key: '${id.slice('draw-tool-'.length)}'`);
+                expect(drawTools).toContain('`draw-tool-${tool.key}`');
             } else {
                 expect(componentSource, target).toContain(`data-testid='${id}'`);
             }
+        }
+    });
+
+    it('open dropdowns with a button that exists in the app', () => {
+        const opens = [
+            ...TOUR_STEPS.map((step) => step.open),
+            ...HELP_ENTRIES.map((entry) => entry.open),
+        ].filter((open): open is string => Boolean(open));
+
+        expect(opens.length).toBeGreaterThan(0);
+        for (const open of opens) {
+            const id = /^\[data-testid="([^"]+)"\]/.exec(open)?.[1];
+            expect(id, open).toBeDefined();
+            expect(componentSource, open).toContain(`data-testid='${id}'`);
         }
     });
 

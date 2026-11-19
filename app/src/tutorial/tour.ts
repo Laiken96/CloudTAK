@@ -22,6 +22,8 @@ export interface TourStep {
     target?: string;
     /** Route that shows the element; default `/`, the map without a menu */
     route?: string;
+    /** Element tapped first when the target is not shown yet, e.g. the button of a dropdown */
+    open?: string;
     /** Views the step belongs to; default both */
     views?: TourView[];
 }
@@ -32,6 +34,8 @@ export interface TourEnvironment {
     /** Path of the current route */
     currentRoute(): string;
     navigate(route: string): Promise<void>;
+    /** Tap an element (open a dropdown); false when it is not shown */
+    activate(selector: string): Promise<boolean>;
     /** The element if it is shown right now */
     findTarget(selector: string): Element | null;
     /** The element once it is shown, null when it does not show up in time */
@@ -334,6 +338,11 @@ export class TourController {
 
             let target: Element | null = null;
             if (step.target) {
+                if (step.open && !env.findTarget(step.target)) {
+                    await env.activate(step.open);
+                    if (token !== this.seq) return;
+                }
+
                 target = await env.waitForTarget(step.target);
                 if (token !== this.seq) return;
 
