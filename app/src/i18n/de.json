@@ -2201,5 +2201,22 @@
     "Expected a valid MGRS zone letter": "Gültiger MGRS-Zonenbuchstabe erwartet",
     "Latitude is outside supported UTM bounds": "Breitengrad ausserhalb des UTM-Bereichs",
     "LV95": "LV95",
-    "MGRS": "MGRS"
+    "MGRS": "MGRS",
+    "Import EFP File": "EFP-Datei importieren",
+    "The data package (ATAK) exported by the Einheitsfeuerplan: its grid becomes a fire grid with cell lookup, its targets are added to the map.": "Das Datenpaket (ATAK) aus dem Einheitsfeuerplan: Sein Raster wird ein Feuerraster mit Zellsuche, seine Ziele kommen als Objekte auf die Karte.",
+    "No grid in this file (Einheitsfeuerplan before V1.5)": "Kein Raster in dieser Datei (Einheitsfeuerplan vor V1.5)",
+    "Fire grid {name} added": "Feuerraster {name} angelegt",
+    "Fire grid {name} was already there": "Feuerraster {name} war schon vorhanden",
+    "No targets in this file": "Keine Ziele in dieser Datei",
+    "1 target imported": "1 Ziel importiert",
+    "{count} targets imported": "{count} Ziele importiert",
+    "Import failed: {error}": "Import fehlgeschlagen: {error}",
+    "The file is not a ZIP file or it is damaged": "Die Datei ist keine Zip-Datei oder sie ist beschädigt",
+    "The file is not a data package: MANIFEST/manifest.xml is missing": "Die Datei ist kein Datenpaket: MANIFEST/manifest.xml fehlt",
+    "The manifest of the data package cannot be read": "Das Manifest des Datenpakets ist nicht lesbar",
+    "The data package does not come from the Einheitsfeuerplan. Import it as a data package instead.": "Das Datenpaket stammt nicht aus dem Einheitsfeuerplan. Bitte als normales Datenpaket importieren.",
+    "The data package holds neither a grid nor targets": "Das Datenpaket enthält weder ein Raster noch Ziele",
+    "Adopt as Fire Grid": "Als Feuerraster übernehmen",
+    "Einheitsfeuerplan grid, {cols} × {rows} cells of {size} m": "Raster aus dem Einheitsfeuerplan, {cols} × {rows} Zellen à {size} m",
+    "Fire grid {name} is on this device": "Feuerraster {name} ist auf diesem Gerät"
 }

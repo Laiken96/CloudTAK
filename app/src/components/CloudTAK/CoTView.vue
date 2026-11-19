@@ -355,7 +355,11 @@
                             @update:model-value='updateCoordinates($event)'
                         />
 
-                        <PropertyFireGrid :coordinates='center' />
+                        <PropertyFireGrid
+                            :coordinates='center'
+                            :remarks='cot.properties.remarks'
+                            :name='cot.properties.callsign'
+                        />
 
                         <PropertyElevation
                             v-if='center.length > 2'

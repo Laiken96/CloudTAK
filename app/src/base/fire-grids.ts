@@ -138,6 +138,27 @@ export default class FireGrids {
         return entry;
     }
 
+    /** The stored grid with the same cells as `P`, if any */
+    static same(P: FireGridParams): FireGrid | undefined {
+        return state.grids.find((g) => g.e0 === P.e0 && g.n0 === P.n0 && g.z === P.z
+            && g.ncols === P.ncols && g.nrows === P.nrows);
+    }
+
+    /**
+     * Take over a grid from elsewhere (an Einheitsfeuerplan file or object):
+     * a grid with the same cells is kept and shown instead of added again
+     */
+    static async ensure(grid: Omit<FireGrid, 'id' | 'visible'>): Promise<{ grid: FireGrid; added: boolean }> {
+        await this.load();
+
+        const existing = this.same(grid);
+        if (existing) {
+            return { grid: existing.visible ? existing : await this.update(existing.id, { visible: true }), added: false };
+        }
+
+        return { grid: await this.add(grid), added: true };
+    }
+
     /** Change a grid; throws with the validation messages if the result is invalid */
     static async update(id: string, patch: Partial<Omit<FireGrid, 'id'>>): Promise<FireGrid> {
         await this.load();

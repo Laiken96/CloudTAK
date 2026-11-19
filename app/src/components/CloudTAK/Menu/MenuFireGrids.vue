@@ -284,6 +284,51 @@
                         Same grid as the Einheitsfeuerplan: columns A–Z without I and O from west to east, rows from north to south, fine fields 1–9 like a telephone keypad. Long press the map to read a position as D2/6.
                     </div>
                 </section>
+
+                <section
+                    v-if='!form'
+                    class='d-flex flex-column gap-2'
+                >
+                    <input
+                        ref='efpInput'
+                        type='file'
+                        accept='.zip,application/zip'
+                        class='d-none'
+                        data-test='efp-file'
+                        @change='importEfp'
+                    >
+                    <div
+                        v-if='efpError'
+                        class='alert alert-danger m-0'
+                        role='alert'
+                        data-test='efp-error'
+                        v-text='efpError'
+                    />
+                    <div
+                        v-if='efpMessage'
+                        class='alert alert-success m-0'
+                        role='status'
+                        data-test='efp-message'
+                        v-text='efpMessage'
+                    />
+                    <button
+                        type='button'
+                        class='btn btn-outline-secondary w-100'
+                        data-test='efp-import'
+                        :disabled='importing'
+                        @click='pickEfp'
+                    >
+                        <IconFileImport
+                            :size='20'
+                            stroke='1'
+                            class='me-1'
+                        />
+                        Import EFP File
+                    </button>
+                    <div class='text-secondary small'>
+                        The data package (ATAK) exported by the Einheitsfeuerplan: its grid becomes a fire grid with cell lookup, its targets are added to the map.
+                    </div>
+                </section>
             </div>
         </template>
     </MenuTemplate>
@@ -296,6 +341,9 @@ import { v4 as randomUUID } from 'uuid';
 import MenuTemplate from '../util/MenuTemplate.vue';
 import StandardItem from '../util/StandardItem.vue';
 import FireGrids, { type FireGrid, type FireGridHit } from '../../../base/fire-grids.ts';
+import { importEfpPackage, type EfpImportResult } from '../../../base/efp-import.ts';
+import { EfpPackageError, readEfpPackage } from '../../../utils/efp-package.ts';
+import { tr } from '../../../i18n/index.ts';
 import {
     FIRE_GRID_DEFAULTS,
     FIRE_GRID_SIZES,
@@ -321,6 +369,7 @@ import {
     TablerToggle,
 } from '@tak-ps/vue-tabler';
 import {
+    IconFileImport,
     IconFocusCentered,
     IconGrid3x3,
     IconMapPinPlus,
@@ -355,6 +404,11 @@ const saveError = ref('');
 const query = ref('');
 const hits = ref<FireGridHit[]>([]);
 const lookupMessage = ref('');
+
+const efpInput = ref<HTMLInputElement | null>(null);
+const efpError = ref('');
+const efpMessage = ref('');
+const importing = ref(false);
 
 onMounted(async () => {
     await FireGrids.load();
@@ -560,5 +614,74 @@ async function placeMarker(hit: FireGridHit): Promise<void> {
 
     await mapStore.refresh();
     show(hit);
+}
+
+function pickEfp(): void {
+    efpError.value = '';
+    efpMessage.value = '';
+    efpInput.value?.click();
+}
+
+function efpSummary(result: EfpImportResult): string {
+    const parts: string[] = [];
+
+    if (!result.grid) {
+        parts.push(tr('No grid in this file (Einheitsfeuerplan before V1.5)'));
+    } else if (result.gridAdded) {
+        parts.push(tr('Fire grid {name} added', { name: result.grid.name }));
+    } else {
+        parts.push(tr('Fire grid {name} was already there', { name: result.grid.name }));
+    }
+
+    if (result.targets.length === 0) {
+        parts.push(tr('No targets in this file'));
+    } else if (result.targets.length === 1) {
+        parts.push(tr('1 target imported'));
+    } else {
+        parts.push(tr('{count} targets imported', { count: result.targets.length }));
+    }
+
+    return parts.join(' · ');
+}
+
+/**
+ * Import the data package (ATAK) of the Einheitsfeuerplan: its grid as a fire
+ * grid, its targets as map features. Read on this device; the targets are then
+ * stored like any other feature drawn here.
+ */
+async function importEfp(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    importing.value = true;
+    efpError.value = '';
+    efpMessage.value = '';
+
+    try {
+        const pkg = readEfpPackage(new Uint8Array(await file.arrayBuffer()));
+        const result = await importEfpPackage(pkg, (feature) => mapStore.worker.db.add(feature, { authored: true }));
+
+        if (result.targets.length) await mapStore.refresh();
+
+        efpMessage.value = efpSummary(result);
+
+        if (result.grid) {
+            zoomTo(result.grid);
+        } else {
+            const lngs = pkg.targets.map((t) => t.lng), lats = pkg.targets.map((t) => t.lat);
+            mapStore.map.fitBounds(
+                [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+                { padding: 60, maxZoom: 16 }
+            );
+        }
+    } catch (err) {
+        efpError.value = err instanceof EfpPackageError
+            ? tr(err.message)
+            : tr('Import failed: {error}', { error: err instanceof Error ? err.message : String(err) });
+    } finally {
+        importing.value = false;
+    }
 }
 </script>
