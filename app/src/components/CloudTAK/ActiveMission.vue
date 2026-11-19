@@ -3,6 +3,7 @@
         class='d-flex align-items-center'
         style='min-width: 0;'
         :class='{ "flex-grow-1": compact }'
+        data-testid='active-mission'
     >
         <template v-if='!mapStore.mission'>
             <div

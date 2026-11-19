@@ -245,6 +245,10 @@ const router = VueRouter.createRouter({
                     name: 'home-menu-signatures',
                     component: () => import('./components/CloudTAK/Menu/MenuSignatures.vue')
                 },{
+                    path: 'help',
+                    name: 'home-menu-help',
+                    component: () => import('./tutorial/MenuHelp.vue')
+                },{
                     path: 'routes/new',
                     name: 'home-menu-routes-new',
                     component: () => import('./components/CloudTAK/Menu/MenuRoutesNew.vue')

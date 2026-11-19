@@ -8,7 +8,7 @@ import { ref, readonly } from 'vue';
 export const SIMPLE_MODE_STORAGE_KEY = 'cloudtak-simple-mode';
 
 /** Main menu entries kept in the simple view */
-export const SIMPLE_MODE_MENU_KEYS: readonly string[] = ['overlays', 'basemaps', 'signatures'];
+export const SIMPLE_MODE_MENU_KEYS: readonly string[] = ['overlays', 'basemaps', 'signatures', 'help'];
 
 function stored(): boolean {
     try {

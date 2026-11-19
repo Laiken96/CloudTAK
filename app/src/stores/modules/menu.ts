@@ -23,6 +23,7 @@ import {
     IconPhotoPin,
     IconGrid4x4,
     IconStar,
+    IconHelpCircle,
 } from '@tabler/icons-vue';
 import ProfileConfig from '../../base/profile.ts';
 import ContactManager from '../../base/contact.ts';
@@ -284,6 +285,14 @@ export default class MenuManager {
                 tooltip: 'Display Settings',
                 description: 'Adjust personal display preferences.',
                 icon: IconSettings,
+            },
+            {
+                key: 'help',
+                label: 'Help',
+                route: '/menu/help',
+                tooltip: 'Help',
+                description: 'Guided tour and an explanation of every function',
+                icon: IconHelpCircle,
             },
         ];
     }

@@ -9,6 +9,7 @@
             <MenuItemCard
                 v-for='item in visibleCompactMenuItems'
                 :key='`compact-${item.key}`'
+                :data-testid='`menu-item-${item.key}`'
                 :icon='item.icon'
                 :label='item.label'
                 :tooltip='item.tooltip'
@@ -185,6 +186,7 @@
                 v-for='item in visibleFilteredMenuItems'
                 :key='`tile-${item.key}`'
                 :data-key='item.key'
+                :data-testid='`menu-item-${item.key}`'
                 :class='{
                     "cursor-move": isDraggable,
                     "text-muted": item.visibility === "hidden"

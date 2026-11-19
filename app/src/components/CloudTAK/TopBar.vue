@@ -32,6 +32,7 @@
             <div
                 v-if='!simpleMode'
                 class='position-relative'
+                data-testid='top-bar-notifications'
             >
                 <TablerDropdown>
                     <TablerIconButton
@@ -65,7 +66,10 @@
                 />
             </div>
 
-            <DrawTools v-if='!simpleMode' />
+            <DrawTools
+                v-if='!simpleMode'
+                data-testid='top-bar-draw-tools'
+            />
 
             <div
                 v-if='!simpleMode'
@@ -77,6 +81,7 @@
                 v-if='!menuShown'
                 title='Open Menu'
                 class='ms-1 cloudtak-hover'
+                data-testid='top-bar-menu-open'
                 :hover='false'
                 @click='router.push("/menu")'
             >
@@ -89,6 +94,7 @@
                 v-else
                 title='Close Menu'
                 class='ms-1 cloudtak-hover'
+                data-testid='top-bar-menu-close'
                 :hover='false'
                 @click='router.push("/")'
             >
