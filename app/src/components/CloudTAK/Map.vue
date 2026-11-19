@@ -353,6 +353,8 @@
                 :mission='inviteMission'
                 @close='inviteMission = undefined'
             />
+
+            <TutorialTour :paused='Boolean(warnConfiguration || warnChannels || inviteMission)' />
         </template>
     </div>
 </template>
@@ -421,6 +423,7 @@ import { isIOSPlatform, isNativePlatform, addAppLifecycleListeners } from '../..
 import { TimeoutError } from '../../utils/async.ts';
 import { copyFeatureToClipboard, readFeatureFromClipboard } from '../../stores/device/clipboard.ts';
 import MissionInviteModal from './Menu/Mission/MissionInviteModal.vue';
+import TutorialTour from '../../tutorial/TutorialTour.vue';
 
 const mapStore = useMapStore();
 const deviceStore = useDeviceStore();
