@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
     FIRE_GRID_DEFAULTS,
-    bankersRound,
     cellAt,
     cellFromLv95,
     colIndex,
@@ -13,15 +12,13 @@ import {
     fireGridGeoJSON,
     fireGridHash,
     inGrid,
-    lv95ToWgs,
     parseDesignation,
     parseFireGridLink,
-    parseLv95,
     spoken,
     validateFireGrid,
-    wgsToLv95,
     zoomForLength,
 } from './fire-grid.ts';
+import { lv95ToWgs } from './lv95.ts';
 
 // Reference values computed with the Einheitsfeuerplan V1.3 core (index.html)
 const P = FIRE_GRID_DEFAULTS;
@@ -83,40 +80,6 @@ describe('cells', () => {
     it('finds the fine field of a map position', () => {
         expect(cellAt(P, 7.053562823310347, 47.45077000975388)).toEqual({ i: 4, j: 2, k: 6 });
         expect(cellAt(P, -0.12, 51.5)).toBeNull();
-    });
-});
-
-describe('bankersRound', () => {
-    it('rounds halves to even like the Einheitsfeuerplan', () => {
-        expect([12.5, 13.5, 2570012.5, 958.33, 958.5001].map(bankersRound)).toEqual([12, 14, 2570012, 958, 959]);
-    });
-});
-
-describe('LV95', () => {
-    it('converts with the swisstopo approximation', () => {
-        expect(lv95ToWgs(2600000, 1200000)).toEqual([46.95108111111111, 7.438637222222222]);
-        expect(lv95ToWgs(2570958.3333333335, 1255625)).toEqual([47.45077000975388, 7.053562823310347]);
-    });
-
-    it('inverts exactly to the drawn grid', () => {
-        const [E, N] = wgsToLv95(47.45077000975388, 7.053562823310347);
-        expect(E).toBeCloseTo(2570958.3333, 3);
-        expect(N).toBeCloseTo(1255625, 3);
-    });
-});
-
-describe('parseLv95', () => {
-    it('reads LV95 pairs as written on Swiss maps and lists', () => {
-        for (const text of ['2570958 1255625', '2570958/1255625', "2'570'958, 1'255'625", '2 570 958 / 1 255 625', 'E 2570958 N 1255625']) {
-            expect(parseLv95(text)).toEqual([2570958, 1255625]);
-        }
-        expect(parseLv95('2570958.4 1255625.6')).toEqual([2570958.4, 1255625.6]);
-    });
-
-    it('rejects other coordinates', () => {
-        for (const text of ['570958 255625', '32TLT5327257094', '47.45, 7.05', '1255625 2570958']) {
-            expect(parseLv95(text)).toBeNull();
-        }
     });
 });
 

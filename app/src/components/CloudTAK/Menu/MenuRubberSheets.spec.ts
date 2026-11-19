@@ -31,7 +31,7 @@ vi.mock('../util/MenuTemplate.vue', () => ({
 import MenuRubberSheets from './MenuRubberSheets.vue';
 import { db } from '../../../database.ts';
 import RubberSheets from '../../../base/rubber-sheets.ts';
-import { lv95ToLngLat } from '../../../utils/fire-grid.ts';
+import { lv95ToLngLat } from '../../../utils/lv95.ts';
 import { parseCoordPair } from '../../../utils/coordinateFormat.ts';
 import { placeImage, quadFromControlPoints } from '../../../utils/rubbersheet.ts';
 

@@ -299,18 +299,17 @@ import FireGrids, { type FireGrid, type FireGridHit } from '../../../base/fire-g
 import {
     FIRE_GRID_DEFAULTS,
     FIRE_GRID_SIZES,
-    bankersRound,
     fireGridAround,
     fireGridCenter,
     fireGridHash,
     fireGridShowZoom,
-    lv95ToLngLat,
     parseDesignation,
     parseFireGridLink,
     validateFireGrid,
     type FireGridParams,
 } from '../../../utils/fire-grid.ts';
 import { formatCoordPair } from '../../../utils/coordinateFormat.ts';
+import { formatLv95, lv95ToLngLat } from '../../../utils/lv95.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import {
     TablerDelete,
@@ -522,7 +521,7 @@ function hitPosition(hit: FireGridHit): [number, number] {
 function hitCoordinates(hit: FireGridHit): string {
     const [E, N] = fireGridCenter(hit.grid, hit.cell);
     const [lng, lat] = lv95ToLngLat(E, N);
-    return `${bankersRound(E)} / ${bankersRound(N)} · ${formatCoordPair(lat, lng, 'mgrs')}`;
+    return `${formatLv95(E, N)} · ${formatCoordPair(lat, lng, 'mgrs')}`;
 }
 
 function show(hit: FireGridHit): void {

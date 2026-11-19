@@ -10,11 +10,15 @@
  * - each cell holds 3 x 3 fine fields numbered like a telephone keypad,
  *   1 in the north west, 9 in the south east: `D2/6` is spoken "Delta Two Six"
  *
- * LV95 <-> WGS84 uses the official swisstopo approximation (~1 m) with the same
- * exact inverse as the Einheitsfeuerplan, so a point maps to the cell drawn there.
+ * LV95 <-> WGS84 lives in lv95.ts (swisstopo approximation with the same exact
+ * inverse as the Einheitsfeuerplan), so a point maps to the cell drawn there.
  */
 
 import type { Feature, FeatureCollection, LineString, Point, Polygon } from 'geojson';
+import { inSwitzerland, lv95ToLngLat, lv95ToWgs, wgsToLv95 } from './lv95.ts';
+
+// Kept for callers that took the LV95 helpers from here before lv95.ts existed
+export { bankersRound, inSwitzerland, lv95ToLngLat, lv95ToWgs, parseLv95, wgsToLv95 } from './lv95.ts';
 
 export interface FireGridParams {
     /** LV95 easting of the north west corner [m] */
@@ -56,9 +60,6 @@ const NATO: Record<string, string> = {
 };
 
 const DIGIT = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-
-/** The window around Switzerland in which the LV95 approximation is valid */
-const CH_WINDOW = { latMin: 45.5, latMax: 48.1, lngMin: 5.5, lngMax: 11.0 };
 
 /** Column 1 -> `A`, 24 -> `Z`, 25 -> `AA` */
 export function colName(i: number): string {
@@ -109,14 +110,6 @@ export function inGrid(P: FireGridParams, cell: FireGridCell): boolean {
         && (cell.k === undefined || (cell.k >= 1 && cell.k <= 9));
 }
 
-/** Round half to even, as the Einheitsfeuerplan shows LV95 metres (`12.5` -> `12`) */
-export function bankersRound(x: number): number {
-    const f = Math.floor(x), d = x - f;
-    if (d < 0.5) return f;
-    if (d > 0.5) return f + 1;
-    return (f % 2 === 0) ? f : f + 1;
-}
-
 /** LV95 centre of a cell */
 export function cellCenter(P: FireGridParams, i: number, j: number): [number, number] {
     return [P.e0 + (i - 0.5) * P.z, P.n0 - (j - 0.5) * P.z];
@@ -146,69 +139,6 @@ export function cellFromLv95(P: FireGridParams, E: number, N: number): Required<
     const col = Math.min(2, Math.floor((x - (i - 1)) * 3));
     const row = Math.min(2, Math.floor((y - (j - 1)) * 3));
     return { i, j, k: row * 3 + col + 1 };
-}
-
-export function inSwitzerland(lat: number, lng: number): boolean {
-    return !(lat < CH_WINDOW.latMin || lat > CH_WINDOW.latMax || lng < CH_WINDOW.lngMin || lng > CH_WINDOW.lngMax);
-}
-
-/** LV95 -> [lat, lng], official swisstopo approximation (~1 m) */
-export function lv95ToWgs(E: number, N: number): [number, number] {
-    const y = (E - 2600000) / 1e6, x = (N - 1200000) / 1e6;
-    const lng = 2.6779094 + 4.728982 * y + 0.791484 * y * x + 0.1306 * y * x * x - 0.0436 * y * y * y;
-    const lat = 16.9023892 + 3.238272 * x - 0.270978 * y * y - 0.002528 * x * x - 0.0447 * y * y * x - 0.0140 * x * x * x;
-    return [lat * 100 / 36, lng * 100 / 36];
-}
-
-/** Official approximation of the other direction (~1 m), start value for wgsToLv95 */
-function wgsToLv95Approx(lat: number, lng: number): [number, number] {
-    const p = (lat * 3600 - 169028.66) / 10000, l = (lng * 3600 - 26782.5) / 10000;
-    const E = 2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l * l * l;
-    const N = 1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p * p * p;
-    return [E, N];
-}
-
-/**
- * [lat, lng] -> LV95 as the exact inverse of lv95ToWgs (Newton steps), so a point
- * lands in the cell drawn from lv95ToWgs. Valid around Switzerland only.
- */
-export function wgsToLv95(lat: number, lng: number): [number, number] {
-    let c = wgsToLv95Approx(lat, lng);
-    const h = 100;
-
-    for (let it = 0; it < 2; it++) {
-        const w0 = lv95ToWgs(c[0], c[1]);
-        const wE = lv95ToWgs(c[0] + h, c[1]);
-        const wN = lv95ToWgs(c[0], c[1] + h);
-        const a = (wE[0] - w0[0]) / h, b = (wN[0] - w0[0]) / h;
-        const d = (wE[1] - w0[1]) / h, e = (wN[1] - w0[1]) / h;
-        const det = a * e - b * d;
-        if (!det) break;
-
-        const rLat = lat - w0[0], rLng = lng - w0[1];
-        c = [c[0] + (e * rLat - b * rLng) / det, c[1] + (a * rLng - d * rLat) / det];
-    }
-
-    return c;
-}
-
-/** GeoJSON position [lng, lat] of an LV95 point */
-export function lv95ToLngLat(E: number, N: number): [number, number] {
-    const [lat, lng] = lv95ToWgs(E, N);
-    return [lng, lat];
-}
-
-/**
- * Read an LV95 coordinate pair as written on Swiss maps and lists:
- * `2570958 1255625`, `2 570 958 / 1 255 625`, `2'570'958, 1'255'625`.
- * Null if the text is no LV95 pair.
- */
-export function parseLv95(text: string): [number, number] | null {
-    const clean = text.trim().replace(/(\d)['’\u2009\u202f ](?=\d{3}(?!\d))/g, '$1');
-    const m = clean.match(/^E?\s*(2\d{6}(?:\.\d+)?)\s*(?:[,/;]|\s)\s*N?\s*(1\d{6}(?:\.\d+)?)\s*$/i);
-    if (!m) return null;
-
-    return [Number(m[1]), Number(m[2])];
 }
 
 /** The cell and fine field at a GeoJSON position, null outside the grid or Switzerland */
