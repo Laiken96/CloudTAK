@@ -169,7 +169,8 @@ import { useMapStore } from '../../../stores/map.ts';
 import COT from '../../../base/cot.ts';
 import OverlayManager from '../../../base/overlay.ts';
 import FireGrids, { type FireGridHit } from '../../../base/fire-grids.ts';
-import { fireGridCenter, fireGridShowZoom, lv95ToLngLat } from '../../../utils/fire-grid.ts';
+import { fireGridCenter, fireGridShowZoom } from '../../../utils/fire-grid.ts';
+import { formatLv95, lv95InArea, lv95ToLngLat, parseSwissGrid } from '../../../utils/lv95.ts';
 import type { DBOverlay } from '../../../database.ts';
 import type { SearchSuggest } from '../../../types.ts';
 import {
@@ -328,6 +329,8 @@ const activeIndex = ref(0);
 const listRef = ref<HTMLElement | null>(null);
 
 const coordinate = ref<[number, number] | null>(null);
+/** Swiss grid input (LV95, LV03) is offered in LV95, as typed */
+const coordinateLabel = ref<string | null>(null);
 const fireGridHits = ref<Array<FireGridHit>>([]);
 const cots = ref<Array<{ cot: COT, detail?: string }>>([]);
 const overlayMatches = ref<Array<DBOverlay>>([]);
@@ -342,7 +345,7 @@ const options = computed<Array<Option>>(() => {
             index: list.length,
             id: 'coordinate',
             kind: 'coordinate',
-            label: `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
+            label: coordinateLabel.value ?? `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
             detail: 'Go to coordinate',
             icon: IconCurrentLocation,
             coordinates: [lon, lat]
@@ -481,6 +484,14 @@ watch(options, () => {
     activeIndex.value = 0;
 });
 
+/** Swiss grid input (LV95, LV03) in Switzerland: its position and LV95 label */
+function parseSwissCoordinate(value: string): { coordinates: [number, number], label: string } | null {
+    const swiss = parseSwissGrid(value);
+    if (!swiss || !lv95InArea(swiss.E, swiss.N)) return null;
+
+    return { coordinates: lv95ToLngLat(swiss.E, swiss.N), label: formatLv95(swiss.E, swiss.N) };
+}
+
 function parseCoordinate(value: string): [number, number] | null {
     try {
         const c = convert(value);
@@ -520,7 +531,9 @@ async function search(value: string): Promise<void> {
     const current = ++sequence;
     const text = value.trim();
 
-    coordinate.value = text ? parseCoordinate(text) : null;
+    const swiss = text ? parseSwissCoordinate(text) : null;
+    coordinateLabel.value = swiss?.label ?? null;
+    coordinate.value = swiss?.coordinates ?? (text ? parseCoordinate(text) : null);
     fireGridHits.value = text && !coordinate.value ? FireGrids.find(text) : [];
 
     if (!text || coordinate.value) {
@@ -648,7 +661,7 @@ async function select(option: Option, opts: { fly?: boolean } = {}): Promise<voi
     if (option.fireGrid && option.coordinates) {
         selectFireGrid(option.fireGrid, option.coordinates);
     } else if (option.kind === 'coordinate' && option.coordinates) {
-        await selectCoordinate(option.coordinates);
+        await selectCoordinate(option.coordinates, option.label);
     } else if (option.kind === 'feature' && option.cot) {
         await selectFeature(option.cot, opts.fly === true);
     } else if (option.kind === 'overlay' && option.overlay) {
@@ -658,7 +671,7 @@ async function select(option: Option, opts: { fly?: boolean } = {}): Promise<voi
     }
 }
 
-async function selectCoordinate(coordinates: [number, number]): Promise<void> {
+async function selectCoordinate(coordinates: [number, number], label?: string): Promise<void> {
     const [lon, lat] = coordinates;
 
     mapStore.map.flyTo({
@@ -668,7 +681,7 @@ async function selectCoordinate(coordinates: [number, number]): Promise<void> {
 
     await addMarker('Search Feature', coordinates);
 
-    applySelection(`${lat.toFixed(5)}, ${lon.toFixed(5)}`, coordinates);
+    applySelection(label ?? `${lat.toFixed(5)}, ${lon.toFixed(5)}`, coordinates);
 }
 
 /** Show an Einheitsfeuerplan cell or fine field; no marker, the outline fades */

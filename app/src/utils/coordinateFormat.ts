@@ -1,6 +1,8 @@
 import { convert } from 'geo-coordinates-parser';
+import { tr } from '../i18n/index.ts';
+import { formatLv95, formatLv95Plain, inSwitzerland, lv95InArea, lv95ToWgs, parseSwissGrid, wgsToLv95 } from './lv95.ts';
 
-export type CoordMode = 'dd' | 'dm' | 'dms' | 'mgrs' | 'utm';
+export type CoordMode = 'dd' | 'dm' | 'dms' | 'mgrs' | 'utm' | 'lv95';
 
 export const COORD_MODES: Array<{ value: CoordMode; label: string; title: string }> = [
     { value: 'dd',   label: 'DD',   title: 'Decimal Degrees' },
@@ -8,6 +10,7 @@ export const COORD_MODES: Array<{ value: CoordMode; label: string; title: string
     { value: 'dms',  label: 'DMS',  title: 'Degrees Minutes Seconds' },
     { value: 'mgrs', label: 'MGRS', title: 'Military Grid Reference System' },
     { value: 'utm',  label: 'UTM',  title: 'Universal Transverse Mercator' },
+    { value: 'lv95', label: 'LV95', title: 'Swiss Grid' },
 ];
 
 const K0 = 0.9996;
@@ -47,8 +50,37 @@ export function formatCoordPair(lat: number, lng: number, mode: CoordMode, trunc
         return asMGRS(lat, lng);
     } else if (mode === 'utm') {
         return asUTM(lat, lng);
+    } else if (mode === 'lv95') {
+        if (!inLv95Area(lat, lng)) return asMGRS(lat, lng);
+        const [E, N] = wgsToLv95(lat, lng);
+        return formatLv95(E, N);
     }
     return 'UNKNOWN';
+}
+
+/**
+ * The text to copy or to start editing from: formatCoordPair, but LV95 as plain
+ * whole metres (`2600000 1200000`) so it pastes into any other tool
+ */
+export function plainCoordPair(lat: number, lng: number, mode: CoordMode, truncate?: number): string {
+    if (mode === 'lv95' && inLv95Area(lat, lng)) {
+        const [E, N] = wgsToLv95(lat, lng);
+        return formatLv95Plain(E, N);
+    }
+
+    return formatCoordPair(lat, lng, mode, truncate);
+}
+
+/**
+ * The format a position is actually shown in: LV95 is only defined around
+ * Switzerland, further away formatCoordPair falls back to MGRS
+ */
+export function shownCoordMode(lat: number, lng: number, mode: CoordMode): CoordMode {
+    return mode === 'lv95' && !inLv95Area(lat, lng) ? 'mgrs' : mode;
+}
+
+function inLv95Area(lat: number, lng: number): boolean {
+    return Number.isFinite(lat) && Number.isFinite(lng) && inSwitzerland(lat, lng);
 }
 
 export function parseCoordPair(text: string, mode?: CoordMode): [number, number] {
@@ -56,6 +88,13 @@ export function parseCoordPair(text: string, mode?: CoordMode): [number, number]
 
     if (!raw) {
         throw new Error('Coordinates are required');
+    }
+
+    // Swiss grid pairs (LV95, LV03) look like no other format: every mode reads them
+    const swiss = parseSwissGrid(raw);
+    if (swiss) {
+        if (!lv95InArea(swiss.E, swiss.N)) throw new Error('Swiss coordinates outside Switzerland');
+        return lv95ToWgs(swiss.E, swiss.N);
     }
 
     if (mode === 'utm') {
@@ -66,17 +105,23 @@ export function parseCoordPair(text: string, mode?: CoordMode): [number, number]
         return parseDegrees(raw);
     }
 
+    // No mode, or LV95 that shows other formats outside Switzerland
     const parsers = [parseDegrees, parseUTM, parseMGRS];
 
     for (const parser of parsers) {
         try {
-            return parser(raw);
+            const pair = parser(raw);
+
+            // A swapped or mistyped LV95 pair is no position in degrees either
+            if (mode === 'lv95' && !(Math.abs(pair[0]) <= 90 && Math.abs(pair[1]) <= 180)) continue;
+
+            return pair;
         } catch {
             continue;
         }
     }
 
-    throw new Error('Unable to parse coordinates');
+    throw new Error(mode === 'lv95' ? 'Expected LV95 coordinates like "2600000 1200000"' : 'Unable to parse coordinates');
 }
 
 export function validateCoordPair(text: string, mode?: CoordMode): string {
@@ -84,20 +129,20 @@ export function validateCoordPair(text: string, mode?: CoordMode): string {
         const [lat, lng] = parseCoordPair(text, mode);
 
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            return 'Coordinates must contain valid numbers';
+            return tr('Coordinates must contain valid numbers');
         }
 
         if (lat < -90 || lat > 90) {
-            return 'Latitude must be between -90° and 90°';
+            return tr('Latitude must be between -90° and 90°');
         }
 
         if (lng < -180 || lng > 180) {
-            return 'Longitude must be between -180° and 180°';
+            return tr('Longitude must be between -180° and 180°');
         }
 
         return '';
     } catch (err) {
-        return err instanceof Error ? err.message : String(err);
+        return tr(err instanceof Error ? err.message : String(err));
     }
 }
 

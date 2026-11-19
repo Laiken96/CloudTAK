@@ -13,6 +13,7 @@
         <div>
             <CopyField
                 :model-value='inMode'
+                :display='displayed'
                 :edit='edit'
                 :hover='hover'
                 :validate='validateInput'
@@ -20,6 +21,13 @@
                 @submit='submitCoordinate($event)'
                 @update:model-value='coordinateEntry($event)'
             />
+            <div
+                v-if='fallback'
+                class='mx-1 small text-secondary'
+                data-test='coordinate-fallback'
+            >
+                Outside the LV95 area, shown in MGRS
+            </div>
             <UnitSwitcher
                 v-if='availableModes.length > 1'
                 :model-value='config.mode'
@@ -34,7 +42,8 @@
 import CopyField from './CopyField.vue';
 import UnitSwitcher from './UnitSwitcher.vue';
 import PropertyFactRow from './PropertyFactRow.vue';
-import { COORD_MODES, formatCoordPair, parseCoordPair, validateCoordPair, type CoordMode } from '../../../utils/coordinateFormat.ts';
+import { COORD_MODES, formatCoordPair, parseCoordPair, plainCoordPair, shownCoordMode, validateCoordPair, type CoordMode } from '../../../utils/coordinateFormat.ts';
+import { useMapStore } from '../../../stores/map.ts';
 import { ref, computed, watch, type PropType } from 'vue';
 
 const props = defineProps({
@@ -83,8 +92,21 @@ const emit = defineEmits([
     'update:modelValue',
 ]);
 
+const mapStore = useMapStore();
+
+/** The format chosen in Display Preferences, if this field offers it */
+function preferredMode(): CoordMode | undefined {
+    const mode = mapStore.coordFormat as CoordMode;
+    return props.modes.includes(mode) ? mode : undefined;
+}
+
 const config = ref({
-    mode: (props.modes[0] || 'dd') as CoordMode
+    mode: (preferredMode() || props.modes[0] || 'dd') as CoordMode
+});
+
+watch(() => mapStore.coordFormat, () => {
+    const mode = preferredMode();
+    if (mode) config.value.mode = mode;
 });
 
 const availableModes = computed(() => {
@@ -106,13 +128,32 @@ const validateInput = computed(() => {
     }
 });
 
+// Copied and edited text; LV95 as plain metres so it pastes anywhere
 const inMode = computed(() => {
-    return formatCoordPair(
+    return plainCoordPair(
         props.modelValue[1] as number,
         props.modelValue[0] as number,
         config.value.mode,
         props.truncate
     );
+});
+
+// Shown text, if it differs: LV95 in groups of three digits
+const displayed = computed(() => {
+    const text = formatCoordPair(
+        props.modelValue[1] as number,
+        props.modelValue[0] as number,
+        config.value.mode,
+        props.truncate
+    );
+
+    return text === inMode.value ? undefined : text;
+});
+
+// LV95 chosen, but the position lies too far from Switzerland
+const fallback = computed(() => {
+    const mode = config.value.mode;
+    return shownCoordMode(props.modelValue[1] as number, props.modelValue[0] as number, mode) !== mode;
 });
 
 function coordinateEntry(text: string | number) {

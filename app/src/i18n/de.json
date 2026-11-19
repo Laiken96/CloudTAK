@@ -2185,5 +2185,21 @@
     "Zoom to Route": "Auf Route zoomen",
     "· edited": "· bearbeitet",
     "· Last used": "· Zuletzt verwendet",
-    "— sign in again to stay connected": "— erneut einloggen, um verbunden zu bleiben"
+    "— sign in again to stay connected": "— erneut einloggen, um verbunden zu bleiben",
+    "Swiss Grid": "Landeskoordinaten",
+    "Outside the LV95 area, shown in MGRS": "Ausserhalb des LV95-Gebiets, Anzeige in MGRS",
+    "Swiss coordinates outside Switzerland": "Landeskoordinaten ausserhalb der Schweiz",
+    "Expected LV95 coordinates like \"2600000 1200000\"": "LV95-Koordinaten erwartet, z. B. «2600000 1200000»",
+    "Coordinates are required": "Koordinaten fehlen",
+    "Unable to parse coordinates": "Koordinaten nicht erkannt",
+    "Coordinates must contain valid numbers": "Koordinaten müssen gültige Zahlen enthalten",
+    "Latitude must be between -90° and 90°": "Breitengrad muss zwischen -90° und 90° liegen",
+    "Longitude must be between -180° and 180°": "Längengrad muss zwischen -180° und 180° liegen",
+    "Expected a valid decimal, DM, or DMS coordinate pair": "Koordinatenpaar in Dezimalgrad, DM oder DMS erwartet",
+    "Expected UTM coordinates like \"13S 500000 4400000\"": "UTM-Koordinaten erwartet, z. B. «32T 381879 5200552»",
+    "Expected MGRS coordinates like \"13S EC 12345 67890\"": "MGRS-Koordinaten erwartet, z. B. «32T LT 81879 00552»",
+    "Expected a valid MGRS zone letter": "Gültiger MGRS-Zonenbuchstabe erwartet",
+    "Latitude is outside supported UTM bounds": "Breitengrad ausserhalb des UTM-Bereichs",
+    "LV95": "LV95",
+    "MGRS": "MGRS"
 }
