@@ -116,13 +116,14 @@ describe('helpOverview', () => {
         expect(helpOverview(HELP_ENTRIES, menu.items.value, 'full', 'xyzzy')).toEqual([]);
     });
 
-    it('explains MEDEVAC in the full view and highlights the drawing tools for it', () => {
+    it('explains MEDEVAC in the full view and points at its drawing tool', () => {
         const map = helpOverview(HELP_ENTRIES, [], 'full').find((s) => s.id === 'map')!;
         const medevac = map.entries.find((entry) => entry.id === 'medevac')!;
 
         expect(medevac.title).toBe('MEDEVAC 9-Line');
         expect(medevac.description).toContain('ZMIST');
-        expect(medevac.show?.target).toBe('[data-testid="top-bar-draw-tools"]');
+        expect(medevac.show?.open).toBe('[data-testid="top-bar-draw-tools"] [aria-haspopup]');
+        expect(medevac.show?.target).toBe('[data-testid="draw-tool-medevac"]');
         expect(map.entries.map((entry) => entry.id)).toContain('compass');
         expect(map.entries.map((entry) => entry.id)).toContain('search');
     });

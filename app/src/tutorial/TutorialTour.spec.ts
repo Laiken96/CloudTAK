@@ -181,6 +181,35 @@ describe('TutorialTour', () => {
         expect(card()).toBeNull();
     });
 
+    it('opens the drawing tools to point at the MEDEVAC entry', async () => {
+        storage.data.set(TOUR_SEEN_KEY, 'true');
+
+        const tools = element('top-bar-draw-tools', { top: 8, left: 300, width: 60, height: 44 });
+        const trigger = element('draw-tools-trigger', { top: 8, left: 300, width: 44, height: 44 });
+        trigger.setAttribute('aria-haspopup', 'true');
+        tools.appendChild(trigger);
+        const opened = vi.fn(() => {
+            element('draw-tool-medevac', { top: 300, left: 60, width: 300, height: 36 });
+        });
+        trigger.addEventListener('click', opened);
+
+        wrapper = mount(TutorialTour);
+        const showing = tour.show({
+            id: 'medevac',
+            title: 'MEDEVAC 9-Line',
+            description: 'Casualty report',
+            open: '[data-testid="top-bar-draw-tools"] [aria-haspopup]',
+            target: '[data-testid="draw-tool-medevac"]',
+        });
+        await vi.advanceTimersByTimeAsync(100);
+        await showing;
+        await flushPromises();
+
+        expect(opened).toHaveBeenCalledTimes(1);
+        expect(document.body.querySelector('[data-testid="tutorial-missing"]')).toBeNull();
+        expect(document.body.querySelector<HTMLElement>('[data-testid="tutorial-highlight"]')?.style.top).toBe('294px');
+    });
+
     it('explains a single element and says when it is not shown', async () => {
         storage.data.set(TOUR_SEEN_KEY, 'true');
         wrapper = mount(TutorialTour);
