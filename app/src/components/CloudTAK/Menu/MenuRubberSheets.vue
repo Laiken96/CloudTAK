@@ -347,7 +347,7 @@ import {
     type LngLat,
     type Pixel,
 } from '../../../utils/rubbersheet.ts';
-import { lv95ToLngLat, parseLv95 } from '../../../utils/fire-grid.ts';
+import { lv95ToLngLat, parseLv95 } from '../../../utils/lv95.ts';
 import { formatCoordPair, parseCoordPair } from '../../../utils/coordinateFormat.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import {

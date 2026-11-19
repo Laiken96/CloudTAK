@@ -2,7 +2,8 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import KV from './kv.ts';
 import FireGrids, { FIRE_GRIDS_KEY } from './fire-grids.ts';
-import { FIRE_GRID_DEFAULTS, fireGridCenter, lv95ToWgs } from '../utils/fire-grid.ts';
+import { FIRE_GRID_DEFAULTS, fireGridCenter } from '../utils/fire-grid.ts';
+import { lv95ToWgs } from '../utils/lv95.ts';
 
 const P = FIRE_GRID_DEFAULTS;
 

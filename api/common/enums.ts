@@ -176,6 +176,8 @@ export enum Profile_Coordinate {
     DMS = 'dms',
     MGRS = 'mgrs',
     UTM = 'utm',
+    // Swiss national grid (EPSG:2056); stored as text in profile_settings, no migration
+    LV95 = 'lv95',
 }
 
 export enum Basemap_Format {

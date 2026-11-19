@@ -48,7 +48,8 @@ vi.mock('./FeatureRow.vue', () => ({
 
 import SearchBox from './SearchBox.vue';
 import FireGrids from '../../../base/fire-grids.ts';
-import { FIRE_GRID_DEFAULTS, fireGridCenter, fireGridShowZoom, lv95ToLngLat } from '../../../utils/fire-grid.ts';
+import { FIRE_GRID_DEFAULTS, fireGridCenter, fireGridShowZoom } from '../../../utils/fire-grid.ts';
+import { lv95ToLngLat } from '../../../utils/lv95.ts';
 
 const icons: Record<string, string> = {
     address: 'tabler-icon-home',
@@ -306,6 +307,33 @@ describe('CloudTAK/util/SearchBox', () => {
             name: '39.73920, -104.99030',
             coordinates: [-104.9903, 39.7392]
         }]]);
+    });
+
+    it('offers typed LV95 and LV03 coordinates, labelled in LV95', async () => {
+        const label = '2\u2009600\u2009000 / 1\u2009200\u2009000';
+        const center = lv95ToLngLat(2600000, 1200000);
+
+        for (const query of ["2'600'000 / 1'200'000", '2600000 1200000', '600000 200000']) {
+            const wrapper = await search([], query);
+            expect(labels(wrapper)).toEqual([label]);
+            wrapper.unmount();
+        }
+
+        const wrapper = await search([], '2600000 1200000');
+        await wrapper.find('input').trigger('keydown', { key: 'Enter' });
+        await flushPromises();
+
+        expect(GET).not.toHaveBeenCalled();
+        expect(flyTo).toHaveBeenCalledWith({ center, zoom: 15 });
+        expect(dbAdd).toHaveBeenCalledTimes(1);
+        expect(wrapper.emitted('select')).toEqual([[{ name: label, coordinates: center }]]);
+    });
+
+    it('offers no LV95 coordinate outside Switzerland', async () => {
+        const wrapper = await search([], '2999999 1999999');
+
+        expect(GET).toHaveBeenCalledTimes(1);
+        expect(labels(wrapper)).toEqual([]);
     });
 
     it('finds an Einheitsfeuerplan cell in a shown fire grid and outlines it', async () => {

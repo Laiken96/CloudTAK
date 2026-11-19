@@ -17,6 +17,11 @@
                         stroke='1'
                     />
                     <span
+                        v-if='fallback'
+                        class='flex-shrink-0 text-secondary gps-panel-coordinates'
+                        data-test='coordinates-fallback'
+                    >MGRS</span>
+                    <span
                         class='text-truncate gps-panel-coordinates'
                         style='font-variant-numeric: tabular-nums;'
                         data-test='coordinates'
@@ -53,6 +58,13 @@
                             <span class='ms-1'>{{ option.label }}</span>
                         </template>
                     </TablerPillGroup>
+                </li>
+                <li
+                    v-if='fallback'
+                    class='px-3 py-2 small text-secondary'
+                    @click.stop
+                >
+                    Outside the LV95 area, shown in MGRS
                 </li>
                 <li
                     v-if='displayCoord'
@@ -103,7 +115,7 @@ import {
     IconCursorText,
     IconCurrentLocation
 } from '@tabler/icons-vue';
-import { formatCoordPair, COORD_MODES, type CoordMode } from '../../../utils/coordinateFormat.ts';
+import { formatCoordPair, plainCoordPair, shownCoordMode, COORD_MODES, type CoordMode } from '../../../utils/coordinateFormat.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import { isNativePlatform } from '../../../utils/capacitor.ts';
 
@@ -115,7 +127,11 @@ const copied = ref(false);
 let copiedTimeout: ReturnType<typeof setTimeout> | undefined;
 
 async function copy(): Promise<void> {
-    await Clipboard.write({ string: formattedCoord.value });
+    const c = displayCoord.value;
+    if (!c) return;
+
+    // LV95 as plain metres (`2600000 1200000`) so it pastes into any other tool
+    await Clipboard.write({ string: plainCoordPair(c.lat, c.lng, mapStore.coordFormat as CoordMode, 5) });
     copied.value = true;
 
     if (copiedTimeout) clearTimeout(copiedTimeout);
@@ -196,6 +212,15 @@ async function setCoordFormat(mode: CoordMode): Promise<void> {
         display_coordinate: mode
     });
 }
+
+// LV95 chosen, but the position lies too far from Switzerland
+const fallback = computed(() => {
+    const c = displayCoord.value;
+    if (!c) return false;
+
+    const mode = mapStore.coordFormat as CoordMode;
+    return shownCoordMode(c.lat, c.lng, mode) !== mode;
+});
 
 const formattedCoord = computed(() => {
     const c = displayCoord.value;

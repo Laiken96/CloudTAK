@@ -76,7 +76,7 @@ describe('MenuFireGrids', () => {
         const hit = wrapper.find('[data-test="fire-grid-hit"]');
         expect(hit.text()).toContain('D2/6');
         expect(hit.text()).toContain('Delta Two Six');
-        expect(hit.text()).toContain('2570958 / 1255625');
+        expect(hit.text()).toContain('2\u2009570\u2009958 / 1\u2009255\u2009625');
         expect(flyTo).toHaveBeenCalledTimes(1);
         expect(highlight).toHaveBeenCalledWith(expect.objectContaining({ name: 'EFP' }), { i: 4, j: 2, k: 6 });
 
