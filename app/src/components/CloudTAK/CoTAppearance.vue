@@ -29,6 +29,7 @@
                         v-text='summary.subtitle'
                     />
                 </div>
+                <FavoriteStar :properties='preview' />
             </div>
 
             <AppearanceAffiliation
@@ -120,6 +121,7 @@ import AppearanceTypeSelect from './Appearance/AppearanceTypeSelect.vue';
 import AppearanceSymbolDetails from './Appearance/AppearanceSymbolDetails.vue';
 import AppearanceMarker from './Appearance/AppearanceMarker.vue';
 import AppearanceStroke from './Appearance/AppearanceStroke.vue';
+import FavoriteStar from './util/FavoriteStar.vue';
 import { iconsetIconLabel } from './Appearance/icon-label.ts';
 import Type2525 from '@tak-ps/node-cot/2525';
 import COT, { OriginMode, renderedIconImage } from '../../base/cot.ts';

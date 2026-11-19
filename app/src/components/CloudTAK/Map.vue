@@ -93,6 +93,7 @@
                 @to-location='toLocation'
             />
             <PluginPane v-if='mode === "Default" && !isDrawing' />
+            <FavoritesBar v-if='mode === "Default" && !isDrawing && !mapStore.selected.size' />
             <div
                 v-if='mapStore.selected.size'
                 class='position-absolute'
@@ -354,6 +355,7 @@ import BufferInput from './Inputs/BufferInput.vue';
 import { ref, watch, computed, toRaw, nextTick, onMounted, onBeforeUnmount, useTemplateRef } from 'vue';
 import GPSPanel from './GPSPanel/GPSPanel.vue';
 import PluginPane from './PluginPane.vue';
+import FavoritesBar from './FavoritesBar.vue';
 import {useRoute, useRouter } from 'vue-router';
 import Navigating from './Navigating.vue';
 import TopBar from './TopBar.vue';

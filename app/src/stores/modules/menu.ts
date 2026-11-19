@@ -22,6 +22,7 @@ import {
     IconGrid3x3,
     IconPhotoPin,
     IconGrid4x4,
+    IconStar,
 } from '@tabler/icons-vue';
 import ProfileConfig from '../../base/profile.ts';
 import ContactManager from '../../base/contact.ts';
@@ -107,6 +108,14 @@ export default class MenuManager {
                 tooltip: 'Features',
                 description: 'Saved features, events, and devices',
                 icon: IconMapPin,
+            },
+            {
+                key: 'signatures',
+                label: 'Signatures',
+                route: '/menu/signatures',
+                tooltip: 'Signatures',
+                description: 'Favorite signatures for quick placement on the map',
+                icon: IconStar,
             },
             {
                 key: 'overlays',
