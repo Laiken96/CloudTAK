@@ -509,6 +509,13 @@ watch(() => [cot.value?.properties.medevac, cot.value?.properties.callsign], () 
     syncFromCot();
 }, { deep: true });
 
+// ATAK labels the marker with the 9-Line title, which starts out as the
+// callsign - keep following the callsign until the title is set apart
+watch(callsign, (next, previous) => {
+    if (syncing || !form.value) return;
+    if (form.value.title === previous) form.value.title = next;
+});
+
 watch([form, callsign], () => {
     if (syncing || !editable.value) return;
 

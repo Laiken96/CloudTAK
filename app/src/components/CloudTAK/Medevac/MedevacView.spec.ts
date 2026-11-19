@@ -188,6 +188,22 @@ describe('MedevacView', () => {
 
         expect(lastProperties(cot).callsign).toBe('MEDIC 1');
         expect(wrapper.find('pre.medevac-readout').text()).toContain('2. Call Sign: MEDIC 1 Freq: 40.500');
+
+        // The title (ATAK's marker label) followed the callsign it was equal to
+        expect((lastProperties(cot).medevac as typeof ATAK_MEDEVAC)._attributes.title).toBe('MEDIC 1');
+    });
+
+    it('keeps a title that differs from the callsign', async () => {
+        const medevac = { ...ATAK_MEDEVAC, _attributes: { ...ATAK_MEDEVAC._attributes, title: 'Pick-up site' } };
+        const cot = fakeCot({ callsign: 'TEST.19.101500', medevac });
+        const wrapper = await render(cot);
+
+        vi.useFakeTimers();
+
+        await wrapper.findAll('input[type="text"]')[1].setValue('MEDIC 1');
+        await vi.advanceTimersByTimeAsync(500);
+
+        expect((lastProperties(cot).medevac as typeof ATAK_MEDEVAC)._attributes.title).toBe('Pick-up site');
     });
 
     it('is read only when the MEDEVAC cannot be edited', async () => {
