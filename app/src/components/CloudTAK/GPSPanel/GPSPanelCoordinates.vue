@@ -1,5 +1,8 @@
 <template>
-    <div class='position-relative'>
+    <div
+        class='position-relative'
+        data-testid='gps-panel-coordinates'
+    >
         <TablerDropdown
             position='top-start'
             :width='240'

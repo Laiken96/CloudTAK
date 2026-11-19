@@ -125,13 +125,17 @@
                     left: 8px;
                 '
             >
-                <div class='cloudtak-ctrl-group cloudtak-panel'>
+                <div
+                    class='cloudtak-ctrl-group cloudtak-panel'
+                    data-testid='map-controls'
+                >
                     <div
                         v-if='!simpleMode'
                         role='button'
                         tabindex='0'
                         title='Search Button'
                         class='cloudtak-ctrl-btn'
+                        data-testid='map-search'
                         @click='searchBoxShown = !searchBoxShown'
                     >
                         <IconSearch
@@ -145,6 +149,7 @@
                         role='button'
                         tabindex='0'
                         class='cloudtak-ctrl-btn'
+                        data-testid='map-compass'
                         :title='mapStore.userOrientationMode ? "Orient North" : "Snap to North"'
                         @click='toggleCompass'
                     >
@@ -194,6 +199,7 @@
                             tabindex='0'
                             title='Zoom In Button'
                             class='cloudtak-ctrl-btn'
+                            data-testid='map-zoom-in'
                             @click='mapStore.map.setZoom(mapStore.map.getZoom() + 1);'
                         >
                             <IconPlus
@@ -206,6 +212,7 @@
                             tabindex='0'
                             title='Zoom Out Button'
                             class='cloudtak-ctrl-btn'
+                            data-testid='map-zoom-out'
                             @click='mapStore.map.setZoom(mapStore.map.getZoom() - 1);'
                         >
                             <IconMinus

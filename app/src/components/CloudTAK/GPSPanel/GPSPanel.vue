@@ -3,6 +3,7 @@
         v-if='!hidden'
         class='position-absolute cloudtak-panel d-flex flex-column justify-content-center user-select-none gps-panel'
         :title='locationTooltip'
+        data-testid='gps-panel'
     >
         <div
             class='cursor-pointer'

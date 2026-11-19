@@ -1,5 +1,8 @@
 <template>
-    <div class='d-flex flex-column align-items-center'>
+    <div
+        class='d-flex flex-column align-items-center'
+        data-testid='server-status'
+    >
         <div
             title='Return Home'
             class='position-relative cursor-pointer cloudtak-hover'
