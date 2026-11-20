@@ -1,11 +1,11 @@
 # Pipeline PzBat 12: Container-Images und Debian-Paket
 #
-# Bei jedem Push auf den Branch atak-symbole (oder von Hand gestartet):
+# Bei jedem Push auf den Branch pzbat12 (oder von Hand gestartet):
 #
 # 1. images  – baut die eigenen CloudTAK-Images (deutsche Oberfläche,
 #              ATAK-Funktionen) in der GitHub-Cloud und legt sie öffentlich ab:
 #                ghcr.io/<owner>/cloudtak-{api,pmtiles,events,retention}
-#              Tags: atak-symbole (neuester Stand) und voller Commit-SHA.
+#              Tags: pzbat12 (neuester Stand) und voller Commit-SHA.
 # 2. deb     – baut das Paket cloudtak-pzbat12_<version>_all.deb, fest an die
 #              Images dieses Commits gebunden, und veröffentlicht es als
 #              GitHub-Release (Download auch unter …/releases/latest/download/
@@ -22,7 +22,7 @@ name: PzBat12 Build
 on:
   push:
     branches:
-      - atak-symbole
+      - pzbat12
   workflow_dispatch:
 
 permissions:

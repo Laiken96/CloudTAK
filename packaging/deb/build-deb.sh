@@ -30,7 +30,7 @@ done
 
 install -m 0644 "$ROOT/docker-compose.yml" "$ROOT/garage.toml" "$PKG/opt/cloudtak/"
 # Standard-Tag der Images auf diese Paketversion festlegen
-sed "s/:-atak-symbole}/:-$IMAGE_TAG}/" "$ROOT/docker-compose.pzbat12.yml" > "$PKG/opt/cloudtak/docker-compose.pzbat12.yml"
+sed "s/:-pzbat12}/:-$IMAGE_TAG}/" "$ROOT/docker-compose.pzbat12.yml" > "$PKG/opt/cloudtak/docker-compose.pzbat12.yml"
 grep -q ":-$IMAGE_TAG}" "$PKG/opt/cloudtak/docker-compose.pzbat12.yml" || { echo "Image-Tag nicht eingesetzt" >&2; exit 1; }
 chmod 0644 "$PKG/opt/cloudtak/docker-compose.pzbat12.yml"
 echo "$VERSION" > "$PKG/opt/cloudtak/VERSION"

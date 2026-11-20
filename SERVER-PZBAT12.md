@@ -8,7 +8,7 @@ selbst läuft in fertigen Container-Images.
 
 ```
 Änderung am Mac ──git push──▶ GitHub Actions (Pipeline "PzBat12 Build")
-  (Branch atak-symbole)          1. baut die Container-Images → ghcr.io/laiken96/cloudtak-*
+  (Branch pzbat12)               1. baut die Container-Images → ghcr.io/laiken96/cloudtak-*
                                  2. baut das Paket cloudtak-pzbat12_<version>_all.deb
                                  3. veröffentlicht es als GitHub-Release
                                           │
@@ -16,7 +16,7 @@ Server ◀──── sudo apt install ./cloudtak-pzbat12_<version>_all.deb  (v
 ```
 
 - Pipeline: `.github/workflows/pzbat12-build.yml`, läuft bei jedem Push auf
-  `atak-symbole` (Dauer etwa 10 Minuten). Status: GitHub → Actions.
+  `pzbat12` (Dauer etwa 10 Minuten). Status: GitHub → Actions.
 - Jede Paketversion ist fest an die Images ihres Commits gebunden. Ein
   Paket-Update ist damit das Update der ganzen Anwendung, ein älteres Paket
   installieren ist der Weg zurück.
@@ -28,7 +28,7 @@ Server ◀──── sudo apt install ./cloudtak-pzbat12_<version>_all.deb  (v
 1. Am Mac ändern und lokal prüfen (Dev-Container `cloudtak-dev`:
    `npx vitest run`, `npm run lint`, `npm run check`, `npm run build`;
    Web-App unter `http://localhost:5080`).
-2. Committen und auf `atak-symbole` pushen.
+2. Committen und auf `pzbat12` pushen.
 3. Warten, bis die Pipeline grün ist; das neue Release erscheint unter
    Releases.
 4. Auf dem Server das neue Paket installieren (siehe Update).
@@ -146,4 +146,4 @@ gebunden. Für Video in `docker-compose.local.yml` beim Dienst `media` mit
 
 CloudTAK steht unter AGPL-3.0. Wer die geänderte Version als Dienst anbietet,
 muss den Quellcode zugänglich machen. Das erfüllt der öffentliche Fork
-`github.com/Laiken96/CloudTAK` (Branch `atak-symbole`).
+`github.com/Laiken96/CloudTAK` (Branch `pzbat12`).
