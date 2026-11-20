@@ -99,12 +99,12 @@ export const TASKS: Record<string, Recipe> = {
     },
     // Infiltrieren oder exfiltrieren: wavy line, filled head
     'infiltrate': (c) => {
-        c.pattern(c.pts, 'wave', 14);
+        c.pattern(c.pts, 'wave');
         head(c, 'head-f');
     },
     // Überwachen: zigzag, filled heads at both ends
     'surveil': (c) => {
-        c.pattern(c.pts, 'zigzag', 16);
+        c.pattern(c.pts, 'zigzag');
         head(c, 'head-f', 'both');
     },
     // Offenhalten: slanted ticks at both ends

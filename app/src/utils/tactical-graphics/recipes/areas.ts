@@ -32,7 +32,7 @@ export const AREAS: Record<string, Recipe> = {
     },
     // 3.4 Stützpunkt, halten: ticks pointing out
     'strong-point': (c) => {
-        c.pattern(ring(c), 'ticks-r', 16);
+        c.pattern(ring(c), 'ticks-r');
         areaLabel(c);
     },
 };

@@ -2483,5 +2483,13 @@
     "Aborted attack": "Abgebrochener Angriff",
     "Aborted attack, in position": "Abgebrochener Angriff und in Stellung",
     "Air attack": "Luftangriff",
-    "Airborne operation": "Luftlandeaktion"
+    "Airborne operation": "Luftlandeaktion",
+    "Barrier, flank protection, bridgehead": "Sperre, Flankenschutz, Brückenkopf",
+    "The ticks face the left of the drawing direction.": "Die Striche zeigen in Zeichenrichtung nach links.",
+    "Fortified line": "Befestigte Linie",
+    "Fix": "Binden",
+    "Draw the arc; the ticks face the left of the drawing direction.": "Den Bogen zeichnen; die Striche zeigen in Zeichenrichtung nach links.",
+    "Landslide area": "Rutschgebiet",
+    "The ticks face downhill, to the right of the drawing direction.": "Die Striche zeigen talwärts, in Zeichenrichtung nach rechts.",
+    "Railway": "Eisenbahn"
 }

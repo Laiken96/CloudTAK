@@ -247,6 +247,10 @@ export const CATALOG: CatalogEntry[] = [
         hint: LINE_HINT, fields: ['aff', 'planned'],
     },
     {
+        id: 'fix', sig: 'fix', label: 'Fix', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: 'Draw the arc; the ticks face the left of the drawing direction.', fields: ['aff', 'side'],
+    },
+    {
         id: 'infiltrate', sig: 'infiltrate', label: 'Infiltrate or exfiltrate', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
         hint: ARROW_HINT, fields: ['aff'],
     },
@@ -259,6 +263,15 @@ export const CATALOG: CatalogEntry[] = [
     {
         id: 'obstacle', sig: 'obstacle', label: 'Obstacle; harden, block', group: 'obstacles', chapter: '3.3', page: 43, draw: 'line',
         hint: LINE_HINT, fields: ['aff'],
+    },
+
+    {
+        id: 'barrier', sig: 'barrier', label: 'Barrier, flank protection, bridgehead', group: 'obstacles', chapter: '3.3', page: 43, draw: 'line',
+        hint: 'The ticks face the left of the drawing direction.', fields: ['t', 'aff', 'side'], tLabel: 'Name',
+    },
+    {
+        id: 'fortified-line', sig: 'fortified-line', label: 'Fortified line', group: 'obstacles', chapter: '3.3', page: 43, draw: 'line',
+        hint: LINE_HINT, fields: ['aff', 'side'], sidc: { cat: 'M', fn: 'SL' },
     },
 
     // --- 3.1 / 3.4 areas ----------------------------------------------------
@@ -310,10 +323,19 @@ export const CATALOG: CatalogEntry[] = [
         hint: ARROW_HINT, fields: [], color: REGULATION_COLORS.damage,
     },
 
+    {
+        id: 'landslide', sig: 'landslide', label: 'Landslide area', group: 'damage', chapter: '3.4.1', page: 46, draw: 'line',
+        hint: 'The ticks face downhill, to the right of the drawing direction.', fields: ['t', 'side'], tLabel: 'Name', color: REGULATION_COLORS.damage,
+    },
+
     // --- 4.5 topography -----------------------------------------------------
     {
         id: 'river', sig: 'river', label: 'River with direction of flow', group: 'topo', chapter: '4.5', page: 55, draw: 'line',
         hint: 'Draw in the direction of flow.', fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.water,
+    },
+    {
+        id: 'railway', sig: 'railway', label: 'Railway', group: 'topo', chapter: '4.5', page: 55, draw: 'line',
+        hint: LINE_HINT, fields: [], color: REGULATION_COLORS.black,
     },
 ];
 

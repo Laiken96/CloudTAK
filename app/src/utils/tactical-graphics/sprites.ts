@@ -64,7 +64,8 @@ function circle(g: Ctx, x: number, y: number, r: number): void {
 
 /** Ticks on one side of a base line, `side` LEFT or RIGHT */
 function ticks(side: number, spacing: number, tick: number): Sprite {
-    const h = 2 * tick + 4;
+    // 4 px margin: line pattern images must not touch their top & bottom edge
+    const h = 2 * tick + 8;
     return {
         w: spacing,
         h,
@@ -115,51 +116,74 @@ export const SPRITES: Record<string, Sprite> = {
     // Scallops of the own front line, bulging to the left
     'arc': {
         w: 16,
-        h: 20,
+        h: 24,
         draw(g, color, casing) {
-            stroke(g, () => g.arc(8, 10, 7.6, 0, Math.PI, LEFT < 0), color, casing);
+            stroke(g, () => g.arc(8, 12, 7.6, 0, Math.PI, LEFT < 0), color, casing);
         },
     },
     // Enemy front line: double scallops
     'arc2': {
         w: 16,
-        h: 20,
+        h: 24,
         draw(g, color, casing) {
             stroke(g, () => {
-                g.arc(8, 10, 7.6, 0, Math.PI, LEFT < 0);
-                g.moveTo(8 + 3.8, 10);
-                g.arc(8, 10, 3.8, 0, Math.PI, LEFT < 0);
+                g.arc(8, 12, 7.6, 0, Math.PI, LEFT < 0);
+                g.moveTo(8 + 3.8, 12);
+                g.arc(8, 12, 3.8, 0, Math.PI, LEFT < 0);
             }, color, casing, 1.7);
         },
     },
     // Row of crosses, no base line
     'xrow': {
         w: 14,
-        h: 14,
+        h: 18,
         draw(g, color, casing) {
             stroke(g, () => {
-                g.moveTo(3, 3); g.lineTo(11, 11);
-                g.moveTo(11, 3); g.lineTo(3, 11);
+                g.moveTo(3, 5); g.lineTo(11, 13);
+                g.moveTo(11, 5); g.lineTo(3, 13);
             }, color, casing, 1.8);
         },
     },
     // Wavy line (infiltrate)
     'wave': {
         w: 20,
-        h: 14,
+        h: 18,
         draw(g, color, casing) {
             stroke(g, () => {
-                g.moveTo(0, 7);
-                for (let x = 0; x <= 20; x += 1) g.lineTo(x, 7 - 4 * Math.sin(x / 20 * Math.PI * 2));
+                g.moveTo(0, 9);
+                for (let x = 0; x <= 20; x += 1) g.lineTo(x, 9 - 4 * Math.sin(x / 20 * Math.PI * 2));
             }, color, casing, 1.8);
         },
     },
     // Zigzag line (surveil)
     'zigzag': {
         w: 12,
-        h: 16,
+        h: 20,
         draw(g, color, casing) {
-            stroke(g, () => { g.moveTo(0, 8); g.lineTo(3, 3); g.lineTo(9, 13); g.lineTo(12, 8); }, color, casing, 1.8);
+            stroke(g, () => { g.moveTo(0, 10); g.lineTo(3, 5); g.lineTo(9, 15); g.lineTo(12, 10); }, color, casing, 1.8);
+        },
+    },
+    // Spaced ticks on one side (barrier, flank protection, bridgehead)
+    'sticks-l': ticks(LEFT, 16, 7),
+    // Square wave (fortified line), pulses to the left
+    'fort': {
+        w: 16,
+        h: 20,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(0, 7); g.lineTo(4, 7); g.lineTo(4, 13); g.lineTo(12, 13); g.lineTo(12, 7); g.lineTo(16, 7);
+            }, color, casing, 1.8);
+        },
+    },
+    // Railway: line with ticks across
+    'rail': {
+        w: 8,
+        h: 18,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(0, 9); g.lineTo(8, 9);
+                g.moveTo(4, 4); g.lineTo(4, 14);
+            }, color, casing, 1.5);
         },
     },
     'ticks-l': ticks(LEFT, 10, 6),

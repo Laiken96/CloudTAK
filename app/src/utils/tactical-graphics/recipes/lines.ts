@@ -4,10 +4,7 @@
  */
 import type { Recipe } from '../derive.ts';
 import { PREFIXES } from '../model.ts';
-import { endLabels } from './common.ts';
-
-/** Height of the front line arc sprites, see sprites.ts */
-const ARC_WIDTH = 20;
+import { endLabels, nameAlong } from './common.ts';
 
 export const LINES: Record<string, Recipe> = {
     // 3.1 / 3.3 Abschnittsgrenze, Führungslinie: hierarchy sign in the middle,
@@ -23,10 +20,10 @@ export const LINES: Record<string, Recipe> = {
     // 3.3 Vordere Linie eigener / gegnerischer Truppen - the arcs face the
     // left of the drawing direction, as in 2525C (FLOT)
     'flot': (c) => {
-        c.pattern(c.pts, 'arc', ARC_WIDTH);
+        c.pattern(c.pts, 'arc');
     },
     'flet': (c) => {
-        c.pattern(c.pts, 'arc2', ARC_WIDTH);
+        c.pattern(c.pts, 'arc2');
     },
     'phase-line': (c) => {
         c.outline();
@@ -42,6 +39,28 @@ export const LINES: Record<string, Recipe> = {
     },
     // 3.3 Hindernis; härten, absperren - a row of crosses, no line
     'obstacle': (c) => {
-        c.pattern(c.pts, 'xrow', 14);
+        c.pattern(c.pts, 'xrow');
+    },
+    // 3.3 Sperre, Flankenschutz, Brückenkopf - ticks to the left
+    'barrier': (c) => {
+        c.pattern(c.pts, 'sticks-l');
+        nameAlong(c, c.model.t, 1.4);
+    },
+    // 3.3 Binden - dense ticks to the left (inside the arc)
+    'fix': (c) => {
+        c.pattern(c.pts, 'ticks-l');
+    },
+    // 3.3 Befestigte Linie - square wave
+    'fortified-line': (c) => {
+        c.pattern(c.pts, 'fort');
+    },
+    // 3.4.1 Rutschgebiet - ticks to the right (downhill)
+    'landslide': (c) => {
+        c.pattern(c.pts, 'ticks-r');
+        nameAlong(c, c.model.t, -1.4);
+    },
+    // 4.5 Eisenbahn
+    'railway': (c) => {
+        c.pattern(c.pts, 'rail');
     },
 };

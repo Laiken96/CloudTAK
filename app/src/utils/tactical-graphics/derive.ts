@@ -17,6 +17,7 @@ import {
     type Plane, type XY, type Along,
 } from './geometry.ts';
 import { RECIPES } from './recipes/index.ts';
+import { SPRITES } from './sprites.ts';
 
 export const DERIVED_TACTICAL = 'tg';
 
@@ -156,10 +157,10 @@ export class RenderContext {
         });
     }
 
-    /** A line drawn with a repeating sprite, `width` = sprite height in px */
-    pattern(xy: XY[], name: string, width: number, color = this.color): void {
+    /** A line drawn with a repeating sprite (the line is as wide as the sprite is high) */
+    pattern(xy: XY[], name: string, color = this.color): void {
         if (xy.length < 2) return;
-        this.push('pat', this.lineGeometry(xy), { pat: this.sprite(name, color), pw: width });
+        this.push('pat', this.lineGeometry(xy), { pat: this.sprite(name, color), pw: SPRITES[name]?.h ?? 16 });
     }
 
     /** A sprite drawn along +x, turned to `rotation` (see spriteRotation) */
