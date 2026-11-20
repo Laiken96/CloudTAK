@@ -1,8 +1,27 @@
 diff --git a/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js b/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js
-index 9074cf4..82b0dad 100644
+index 9074cf4..bc26ed7 100644
 --- a/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js
 +++ b/node_modules/@tak-ps/node-cot/dist/lib/parser/from_geojson.js
-@@ -324,6 +324,10 @@ export async function from_geojson(feature, opts = {}) {
+@@ -163,6 +163,18 @@ export async function from_geojson(feature, opts = {}) {
+     if (miliconId) {
+         cot.event.detail.__milicon = { _attributes: { id: miliconId } };
+     }
++    // PzBat12: tactical graphics of regulation 52.003 - the unit modifiers of a
++    // 2525 graphic (<unitmodifier code="T">), no __milicon for a multipoint
++    // tactical graphic (ATAK writes __milsym only) and the __chsig detail
++    if (cot.event.detail.__milsym && Array.isArray(feature.properties.milsym?.unitmodifier)) {
++        cot.event.detail.__milsym.unitmodifier = JSON.parse(JSON.stringify(feature.properties.milsym.unitmodifier));
++    }
++    if (milsymId && /^G.{14}$/.test(milsymId) && feature.geometry && feature.geometry.type !== 'Point') {
++        delete cot.event.detail.__milicon;
++    }
++    if (feature.properties.chsig && typeof feature.properties.chsig === 'object' && !Array.isArray(feature.properties.chsig)) {
++        cot.event.detail.__chsig = JSON.parse(JSON.stringify(feature.properties.chsig));
++    }
+     if (feature.properties.sensor) {
+         cot.event.detail.sensor = { _attributes: { ...feature.properties.sensor } };
+     }
+@@ -324,6 +336,10 @@ export async function from_geojson(feature, opts = {}) {
              }
          }
      }
@@ -14,10 +33,28 @@ index 9074cf4..82b0dad 100644
      if (!feature.geometry) {
          throw new Err(400, null, 'Must have Geometry');
 diff --git a/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js b/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js
-index 93b425b..2be5970 100644
+index 93b425b..8fc30a6 100644
 --- a/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js
 +++ b/node_modules/@tak-ps/node-cot/dist/lib/parser/to_geojson.js
-@@ -531,6 +531,14 @@ export async function to_geojson(cot, opts = {}) {
+@@ -59,6 +59,17 @@ export async function to_geojson(cot, opts = {}) {
+             id: raw.event.detail.__milsym._attributes.id
+         };
+     }
++    // PzBat12: tactical graphics of regulation 52.003 - the unit modifiers of a
++    // 2525 graphic and the __chsig detail pass through in xml-js compact form
++    if (feat.properties.milsym && raw.event.detail.__milsym.unitmodifier) {
++        const unitmodifier = raw.event.detail.__milsym.unitmodifier;
++        feat.properties.milsym.unitmodifier = Array.isArray(unitmodifier) ? unitmodifier : [unitmodifier];
++    }
++    if (raw.event.detail.__chsig && typeof raw.event.detail.__chsig === 'object') {
++        const chsig = Array.isArray(raw.event.detail.__chsig) ? raw.event.detail.__chsig[0] : raw.event.detail.__chsig;
++        if (chsig && typeof chsig === 'object')
++            feat.properties.chsig = chsig;
++    }
+     if (raw.event.detail.__milicon) {
+         feat.properties.milicon = {
+             id: raw.event.detail.__milicon._attributes.id
+@@ -531,6 +542,14 @@ export async function to_geojson(cot, opts = {}) {
              delete feat.properties.icon;
          }
      }
@@ -33,10 +70,24 @@ index 93b425b..2be5970 100644
      feat.path = cot.path;
      return feat;
 diff --git a/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js b/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js
-index 36a1793..cf5d024 100644
+index 36a1793..44d8c23 100644
 --- a/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js
 +++ b/node_modules/@tak-ps/node-cot/dist/lib/types/feature.js
-@@ -118,6 +118,9 @@ export const Properties = Type.Object({
+@@ -5,7 +5,12 @@ export const Position = Type.Array(Type.Number(), {
+     maxItems: 3
+ });
+ export const MilSym = Type.Object({
+-    id: Type.String()
++    id: Type.String(),
++    // PzBat12: <unitmodifier code="T">GELB</unitmodifier> children of a 2525 tactical graphic
++    unitmodifier: Type.Optional(Type.Array(Type.Object({
++        _attributes: Type.Object({ code: Type.String() }),
++        _text: Type.Optional(Type.String())
++    })))
+ });
+ export const MilIcon = Type.Object({
+     id: Type.String()
+@@ -118,6 +123,9 @@ export const Properties = Type.Object({
      'fill': Type.Optional(Type.String()),
      'fill-opacity': Type.Optional(Type.Number({ minimum: 0, maximum: 1 })),
      metadata: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
@@ -46,11 +97,43 @@ index 36a1793..cf5d024 100644
      archived: Type.Optional(Type.Boolean({
          description: 'Presence of the detail.archive tag - instructs the TAK client to locally archive this feature'
      })),
+@@ -131,6 +139,9 @@ export const Properties = Type.Object({
+     })),
+     remarks: Type.Optional(Type.String()),
+     milsym: Type.Optional(MilSym),
++    chsig: Type.Optional(Type.Record(Type.String(), Type.Unknown(), {
++        description: 'PzBat12: tactical graphic of regulation 52.003 (__chsig detail) in xml-js compact form - attributes in _attributes'
++    })),
+     milicon: Type.Optional(MilIcon),
+     mission: Type.Optional(FeaturePropertyMission),
+     fileshare: Type.Optional(FileShareAttributes),
 diff --git a/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts b/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts
-index 2631354..b8ef7be 100644
+index 2631354..cf3e276 100644
 --- a/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts
 +++ b/node_modules/@tak-ps/node-cot/lib/parser/from_geojson.ts
-@@ -411,6 +411,11 @@ export async function from_geojson(
+@@ -213,6 +213,21 @@ export async function from_geojson(
+         cot.event.detail.__milicon = { _attributes: { id: miliconId } };
+     }
+ 
++    // PzBat12: tactical graphics of regulation 52.003 - the unit modifiers of a
++    // 2525 graphic (<unitmodifier code="T">), no __milicon for a multipoint
++    // tactical graphic (ATAK writes __milsym only) and the __chsig detail
++    const pzMilsym = feature.properties.milsym as { unitmodifier?: unknown } | undefined;
++    if (cot.event.detail.__milsym && Array.isArray(pzMilsym?.unitmodifier)) {
++        (cot.event.detail.__milsym as Record<string, unknown>).unitmodifier = JSON.parse(JSON.stringify(pzMilsym.unitmodifier));
++    }
++    if (milsymId && /^G.{14}$/.test(milsymId) && feature.geometry && feature.geometry.type !== 'Point') {
++        delete cot.event.detail.__milicon;
++    }
++    const pzChsig = (feature.properties as Record<string, unknown>).chsig;
++    if (pzChsig && typeof pzChsig === 'object' && !Array.isArray(pzChsig)) {
++        (cot.event.detail as Record<string, unknown>).__chsig = JSON.parse(JSON.stringify(pzChsig));
++    }
++
+     if (feature.properties.sensor) {
+         cot.event.detail.sensor = { _attributes: { ...feature.properties.sensor } };
+     }
+@@ -411,6 +426,11 @@ export async function from_geojson(
          }
      }
  
@@ -63,10 +146,31 @@ index 2631354..b8ef7be 100644
  
      if (!feature.geometry) {
 diff --git a/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts b/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts
-index 01f7df9..21aa60e 100644
+index 01f7df9..e1528e6 100644
 --- a/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts
 +++ b/node_modules/@tak-ps/node-cot/lib/parser/to_geojson.ts
-@@ -669,6 +669,17 @@ export async function to_geojson(
+@@ -99,6 +99,20 @@ export async function to_geojson(
+         }
+     }
+ 
++    // PzBat12: tactical graphics of regulation 52.003 - the unit modifiers of a
++    // 2525 graphic and the __chsig detail pass through in xml-js compact form
++    const pzUnitmodifier = (raw.event.detail.__milsym as { unitmodifier?: unknown } | undefined)?.unitmodifier;
++    if (feat.properties.milsym && pzUnitmodifier) {
++        (feat.properties.milsym as Record<string, unknown>).unitmodifier = Array.isArray(pzUnitmodifier) ? pzUnitmodifier : [pzUnitmodifier];
++    }
++    const pzChsig = (raw.event.detail as Record<string, unknown>).__chsig;
++    if (pzChsig && typeof pzChsig === 'object') {
++        const chsig = Array.isArray(pzChsig) ? pzChsig[0] : pzChsig;
++        if (chsig && typeof chsig === 'object') {
++            (feat.properties as Record<string, unknown>).chsig = chsig as Record<string, unknown>;
++        }
++    }
++
+     if (raw.event.detail.__milicon) {
+         feat.properties.milicon = {
+             id: raw.event.detail.__milicon._attributes.id
+@@ -669,6 +683,17 @@ export async function to_geojson(
          }
      }
  
@@ -85,10 +189,24 @@ index 01f7df9..21aa60e 100644
      feat.path = cot.path;
  
 diff --git a/node_modules/@tak-ps/node-cot/lib/types/feature.ts b/node_modules/@tak-ps/node-cot/lib/types/feature.ts
-index b5f70a8..2407a69 100644
+index b5f70a8..ae59414 100644
 --- a/node_modules/@tak-ps/node-cot/lib/types/feature.ts
 +++ b/node_modules/@tak-ps/node-cot/lib/types/feature.ts
-@@ -164,6 +164,9 @@ export const Properties = Type.Object({
+@@ -39,7 +39,12 @@ export const Position = Type.Array(Type.Number(), {
+ })
+ 
+ export const MilSym = Type.Object({
+-    id: Type.String()
++    id: Type.String(),
++    // PzBat12: <unitmodifier code="T">GELB</unitmodifier> children of a 2525 tactical graphic
++    unitmodifier: Type.Optional(Type.Array(Type.Object({
++        _attributes: Type.Object({ code: Type.String() }),
++        _text: Type.Optional(Type.String())
++    })))
+ })
+ 
+ export const MilIcon = Type.Object({
+@@ -164,6 +169,9 @@ export const Properties = Type.Object({
      'fill': Type.Optional(Type.String()),
      'fill-opacity': Type.Optional(Type.Number({ minimum: 0, maximum: 1 })),
      metadata: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
@@ -98,3 +216,13 @@ index b5f70a8..2407a69 100644
      archived: Type.Optional(Type.Boolean({
          description: 'Presence of the detail.archive tag - instructs the TAK client to locally archive this feature'
      })),
+@@ -177,6 +185,9 @@ export const Properties = Type.Object({
+     })),
+     remarks: Type.Optional(Type.String()),
+     milsym: Type.Optional(MilSym),
++    chsig: Type.Optional(Type.Record(Type.String(), Type.Unknown(), {
++        description: 'PzBat12: tactical graphic of regulation 52.003 (__chsig detail) in xml-js compact form - attributes in _attributes'
++    })),
+     milicon: Type.Optional(MilIcon),
+     mission: Type.Optional(FeaturePropertyMission),
+     fileshare: Type.Optional(FileShareAttributes),
