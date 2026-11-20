@@ -409,7 +409,7 @@ import { v4 as randomUUID } from 'uuid';
 import MenuTemplate from '../util/MenuTemplate.vue';
 import StandardItem from '../util/StandardItem.vue';
 import FireGrids, { type FireGrid, type FireGridHit } from '../../../base/fire-grids.ts';
-import { importEfpPackage, type EfpImportResult } from '../../../base/efp-import.ts';
+import { efpVersionLabel, importEfpPackage, type EfpImportResult } from '../../../base/efp-import.ts';
 import { EfpPackageError, readEfpPackage, type EfpPackage } from '../../../utils/efp-package.ts';
 import { useFireGridTargets } from '../../../stores/modules/fire-grid-targets.ts';
 import { tr } from '../../../i18n/index.ts';
@@ -754,6 +754,12 @@ function pickEfp(): void {
 }
 
 function efpSummary(pkg: EfpPackage, result: EfpImportResult): string {
+    if (result.newerVersion) {
+        return tr('A newer version of this Einheitsfeuerplan ({version}) is already on this device. Nothing was imported.', {
+            version: efpVersionLabel(result.newerVersion)
+        });
+    }
+
     const parts: string[] = [];
 
     if (!result.grid) {
@@ -770,6 +776,12 @@ function efpSummary(pkg: EfpPackage, result: EfpImportResult): string {
         parts.push(tr('1 target imported'));
     } else if (result.targets.length > 1) {
         parts.push(tr('{count} targets imported', { count: result.targets.length }));
+    }
+
+    if (result.replaced === 1) {
+        parts.push(tr('1 target of the older version removed'));
+    } else if (result.replaced > 1) {
+        parts.push(tr('{count} targets of the older version removed', { count: result.replaced }));
     }
 
     let summary = parts.join(' · ');
@@ -831,15 +843,17 @@ async function importEfp(event: Event): Promise<void> {
         const pkg = readEfpPackage(new Uint8Array(await file.arrayBuffer()));
         const result = await importEfpPackage(pkg, targetHost);
 
-        if (result.targets.length) await mapStore.refresh();
+        if (result.targets.length || result.replaced) await mapStore.refresh();
 
         efpMessage.value = efpSummary(pkg, result);
         efpWarnings.value = efpMissionWarnings(result);
         await countTargets();
 
-        if (result.grid) {
+        if (result.newerVersion) {
+            // nothing imported - the map stays where it is
+        } else if (result.grid) {
             zoomTo(result.grid);
-        } else {
+        } else if (pkg.targets.length) {
             const lngs = pkg.targets.map((t) => t.lng), lats = pkg.targets.map((t) => t.lat);
             mapStore.map.fitBounds(
                 [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],

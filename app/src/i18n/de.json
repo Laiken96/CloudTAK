@@ -2534,7 +2534,6 @@
     "Clear an area": "Säubern",
     "Search an area": "Durchsuchen",
     "The data package (ATAK) exported by the Einheitsfeuerplan: its grid becomes a fire grid with cell lookup, its targets are added to the map as features of this device. The targets belong to the grid: they are shown and hidden with it and deleted with it, and are not added to a mission.": "Das Datenpaket (ATAK) aus dem Einheitsfeuerplan: Sein Raster wird ein Feuerraster mit Zellsuche, seine Ziele kommen als Objekte dieses Geräts auf die Karte. Die Ziele gehören zum Raster: Sie werden mit ihm ein- und ausgeblendet und mit ihm gelöscht und kommen in keine Mission.",
-    "Fire grids of the Einheitsfeuerplan on the map. Import EFP File takes over grid and targets from the EFP data package, or enter the EFP link. The targets belong to the grid: they are shown and hidden with it and deleted with it, and are not added to a mission. Find a cell such as D2 or D2/6 and show it or mark it.": "Feuerraster des Einheitsfeuerplans auf der Karte. «EFP-Datei importieren» übernimmt Raster und Ziele aus dem Datenpaket des EFP, alternativ den EFP-Link eingeben. Die Ziele gehören zum Raster und werden mit ihm ein- und ausgeblendet und mit ihm gelöscht; sie kommen in keine Mission. Eine Zelle wie D2 oder D2/6 suchen, anzeigen oder markieren.",
     "1 target, shown and hidden with the grid": "1 Ziel, wird mit dem Raster ein- und ausgeblendet",
     "{count} targets, shown and hidden with the grid": "{count} Ziele, werden mit dem Raster ein- und ausgeblendet",
     "Delete fire grid {name}?": "Feuerraster {name} löschen?",
@@ -2555,5 +2554,9 @@
     "Moved": "Verschoben",
     "Undoing...": "Wird zurückgestellt...",
     "Could not move the object: {message}": "Das Objekt konnte nicht verschoben werden: {message}",
-    "Could not undo the move: {message}": "Das Verschieben konnte nicht rückgängig gemacht werden: {message}"
+    "Could not undo the move: {message}": "Das Verschieben konnte nicht rückgängig gemacht werden: {message}",
+    "A newer version of this Einheitsfeuerplan ({version}) is already on this device. Nothing was imported.": "Eine neuere Version dieses Einheitsfeuerplans ({version}) ist schon auf diesem Gerät. Es wurde nichts importiert.",
+    "1 target of the older version removed": "1 Ziel der älteren Version entfernt",
+    "{count} targets of the older version removed": "{count} Ziele der älteren Version entfernt",
+    "Fire grids of the Einheitsfeuerplan on the map. Import EFP File takes over grid and targets from the EFP data package, or enter the EFP link. The targets belong to the grid: they are shown and hidden with it and deleted with it, and are not added to a mission. A newer export of the same plan replaces the targets of the older one. Find a cell such as D2 or D2/6 and show it or mark it.": "Feuerraster des Einheitsfeuerplans auf der Karte. «EFP-Datei importieren» übernimmt Raster und Ziele aus dem Datenpaket des EFP, alternativ den EFP-Link eingeben. Die Ziele gehören zum Raster und werden mit ihm ein- und ausgeblendet und mit ihm gelöscht; sie kommen in keine Mission. Ein neuerer Export desselben Plans ersetzt die Ziele des älteren. Eine Zelle wie D2 oder D2/6 suchen, anzeigen oder markieren."
 }

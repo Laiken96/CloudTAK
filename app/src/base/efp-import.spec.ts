@@ -2,14 +2,26 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import KV from './kv.ts';
 import FireGrids, { FIRE_GRIDS_KEY } from './fire-grids.ts';
-import { importEfpPackage } from './efp-import.ts';
+import { efpPlanVersion, efpVersionLabel, importEfpPackage } from './efp-import.ts';
 import { missionHolding } from './fire-grid-targets.ts';
 import { db } from '../database.ts';
-import { readEfpPackage } from '../utils/efp-package.ts';
+import { readEfpPackage, type EfpPackage } from '../utils/efp-package.ts';
 import { EFP_FIXTURE_UID as UID, efpFixture } from '../test/fixtures/efp-fixture.ts';
 import { fakeTargetHost } from '../test/fixtures/fire-grid-target-host.ts';
 
 const TARGETS = ['Z01', 'Z02', 'Z03', 'Z05'].map((z) => `${UID}-${z}`);
+
+/** Package UID of another export of the fixture plan */
+function versionUid(v: string): string {
+    return UID.replace(/v\d{10}$/, `v${v}`);
+}
+
+/** The fixture as another export of the same plan: same grid and targets, new UIDs */
+function version(v: string): EfpPackage {
+    const pkg = readEfpPackage(efpFixture());
+    const uid = versionUid(v);
+    return { ...pkg, uid, targets: pkg.targets.map((t) => ({ ...t, uid: t.uid.replace(UID, uid) })) };
+}
 
 describe('importEfpPackage', () => {
     let host: ReturnType<typeof fakeTargetHost>;
@@ -38,6 +50,48 @@ describe('importEfpPackage', () => {
         // The fire grid finds the cell of the target
         const [lng, lat] = host.features.get(`${UID}-Z03`)!.geometry.coordinates;
         expect(FireGrids.locate(lng, lat).map((h) => h.designation)).toEqual(['D2/6']);
+    });
+
+    it('replaces the targets of an older version of the same plan', async () => {
+        await importEfpPackage(readEfpPackage(efpFixture()), host);
+        const newer = await importEfpPackage(version('2611201200'), host);
+
+        const NEW = TARGETS.map((uid) => uid.replace(UID, versionUid('2611201200')));
+        expect(newer.replaced).toBe(4);
+        expect(newer.newerVersion).toBeNull();
+        expect(FireGrids.state.grids).toHaveLength(1);
+        expect(FireGrids.state.grids[0].targets).toEqual(NEW);
+        expect(newer.grid?.targets).toEqual(NEW);
+        expect([...host.features.keys()].sort()).toEqual([...NEW].sort());
+        expect(host.hidden.size).toBe(0);
+    });
+
+    it('does not let an older version replace a newer one', async () => {
+        await importEfpPackage(version('2611201200'), host);
+        const older = await importEfpPackage(readEfpPackage(efpFixture()), host);
+
+        expect(older.newerVersion).toBe('2611201200');
+        expect(older.targets).toEqual([]);
+        expect(older.replaced).toBe(0);
+        expect([...host.features.keys()].every((uid) => uid.startsWith(versionUid('2611201200')))).toBe(true);
+        expect(host.features.size).toBe(4);
+    });
+
+    it('leaves the targets of another plan alone', async () => {
+        await importEfpPackage(readEfpPackage(efpFixture()), host);
+        const other = readEfpPackage(efpFixture());
+        const uid = 'EFP-JUPITER-Inf-Kp-10-1-v2611201200';
+        const result = await importEfpPackage({ ...other, uid, targets: other.targets.map((t) => ({ ...t, uid: t.uid.replace(UID, uid) })) }, host);
+
+        expect(result.replaced).toBe(0);
+        expect(host.features.size).toBe(8);
+    });
+
+    it('reads plan and version from package and target UIDs', () => {
+        expect(efpPlanVersion(UID)).toEqual({ plan: 'EFP-MERKUR-Inf-Kp-10-1', version: '2611190830' });
+        expect(efpPlanVersion(`${UID}-Z03`)).toEqual({ plan: 'EFP-MERKUR-Inf-Kp-10-1', version: '2611190830' });
+        expect(efpPlanVersion('some-other-uid')).toBeNull();
+        expect(efpVersionLabel('2611190830')).toBe('19.11.2026 08:30 UTC');
     });
 
     it('imports the same file twice without doubles', async () => {
