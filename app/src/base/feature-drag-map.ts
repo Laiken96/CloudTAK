@@ -20,6 +20,7 @@ import type {
 } from 'maplibre-gl';
 import type { Feature as GeoJSONFeature, FeatureCollection, Geometry } from 'geojson';
 import COT, { OriginMode } from './cot.ts';
+import { DERIVED_SENSOR } from './cot/derived.ts';
 import { renderMissionFeature } from './subscription-feature.ts';
 import Subscription from './subscription.ts';
 import { isSignatureArmed } from './signature-placement.ts';
@@ -293,11 +294,13 @@ export function attachFeatureDrag(map: DragMap, opts: FeatureDragOptions): Featu
         // The topmost object - not by the inside of an area or a sensor cone,
         // a long press there still opens the map's menu
         const hit = hits.find((feat: MapGeoJSONFeature) => {
-            return feat.layer.type !== 'fill' && feat.properties && feat.properties.derived !== 'sensor';
+            return feat.layer.type !== 'fill' && feat.properties && feat.properties.derived !== DERIVED_SENSOR;
         });
+        if (!hit) return null;
 
-        const id = hit?.properties?.id;
-        if (!hit || id === undefined || id === null || id === '') return null;
+        // As the map's click: the CoT id is a property, vector ids are numbers
+        const id = hit.properties.id || hit.id;
+        if (id === undefined || id === null || id === '') return null;
 
         const subject = await opts.resolve(String(id));
         if (!subject) return null;
