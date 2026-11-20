@@ -43,7 +43,7 @@ describe('tactical catalogue', () => {
 
     it('names the graphic', () => {
         expect(callsignOf(catalogEntry('phase-line')!, { sig: 'phase-line', t: 'GELB' })).toBe('PhL GELB');
-        expect(callsignOf(catalogEntry('readiness-area')!, { sig: 'readiness-area', t: 'TANNE' })).toBe('Bereitschaftsraum TANNE');
+        expect(callsignOf(catalogEntry('readiness-area')!, { sig: 'readiness-area', t: 'TANNE' })).toBe('BERRM TANNE');
         expect(callsignOf(catalogEntry('boundary')!, { sig: 'boundary', ech: 'F', t: '12', t1: '14' })).toBe('Sector boundary / control line II 12 | 14');
         expect(callsignOf(catalogEntry('movement-mechanised')!, { sig: 'movement-mechanised', t: '1. Kp' })).toBe('Mechanised movement 1. Kp');
     });
