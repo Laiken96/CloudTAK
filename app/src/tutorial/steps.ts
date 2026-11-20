@@ -328,7 +328,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
         id: 'menu-hashtags',
         section: 'menu',
         menuKey: 'hashtags',
-        description: 'Objects grouped by the hashtags in their remarks, e.g. #FURY. Sticky hashtags are added to every object you draw or place on this device.',
+        description: 'Objects grouped by the hashtags in their remarks, e.g. #FURY. Sticky hashtags are added to every object you draw or place on this device. The eye hides a hashtag on the map of this device: every object with it in its remarks disappears, also in missions, from other users and objects that get it later. In lists they stay, marked Hidden via the hashtag. Show All brings them back. Your own position and the fire grids stay visible.',
     },
     {
         id: 'menu-fire-grids',

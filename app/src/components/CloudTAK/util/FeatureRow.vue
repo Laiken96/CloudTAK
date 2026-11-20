@@ -58,6 +58,7 @@
                     class='text-secondary small text-truncate'
                     v-text='subtitle'
                 />
+                <HashtagHiddenHint :remarks='feature.properties.remarks' />
             </div>
 
             <div class='align-self-center btn-list flex-shrink-0'>
@@ -120,6 +121,7 @@ import { FeatureVisibility } from '../../../stores/modules/feature-visibility.ts
 import FeatureIcon from './FeatureIcon.vue';
 import ContactPuck from './ContactPuck.vue';
 import StandardItem from './StandardItem.vue';
+import HashtagHiddenHint from './HashtagHiddenHint.vue';
 import {
     TablerDelete,
     TablerIconButton

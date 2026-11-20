@@ -64,6 +64,7 @@ describe('function overview', () => {
         expect(text('fire-grids')).toContain('The targets belong to the grid');
         expect(text('routes')).toContain('GPX');
         expect(text('hashtags')).toContain('Sticky');
+        expect(text('hashtags')).toContain('The eye hides a hashtag');
         expect(text('rubber-sheets').length).toBeGreaterThan(20);
         expect(text('grid-lines')).toContain('MGRS');
         expect(text('signatures').length).toBeGreaterThan(20);
