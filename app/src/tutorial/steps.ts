@@ -210,7 +210,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
         section: 'map',
         icon: IconHandClick,
         title: 'Long Press on the Map',
-        description: 'Long press an empty spot, with a mouse right-click: the pencil creates a new object there, the question mark shows the position with fire grid cell, height and more. Long press an own signature and drag it to move it, with a mouse just drag it; lines and areas are grabbed by their line. A second finger cancels, Undo puts it back.',
+        description: 'Long press an empty spot, with a mouse right-click: the pencil creates a new object there, the question mark shows the position with fire grid cell, height and more. Long press an own signature and drag it to move it, with a mouse just drag it; lines and areas are grabbed by their line or their name. A second finger cancels, Undo puts it back.',
     },
     { id: 'search', section: 'map', step: 'search', icon: IconSearch, views: ['full'] },
     { id: 'compass', section: 'map', step: 'compass', icon: IconCompass },
