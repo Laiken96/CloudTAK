@@ -1,5 +1,13 @@
 <template>
+    <SwissFormationPicker
+        v-if='source === "swiss"'
+        :action='action'
+        @source='setSource($event)'
+        @close='emit("close")'
+        @place='emit("place", $event)'
+    />
     <TablerModal
+        v-else
         size='lg'
         :dismissable='true'
         @close='emit("close")'
@@ -25,6 +33,12 @@
             class='modal-body text-body'
             data-testid='signature-picker'
         >
+            <SignatureSourceTabs
+                class='mb-3'
+                model-value='all'
+                @update:model-value='setSource($event)'
+            />
+
             <div class='d-flex align-items-center pb-3'>
                 <div class='preview rounded d-flex align-items-center justify-content-center flex-shrink-0'>
                     <FeatureIcon
@@ -130,6 +144,13 @@ import FavoriteStar from './FavoriteStar.vue';
 import AppearanceAffiliation from '../Appearance/AppearanceAffiliation.vue';
 import AppearanceTypeSelect from '../Appearance/AppearanceTypeSelect.vue';
 import AppearanceMarker from '../Appearance/AppearanceMarker.vue';
+import SignatureSourceTabs from './SignatureSourceTabs.vue';
+import SwissFormationPicker from './SwissFormationPicker.vue';
+import {
+    preferredSignatureSource,
+    setPreferredSignatureSource,
+    type SignatureSource,
+} from '../../../base/swiss-formation-choice.ts';
 import COT, { renderedIconImage } from '../../../base/cot.ts';
 import FavoriteSignatures from '../../../base/favorite-signatures.ts';
 import { signatureLabel } from '../../../base/signature-label.ts';
@@ -164,6 +185,14 @@ const emit = defineEmits<{
 }>();
 
 const busy = ref(false);
+
+/** Swiss formations or every symbol and icon - the last used one opens again */
+const source = ref<SignatureSource>(preferredSignatureSource());
+
+function setSource(next: SignatureSource): void {
+    source.value = next;
+    setPreferredSignatureSource(next);
+}
 
 const draft = ref<AppearanceDraft>({
     type: undefined,
