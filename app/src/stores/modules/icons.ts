@@ -29,6 +29,8 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { stdurl } from '../../std.ts';
 import { db, type DBSprite } from '../../database.ts';
 import { isMilsymIcon, symbolImage } from '../../utils/milsymbol.ts';
+import { isSpriteId } from '../../utils/tactical-graphics/sprite-id.ts';
+import { tacticalSprite } from '../../utils/tactical-graphics/sprites.ts';
 
 /** Target render width (px) used when rasterizing SVG iconset icons; height preserves the source aspect ratio. */
 const SVG_RENDER_WIDTH = 32;
@@ -165,7 +167,7 @@ export default class IconManager {
      * to a built-in spritesheet icon the style loads up front
      */
     resolvable(id: string): boolean {
-        return isMilsymIcon(id) || id.includes('-colored-') || id.includes(':');
+        return isMilsymIcon(id) || isSpriteId(id) || id.includes('-colored-') || id.includes(':');
     }
 
     private async resolveImage(id: string): Promise<void> {
@@ -180,6 +182,10 @@ export default class IconManager {
         } else if (isMilsymIcon(id)) {
             const { image, pixelRatio } = await symbolImage(id);
             this.addImage(id, await createImageBitmap(image), { pixelRatio });
+        } else if (isSpriteId(id)) {
+            // PzBat12: tactical graphic sprites, drawn in the requested colour
+            const sprite = tacticalSprite(id);
+            if (sprite) this.addImage(id, sprite.image, { pixelRatio: sprite.pixelRatio });
         } else if (id.includes('-colored-')) {
             const separator = id.lastIndexOf('-colored-');
             const baseId = id.slice(0, separator);

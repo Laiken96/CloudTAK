@@ -1,4 +1,5 @@
 import * as mapgl from 'maplibre-gl'
+import { withTactical } from './tactical-graphics/styles.ts';
 import type {
     LayerSpecification,
     CircleLayerSpecification,
@@ -480,5 +481,6 @@ export default function styles(id: string, opts: {
         styles.push(labelsPoly);
     }
 
-    return styles;
+    // PzBat12: tactical graphics of regulation 52.003
+    return withTactical(styles, id, opts);
 }

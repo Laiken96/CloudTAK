@@ -22,6 +22,11 @@ const router = VueRouter.createRouter({
                 name: 'home-menu-cot-appearance',
                 component: () => import('./components/CloudTAK/CoTAppearance.vue'),
             },{
+                // PzBat12: tactical graphic (regulation 52.003)
+                path: 'cot/:uid/tactical',
+                name: 'home-menu-cot-tactical',
+                component: () => import('./components/CloudTAK/TacticalGraphics/TacticalEditor.vue'),
+            },{
                 path: 'cot/:uid/medevac',
                 name: 'home-menu-cot-medevac',
                 component: () => import('./components/CloudTAK/Medevac/MedevacView.vue'),
@@ -240,6 +245,11 @@ const router = VueRouter.createRouter({
                     path: 'grid-lines',
                     name: 'home-menu-grid-lines',
                     component: () => import('./components/CloudTAK/Menu/MenuGridLines.vue')
+                },{
+                    // PzBat12: tactical graphics (regulation 52.003)
+                    path: 'tactical-graphics',
+                    name: 'home-menu-tactical-graphics',
+                    component: () => import('./components/CloudTAK/TacticalGraphics/TacticalPicker.vue')
                 },{
                     path: 'signatures',
                     name: 'home-menu-signatures',

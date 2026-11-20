@@ -1,0 +1,258 @@
+/**
+ * Catalogue of the line & area signatures of regulation 52.003 (chapters
+ * 3.1, 3.3, 3.4 and 4.5) for the drawing tools: names, how they are drawn,
+ * the fields the editor shows and - where an equivalent exists - the 2525C
+ * tactical graphic ATAK draws in their place.
+ *
+ * UI side only (labels are translated); the map worker uses recipes/.
+ */
+import { FAMILY_COLORS } from '../appearance.ts';
+import {
+    PREFIXES, labelText, echelonSign,
+    type Affiliation, type TacticalModel,
+} from './model.ts';
+
+export type DrawKind = 'line' | 'area';
+
+export type FieldKey = 't' | 't1' | 'ech' | 'aff' | 'planned' | 'width' | 'side';
+
+export interface CatalogGroup {
+    id: string;
+    label: string;
+}
+
+export const GROUPS: CatalogGroup[] = [
+    { id: 'lines', label: 'Boundaries and control lines' },
+    { id: 'movement', label: 'Movement' },
+    { id: 'attack', label: 'Attack' },
+    { id: 'tasks', label: 'Tasks' },
+    { id: 'obstacles', label: 'Obstacles and fortifications' },
+    { id: 'areas', label: 'Areas' },
+    { id: 'nbc', label: 'NBC' },
+    { id: 'damage', label: 'Destruction and damage' },
+    { id: 'mines', label: 'Mines and explosive ordnance' },
+    { id: 'topo', label: 'Topography' },
+];
+
+export interface CatalogEntry {
+    /** Picker id - unique */
+    id: string;
+    /** Stored signature key (recipes/), several entries may share one */
+    sig: string;
+    label: string;
+    group: string;
+    /** Regulation chapter and PDF page */
+    chapter: string;
+    page: number;
+    draw: DrawKind;
+    /** Shown while drawing */
+    hint?: string;
+    /** Fields of the editor */
+    fields: FieldKey[];
+    /** Label of the designation field(s) */
+    tLabel?: string;
+    t1Label?: string;
+    /** Designations name units - the overlay must then be classified (regulation p. 28) */
+    unitFields?: boolean;
+    /** Defaults of a new graphic */
+    defaults?: Partial<TacticalModel>;
+    /** Fixed colour (damage, topography) instead of the affiliation colour */
+    color?: string;
+    /** Fill opacity of the area as other TAK clients see it */
+    fillOpacity?: number;
+    /** Map label prefix, also used for the callsign */
+    prefix?: string;
+    /**
+     * 2525C tactical graphic: category & function id (`G*<cat>*<fn>…`),
+     * sent as `__milsym` only where it is equivalent and our points match
+     * its control points
+     */
+    sidc?: { cat: string; fn: string; echelon?: boolean };
+    /** Entries sharing a group of interchangeable signatures (area types) */
+    family?: string;
+    /** Drawn with exactly this many points (eg centre and radius) */
+    points?: 2 | 3;
+    /** Shape of the sample in the preview */
+    sample?: 'sector';
+}
+
+const LINE_FIELDS: FieldKey[] = ['t', 'aff', 'planned'];
+const ARROW_FIELDS: FieldKey[] = ['t', 'aff', 'planned'];
+const BROAD_FIELDS: FieldKey[] = ['t', 'aff', 'planned', 'width'];
+const AREA_FIELDS: FieldKey[] = ['t', 'aff', 'planned'];
+
+const LINE_HINT = 'Tap the points of the line, then the check mark.';
+const ARROW_HINT = 'Draw from the start to the tip.';
+const AREA_HINT = 'Tap the corners of the area, then the check mark.';
+
+export const CATALOG: CatalogEntry[] = [
+    // --- 3.1 / 3.3 boundaries and control lines ----------------------------
+    {
+        id: 'boundary', sig: 'boundary', label: 'Sector boundary / control line', group: 'lines', chapter: '3.1', page: 37, draw: 'line',
+        hint: LINE_HINT, fields: ['ech', 't', 't1', 'aff', 'planned'], tLabel: 'Unit left', t1Label: 'Unit right', unitFields: true,
+        defaults: { ech: 'F' }, sidc: { cat: 'G', fn: 'GLB', echelon: true },
+    },
+    {
+        id: 'flot', sig: 'flot', label: 'Forward line of own troops', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
+        hint: 'The arcs face the left of the drawing direction.', fields: ['planned', 'side'], defaults: { aff: 'f' },
+        sidc: { cat: 'G', fn: 'GLF' },
+    },
+    {
+        id: 'flet', sig: 'flet', label: 'Forward line of enemy troops', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
+        hint: 'The arcs face the left of the drawing direction.', fields: ['planned', 'side'], defaults: { aff: 'h' },
+        sidc: { cat: 'G', fn: 'GLF' },
+    },
+    {
+        id: 'phase-line', sig: 'phase-line', label: 'Phase line (PhL)', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
+        hint: LINE_HINT, fields: LINE_FIELDS, tLabel: 'Name', prefix: PREFIXES.phaseLine, sidc: { cat: 'G', fn: 'GLP' },
+    },
+    {
+        id: 'line-of-departure', sig: 'line-of-departure', label: 'Line of departure (AL)', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
+        hint: LINE_HINT, fields: LINE_FIELDS, tLabel: 'Name', prefix: PREFIXES.lineOfDeparture, sidc: { cat: 'G', fn: 'OLT' },
+    },
+    {
+        id: 'fire-coordination-line', sig: 'fire-coordination-line', label: 'Fire coordination line (FKL)', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
+        hint: LINE_HINT, fields: LINE_FIELDS, tLabel: 'Name', prefix: PREFIXES.fireCoordinationLine, sidc: { cat: 'F', fn: 'LCF' },
+    },
+
+    // --- 3.3 movement -------------------------------------------------------
+    {
+        id: 'movement', sig: 'movement', label: 'Movement, transport, march', group: 'movement', chapter: '3.3', page: 40, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'movement-motorised', sig: 'movement-motorised', label: 'Motorised movement', group: 'movement', chapter: '3.3', page: 40, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'movement-mechanised', sig: 'movement-mechanised', label: 'Mechanised movement', group: 'movement', chapter: '3.3', page: 40, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+
+    // --- 3.3 attack ---------------------------------------------------------
+    {
+        id: 'main-attack', sig: 'main-attack', label: 'Main attack', group: 'attack', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'supporting-attack', sig: 'supporting-attack', label: 'Supporting attack', group: 'attack', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'axis-of-attack', sig: 'axis-of-attack', label: 'Axis of attack', group: 'attack', chapter: '3.3', page: 40, draw: 'line',
+        hint: 'Draw from the intermediate objective to the objective.', fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+
+    // --- 3.3 obstacles ------------------------------------------------------
+    {
+        id: 'obstacle', sig: 'obstacle', label: 'Obstacle; harden, block', group: 'obstacles', chapter: '3.3', page: 43, draw: 'line',
+        hint: LINE_HINT, fields: ['aff'],
+    },
+
+    // --- 3.1 / 3.4 areas ----------------------------------------------------
+    {
+        id: 'assigned-area', sig: 'assigned-area', label: 'Assigned area', group: 'areas', chapter: '3.1', page: 37, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Responsible unit', unitFields: true,
+    },
+    {
+        id: 'readiness-area', sig: 'readiness-area', label: 'Readiness area', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: AREA_FIELDS, tLabel: 'Name', prefix: PREFIXES.readinessArea, family: 'area-type',
+        sidc: { cat: 'G', fn: 'GAA' },
+    },
+    {
+        id: 'assembly-area', sig: 'assembly-area', label: 'Assembly area', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: AREA_FIELDS, tLabel: 'Name', prefix: PREFIXES.assemblyArea, family: 'area-type',
+        sidc: { cat: 'G', fn: 'GAA' },
+    },
+    {
+        id: 'attack-position', sig: 'attack-position', label: 'Attack position', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: AREA_FIELDS, tLabel: 'Name', prefix: PREFIXES.attackPosition, family: 'area-type',
+        sidc: { cat: 'G', fn: 'OAK' },
+    },
+    {
+        id: 'intermediate-objective', sig: 'intermediate-objective', label: 'Intermediate objective (ZZ)', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: AREA_FIELDS, tLabel: 'Number', prefix: PREFIXES.intermediateObjective, family: 'area-type',
+        sidc: { cat: 'G', fn: 'OAO' },
+    },
+    {
+        id: 'objective', sig: 'objective', label: 'Objective (AZ)', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: AREA_FIELDS, tLabel: 'Name', prefix: PREFIXES.objective, family: 'area-type',
+        sidc: { cat: 'G', fn: 'OAO' },
+    },
+    {
+        id: 'indirect-fire', sig: 'indirect-fire', label: 'Indirect fire, fired', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+    },
+    {
+        id: 'indirect-fire-planned', sig: 'indirect-fire', label: 'Indirect fire, planned', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff', 'planned'], tLabel: 'Name', defaults: { planned: true },
+    },
+    {
+        id: 'strong-point', sig: 'strong-point', label: 'Strong point, hold', group: 'areas', chapter: '3.4', page: 45, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name', sidc: { cat: 'M', fn: 'SP' },
+    },
+];
+
+export function catalogEntry(id: string | undefined): CatalogEntry | undefined {
+    return CATALOG.find((entry) => entry.id === id);
+}
+
+/**
+ * The catalogue entry of a stored model: the first entry of its signature,
+ * or the one whose defaults match (indirect fire fired / planned)
+ */
+export function entryOf(model: TacticalModel): CatalogEntry | undefined {
+    const entries = CATALOG.filter((entry) => entry.sig === model.sig);
+    return entries.find((entry) => !!entry.defaults?.planned === !!model.planned) ?? entries[0];
+}
+
+/** Line colour of an affiliation: the colours of the app's 2525 symbols */
+export const AFFILIATION_COLORS: Record<Affiliation, string> = {
+    f: FAMILY_COLORS.friendly,
+    h: FAMILY_COLORS.hostile,
+    n: FAMILY_COLORS.neutral,
+    u: FAMILY_COLORS.unknown,
+};
+
+export function affiliationOf(entry: CatalogEntry, model: TacticalModel): Affiliation {
+    return model.aff ?? entry.defaults?.aff ?? 'f';
+}
+
+export function colorOf(entry: CatalogEntry, model: TacticalModel): string {
+    return entry.color ?? AFFILIATION_COLORS[affiliationOf(entry, model)];
+}
+
+/** A new model for an entry, with its defaults */
+export function defaultModel(entry: CatalogEntry): TacticalModel {
+    return { sig: entry.sig, ...(entry.defaults ?? {}) };
+}
+
+/**
+ * The 2525C SIDC ATAK draws the graphic with, or undefined. Status A
+ * (anticipated) makes ATAK draw it dashed, like a planned signature
+ */
+export function sidcOf(entry: CatalogEntry, model: TacticalModel): string | undefined {
+    if (!entry.sidc) return undefined;
+
+    const aff = affiliationOf(entry, model).toUpperCase();
+    const status = model.planned ? 'A' : 'P';
+    const fn = entry.sidc.fn.padEnd(6, '-');
+
+    if (entry.sidc.echelon && model.ech) {
+        return `G${aff}${entry.sidc.cat}${status}${fn}-${model.ech}--X`;
+    }
+
+    return `G${aff}${entry.sidc.cat}${status}${fn}****X`;
+}
+
+/** The callsign: map label of the graphic, or its name */
+export function callsignOf(entry: CatalogEntry, model: TacticalModel): string {
+    if (entry.sig === 'boundary') {
+        return [entry.label, echelonSign(model.ech), [model.t, model.t1].filter(Boolean).join(' | ')]
+            .filter((part) => !!part).join(' ');
+    }
+
+    if (entry.prefix) return labelText(entry.prefix, model);
+
+    return [entry.label, model.t].filter((part) => !!part).join(' ');
+}

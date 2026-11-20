@@ -37,6 +37,7 @@ import {
     IconBroadcast,
     IconCrosshair,
     IconMedicalCross,
+    IconRoute2,
     IconShieldHalfFilled,
 } from '@tabler/icons-vue';
 import type { TourStep, TourView } from './tour.ts';
@@ -224,6 +225,17 @@ export const HELP_ENTRIES: HelpEntry[] = [
         target: testid('draw-tool-medevac'),
         title: 'MEDEVAC 9-Line',
         description: 'Choose MEDEVAC in the drawing tools, or MEDEVAC as point type when drawing a point or entering coordinates, and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form with the nine lines; it saves as you type and ATAK can read it. Copy the readout for the radio; patient details (ZMIST) are deliberately not shown.',
+    },
+    {
+        id: 'tactical-graphics',
+        section: 'map',
+        icon: IconRoute2,
+        views: ['full'],
+        // Show opens the drawing tools and points at the Tactical Graphic entry
+        open: DRAW_TOOLS_BUTTON,
+        target: testid('draw-tool-tactical'),
+        title: 'Tactical Graphics',
+        description: 'Choose Tactical Graphic in the drawing tools for the lines and areas of regulation 52.003: boundaries, front and phase lines, movements, attacks, tasks, obstacles, areas, damage and topography. Draw with your finger and finish with the check mark, then enter name, hierarchy sign, affiliation and planned or executed. Swap side turns arcs and ticks to the other side. ATAK shows the 2525 graphic where there is one, otherwise the line in the same colour with its name.',
     },
     {
         id: 'notifications',

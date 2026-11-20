@@ -1,4 +1,5 @@
 import { sector } from '@turf/sector';
+import { tacticalDerived } from '../../utils/tactical-graphics/derive.ts';
 import type { Feature } from '../../types.ts';
 import type {
     Feature as GeoJSONFeature,
@@ -94,6 +95,9 @@ export function derivedFeatures(
             });
         }
     }
+
+    // PzBat12: tactical graphics of regulation 52.003 (arcs, labels, arrows …)
+    features.push(...tacticalDerived(feature, vectorId));
 
     return features;
 }

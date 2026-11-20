@@ -99,7 +99,9 @@ import {
     IconCursorText,
     IconPencilPlus,
     IconMedicalCross,
+    IconRoute2,
 } from '@tabler/icons-vue';
+import { useRouter } from 'vue-router';
 import { useMapStore } from '../../stores/map';
 import { startMedevac } from './Medevac/medevac-draw.ts';
 import { useFloatStore } from '../../stores/float.ts';
@@ -112,6 +114,7 @@ import {
 
 const mapStore = useMapStore();
 const floatStore = useFloatStore();
+const router = useRouter();
 
 const search = ref<string>('');
 const searchVisible = ref<boolean>(false);
@@ -132,6 +135,8 @@ const drawTools: DrawToolItem[] = [
     { key: 'point', label: 'Draw Point', icon: IconPoint, action: () => { mapStore.draw.start(DrawToolMode.POINT); } },
     { key: 'medevac', label: 'MEDEVAC', icon: IconMedicalCross, action: () => { void startMedevac(mapStore); } },
     { key: 'line', label: 'Draw Line', icon: IconLine, action: () => { mapStore.draw.start(DrawToolMode.LINESTRING); } },
+    // PzBat12: lines & areas of regulation 52.003
+    { key: 'tactical', label: 'Tactical Graphic', icon: IconRoute2, action: () => { void router.push('/menu/tactical-graphics'); } },
     { key: 'polygon', label: 'Draw Polygon', icon: IconPolygon, action: () => { mapStore.draw.start(DrawToolMode.POLYGON); } },
     { key: 'rectangle', label: 'Draw Rectangle', icon: IconVector, action: () => { mapStore.draw.start(DrawToolMode.RECTANGLE); } },
     { key: 'circle', label: 'Draw Circle', icon: IconCircle, action: () => { mapStore.draw.start(DrawToolMode.CIRCLE); } },

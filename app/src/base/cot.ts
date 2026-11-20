@@ -33,6 +33,8 @@ export enum OriginMode {
 
 export const RENDERED_PROPERTIES = [
     'callsign',
+    // PzBat12: tactical graphic (utils/tactical-graphics) - also flags it for the style filters
+    'chsig',
     'minzoom',
     'maxzoom',
     'fill',

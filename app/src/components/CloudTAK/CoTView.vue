@@ -339,6 +339,16 @@
                         </div>
 
                         <div
+                            v-if='isTactical(cot.properties)'
+                            class='px-2 py-2'
+                        >
+                            <TacticalRow
+                                :properties='cot.properties'
+                                @click='router.push(`/cot/${cot.id}/tactical`)'
+                            />
+                        </div>
+
+                        <div
                             v-if='isMedevac(cot.properties)'
                             class='px-2 py-2'
                         >
@@ -614,6 +624,8 @@ import PropertyHashtags from './Property/PropertyHashtags.vue';
 import PropertyFireGrid from './Property/PropertyFireGrid.vue';
 import MedevacRow from './Medevac/MedevacRow.vue';
 import { isMedevac } from '../../utils/medevac.ts';
+import TacticalRow from './TacticalGraphics/TacticalRow.vue';
+import { isTactical } from '../../utils/tactical-graphics/model.ts';
 import PropertyBattery from './Property/PropertyBattery.vue';
 import PropertyFactRow from './util/PropertyFactRow.vue';
 import PropertyTabs, { type PropertyTab } from './util/PropertyTabs.vue';

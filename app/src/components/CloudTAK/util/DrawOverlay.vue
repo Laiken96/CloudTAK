@@ -169,6 +169,7 @@
                     </TablerIconButton>
                 </div>
             </div>
+            <TacticalDrawHint />
             <div
                 v-if='appStore.isMobileDetected && opened'
                 class='card-body'
@@ -214,6 +215,7 @@
                     </TablerIconButton>
                 </div>
             </div>
+            <TacticalDrawHint />
         </div>
         <div
             v-else-if='mapStore.draw.mode === DrawToolMode.SECTOR'
@@ -357,6 +359,7 @@ import { DrawToolMode } from '../../../stores/modules/draw.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import { useAppStore } from '../../../stores/app.ts';
 import OverlayManager from '../../../base/overlay.ts';
+import TacticalDrawHint from '../TacticalGraphics/TacticalDrawHint.vue';
 import {
     TablerEnum,
     TablerIconButton

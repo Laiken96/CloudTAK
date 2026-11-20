@@ -45,6 +45,16 @@ export enum DrawToolMode {
     SECTOR = 'sector',
 }
 
+export interface DrawTemplate {
+    /** Name shown while drawing */
+    label: string;
+    /** Short instruction shown while drawing */
+    hint?: string;
+    properties: Record<string, unknown>;
+    /** Route opened once drawn, `:id` is replaced by the new Feature's id */
+    route?: string;
+}
+
 export default class DrawTool {
     private draw: terraDraw.TerraDraw;
 
@@ -56,6 +66,18 @@ export default class DrawTool {
 
     // Bumped on every TerraDraw change event to drive reactivity for canFinish
     private _changeCount = ref(0);
+
+    // PzBat12: properties merged into the next drawn line or area (tactical
+    // graphics) and the route to open afterwards - cleared by stop()
+    private _template = shallowRef<DrawTemplate | null>(null);
+
+    public get template(): DrawTemplate | null {
+        return this._template.value;
+    }
+
+    public set template(template: DrawTemplate | null) {
+        this._template.value = template;
+    }
 
     public get editing(): COT | null {
         return this._editing.value;
@@ -465,6 +487,8 @@ export default class DrawTool {
                         }
                     }
 
+                    const route = this.applyTemplate(feat);
+
                     this.removeFeature(id);
 
                     await this.stop();
@@ -478,7 +502,7 @@ export default class DrawTool {
 
                     await this.mapStore.refresh();
 
-                    router.push(`/cot/${feat.properties.id}`);
+                    router.push(route);
                 }
             }
         })
@@ -807,19 +831,33 @@ export default class DrawTool {
                     feat.properties["marker-color"] = this.point.type === 'u-d-p' ? '#00FF00' : '#FFFFFF';
                 }
 
+                const route = this.applyTemplate(feat);
                 this.removeFeature(drawn.id as string);
                 await this.stop();
                 await this.mapStore.worker.db.add(feat, { authored: true, created: true });
                 await this.mapStore.refresh();
-                router.push(`/cot/${feat.properties.id}`);
+                router.push(route);
             } else {
                 await this.stop();
             }
         }
     }
 
+    /**
+     * Merge the drawing template into a newly drawn Feature - returns the
+     * route to open for it
+     */
+    private applyTemplate(feat: Feature): string {
+        const template = this.template;
+        if (!template || feat.geometry.type === 'Point') return `/cot/${feat.properties.id}`;
+
+        Object.assign(feat.properties, JSON.parse(JSON.stringify(template.properties)));
+        return (template.route ?? '/cot/:id').replace(':id', String(feat.properties.id));
+    }
+
     async stop(refresh = true): Promise<void> {
         this.mode = DrawToolMode.STATIC;
+        this.template = null;
 
         await this.removeNetwork();
 
