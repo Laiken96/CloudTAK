@@ -136,8 +136,7 @@ function innerHead(arrow: BroadArrow, L: number, h: number): XY[] {
 }
 
 function crossOver(arrow: BroadArrow, h: number): [XY[], XY[]] {
-    const crossStart = -h * 3.2;
-    const crossEnd = -h * 0.9;
+    const crossStart = -h * 2.6;
 
     const cut = (line: XY[]): XY[] => {
         // Keep the part of the side line behind the crossing
@@ -149,7 +148,7 @@ function crossOver(arrow: BroadArrow, h: number): [XY[], XY[]] {
         return out;
     };
 
-    const leftLine = [...cut(arrow.left), at(arrow, crossStart, h), at(arrow, crossEnd, -h), at(arrow, 0, -h)];
-    const rightLine = [...cut(arrow.right), at(arrow, crossStart, -h), at(arrow, crossEnd, h), at(arrow, 0, h)];
+    const leftLine = [...cut(arrow.left), at(arrow, crossStart, h), at(arrow, 0, -h)];
+    const rightLine = [...cut(arrow.right), at(arrow, crossStart, -h), at(arrow, 0, h)];
     return [leftLine, rightLine];
 }

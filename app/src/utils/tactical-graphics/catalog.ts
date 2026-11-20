@@ -177,6 +177,26 @@ export const CATALOG: CatalogEntry[] = [
         hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
     },
     {
+        id: 'feint', sig: 'feint', label: 'Feint', group: 'attack', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'aborted-attack', sig: 'aborted-attack', label: 'Aborted attack', group: 'attack', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'aborted-in-position', sig: 'aborted-in-position', label: 'Aborted attack, in position', group: 'attack', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'air-attack', sig: 'air-attack', label: 'Air attack', group: 'attack', chapter: '3.3', page: 42, draw: 'line',
+        hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'airborne', sig: 'airborne', label: 'Airborne operation', group: 'attack', chapter: '3.3', page: 42, draw: 'line',
+        hint: ARROW_HINT, fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+    {
         id: 'axis-of-attack', sig: 'axis-of-attack', label: 'Axis of attack', group: 'attack', chapter: '3.3', page: 40, draw: 'line',
         hint: 'Draw from the intermediate objective to the objective.', fields: BROAD_FIELDS, tLabel: 'Name',
     },

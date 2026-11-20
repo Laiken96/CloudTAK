@@ -196,6 +196,18 @@ export const SPRITES: Record<string, Sprite> = {
         },
     },
 
+    // Airborne: box with a cross behind the start of the arrow
+    'boxx': {
+        w: 36,
+        h: 24,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.rect(3, 5, 14, 14);
+                g.moveTo(3, 5); g.lineTo(17, 19);
+                g.moveTo(17, 5); g.lineTo(3, 19);
+            }, color, casing, 1.5);
+        },
+    },
     // Filled arrow head, tip at the centre
     'head-f': {
         w: 24,

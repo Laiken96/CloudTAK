@@ -9,4 +9,10 @@ export const ATTACK: Record<string, Recipe> = {
     'supporting-attack': (c) => broad(c, 'supporting'),
     // Angriffsachse: dotted, between intermediate objectives (ZZ) and the objective (AZ)
     'axis-of-attack': (c) => broad(c, 'axis'),
+    'feint': (c) => broad(c, 'feint'),
+    // Abgebrochener Angriff … und in Stellung: zigzag head (and bracket)
+    'aborted-attack': (c) => broad(c, 'aborted'),
+    'aborted-in-position': (c) => broad(c, 'position'),
+    'air-attack': (c) => broad(c, 'air'),
+    'airborne': (c) => broad(c, 'airborne'),
 };

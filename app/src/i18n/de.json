@@ -2478,5 +2478,10 @@
     "Surveil": "Überwachen",
     "Direction of outflow or slide": "Abfluss- oder Abrutschrichtung",
     "River with direction of flow": "Fluss mit Fliessrichtung",
-    "Draw in the direction of flow.": "In Fliessrichtung zeichnen."
+    "Draw in the direction of flow.": "In Fliessrichtung zeichnen.",
+    "Feint": "Scheinangriff",
+    "Aborted attack": "Abgebrochener Angriff",
+    "Aborted attack, in position": "Abgebrochener Angriff und in Stellung",
+    "Air attack": "Luftangriff",
+    "Airborne operation": "Luftlandeaktion"
 }
