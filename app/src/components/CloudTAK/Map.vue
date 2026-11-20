@@ -94,6 +94,7 @@
             />
             <PluginPane v-if='mode === "Default" && !isDrawing && !simpleMode' />
             <FavoritesBar v-if='mode === "Default" && !isDrawing && !mapStore.selected.size' />
+            <FeatureDragStatus v-if='mode === "Default"' />
             <div
                 v-if='mapStore.selected.size'
                 class='position-absolute'
@@ -366,6 +367,7 @@ import { ref, watch, computed, toRaw, nextTick, onMounted, onBeforeUnmount, useT
 import GPSPanel from './GPSPanel/GPSPanel.vue';
 import PluginPane from './PluginPane.vue';
 import FavoritesBar from './FavoritesBar.vue';
+import FeatureDragStatus from './FeatureDragStatus.vue';
 import { simpleMode } from '../../stores/modules/simple-mode.ts';
 import {useRoute, useRouter } from 'vue-router';
 import Navigating from './Navigating.vue';

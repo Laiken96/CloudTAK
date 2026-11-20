@@ -53,6 +53,7 @@ import { db, suspendDatabase, resumeDatabase, liveQuery } from '../database.ts';
 import { serializeWorkerBootConfig } from '../utils/worker-boot.ts';
 import { isSignatureArmed } from '../base/signature-placement.ts';
 import { attachMapLongPress } from '../base/long-press.ts';
+import { attachFeatureDrag, storeFeatureDragOptions, type FeatureDragStore } from '../base/feature-drag-map.ts';
 
 import type { ProfileOverlay, Feature } from '../types.ts';
 import type { LngLat, LngLatLike, Point, MapMouseEvent, MapGeoJSONFeature, GeoJSONSource, LayerSpecification, PropertyValueSpecification } from 'maplibre-gl';
@@ -1630,8 +1631,24 @@ export const useMapStore = defineStore('cloudtak', {
                 }
             });
 
+            // Long press (mouse: drag) on an own object moves it - see feature-drag-map.ts
+            const featureDrag = attachFeatureDrag(map, storeFeatureDragOptions(
+                this as unknown as FeatureDragStore,
+                () => [...OverlayManager.clickableLayerMap().values()].filter((l) => l.type === 'cot').map((l) => l.id),
+                () => this.draw.mode === DrawToolMode.STATIC && !this.draw.editing
+            ));
+
+            // PzBat12: MapLibre's own touch long press and long-press.ts can both
+            // fire for one press - open the context menu once
+            let lastContext = { at: Number.NEGATIVE_INFINITY, x: 0, y: 0 };
+
             map.on('contextmenu', (e) => {
-                if (this.draw.editing) return;
+                // MapLibre's own touch long press fires this too - not over an object being picked up
+                if (this.draw.editing || featureDrag.claimed()) return;
+
+                const now = performance.now();
+                if (now - lastContext.at < 1000 && Math.hypot(e.point.x - lastContext.x, e.point.y - lastContext.y) < 20) return;
+                lastContext = { at: now, x: e.point.x, y: e.point.y };
 
                 const lngLat = e.lngLat.wrap();
                 const id = randomUUID();
@@ -1664,7 +1681,7 @@ export const useMapStore = defineStore('cloudtak', {
             });
 
             // iOS Safari fires no contextmenu for a long press - see long-press.ts
-            attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC);
+            attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC && !featureDrag.claimed());
 
             OverlayManager.clearLoaded();
             const profileOverlays = await OverlayManager.list({ localFirst: true });
