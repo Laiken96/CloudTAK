@@ -2379,5 +2379,20 @@
     "Callsign, team and role, display (units, coordinate format, language, light or dark), notifications and permissions.": "Callsign, Team und Rolle, Anzeige (Einheiten, Koordinatenformat, Sprache, hell oder dunkel), Benachrichtigungen und Berechtigungen.",
     "This overview and the guided tour through the app.": "Diese Übersicht und die geführte Tour durch die App.",
     "Draw points, lines, areas, circles and sectors, measure with Range & Bearing and Range Rings, enter coordinates or take a Quick Pic. MEDEVAC sets a red cross for a 9-Line casualty report.": "Punkte, Linien, Flächen, Kreise und Sektoren zeichnen, mit Range & Bearing und Entfernungsringen messen, Koordinaten eingeben oder ein Schnell-Foto aufnehmen. MEDEVAC setzt ein rotes Kreuz für eine Verwundetenmeldung (9-Line).",
-    "Choose MEDEVAC in the drawing tools, or MEDEVAC as point type when drawing a point or entering coordinates, and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form with the nine lines; it saves as you type and ATAK can read it. Copy the readout for the radio; patient details (ZMIST) are deliberately not shown.": "In den Zeichenwerkzeugen MEDEVAC wählen, oder MEDEVAC als Punkttyp beim Zeichnen eines Punkts oder bei der Koordinateneingabe, und auf den Aufnahmeplatz tippen. In den Details des roten Kreuzes öffnet «MEDEVAC 9-Line» das Formular mit den neun Linien; es speichert laufend und ATAK kann es lesen. Den Lesetext für den Funk kopieren; Patientenangaben (ZMIST) werden bewusst nicht angezeigt."
+    "Choose MEDEVAC in the drawing tools, or MEDEVAC as point type when drawing a point or entering coordinates, and tap the pick-up site. In the details of the red cross, MEDEVAC 9-Line opens the form with the nine lines; it saves as you type and ATAK can read it. Copy the readout for the radio; patient details (ZMIST) are deliberately not shown.": "In den Zeichenwerkzeugen MEDEVAC wählen, oder MEDEVAC als Punkttyp beim Zeichnen eines Punkts oder bei der Koordinateneingabe, und auf den Aufnahmeplatz tippen. In den Details des roten Kreuzes öffnet «MEDEVAC 9-Line» das Formular mit den neun Linien; es speichert laufend und ATAK kann es lesen. Den Lesetext für den Funk kopieren; Patientenangaben (ZMIST) werden bewusst nicht angezeigt.",
+    "Swiss Formation": "Schweizer Formation",
+    "Swiss Formations": "Schweizer Formationen",
+    "Formation": "Formation",
+    "Search formation, e.g. Panzer": "Formation suchen, z. B. Panzer",
+    "No formation found": "Keine Formation gefunden",
+    "No formation chosen": "Keine Formation gewählt",
+    "Choose a formation first.": "Zuerst eine Formation wählen.",
+    "Staff": "Stab",
+    "Task force": "Einsatzverband",
+    "Designation": "Bezeichnung",
+    "Name on the map": "Name auf der Karte",
+    "Results": "Treffer",
+    "Nearest 2525 symbol": "Nächstliegendes 2525-Symbol",
+    "Search by Swiss name, then choose echelon and affiliation": "Nach Schweizer Namen suchen, dann Führungsstufe und Zugehörigkeit wählen",
+    "The plus of the favorites bar, tab Swiss Formation: search a formation by its Swiss name (e.g. Panzer, Aufklärung, Sanität), then choose the echelon (Zug, Kp, Bat, Abt ...), Staff if needed and the affiliation. It is placed as a 2525 symbol with echelon that ATAK shows the same way; formations without a 2525 equivalent get the nearest symbol and their designation as name. The star keeps the choice as a favorite, echelon included.": "Das Plus der Favoritenleiste, Reiter «Schweizer Formation»: eine Formation nach ihrem Schweizer Namen suchen (z. B. Panzer, Aufklärung, Sanität), dann die Führungsstufe (Zug, Kp, Bat, Abt …), bei Bedarf «Stab» und die Zugehörigkeit wählen. Gesetzt wird ein 2525-Symbol mit Führungsstufe, das ATAK gleich anzeigt; Formationen ohne 2525-Entsprechung erhalten das nächstliegende Symbol und ihre Bezeichnung als Name. Der Stern speichert die Auswahl als Favorit, mit Führungsstufe."
 }
