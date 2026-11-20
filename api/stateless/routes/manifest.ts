@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 import type ConfigStateless from '../config.js';
 import Schema from '@openaddresses/batch-schema';
 import Err from '@openaddresses/batch-error';
-import { buildLogos } from '../lib/logos.js';
+import { buildAppleTouchIcon, buildLogos } from '../lib/logos.js';
 
 export default async function router(schema: Schema, config: ConfigStateless) {
     let logos: Map<number, Buffer> = await buildLogos(config);
@@ -75,6 +75,28 @@ export default async function router(schema: Schema, config: ConfigStateless) {
 
             res.set('Content-Type', 'image/png');
             res.send(logo);
+        } catch (err) {
+            Err.respond(err, res);
+        }
+    });
+
+    // PzBat12: iOS takes the home screen icon from <link rel="apple-touch-icon">, not from the manifest
+    await schema.get('/manifest.webmanifest/apple-touch-icon', {
+        security: [],
+        name: 'Get Apple Touch Icon',
+        group: 'Manifest',
+        description: 'Return the login logo as iOS home screen icon (180px on white), or the CloudTAK logo if none is set',
+    }, async (req, res) => {
+        try {
+            const icon = await buildAppleTouchIcon(config);
+
+            if (!icon) {
+                res.redirect(302, '/logos/180.png');
+                return;
+            }
+
+            res.set('Content-Type', 'image/png');
+            res.send(icon);
         } catch (err) {
             Err.respond(err, res);
         }

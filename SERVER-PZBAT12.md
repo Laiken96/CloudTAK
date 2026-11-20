@@ -63,9 +63,13 @@ alle mit ihrem TAK-Konto an.
 
 Logo und Texte der Login-Seite sind Einstellungen der Instanz, nicht Teil des
 Pakets. Nach der Ersteinrichtung einmal setzen: im Admin-Bereich unter
-Konfiguration > Login-Einstellungen das Wappen als Logo hochladen (PNG oder SVG, mindestens
-etwa 450 Pixel hoch, sonst unscharf; die Login-Seite zeigt es 150 Pixel hoch
-und das App-Icon auf dem iPhone wird daraus in 512 Pixel erzeugt).
+Konfiguration > Login-Einstellungen das Wappen als Logo hochladen (PNG mit
+durchsichtigem Hintergrund oder SVG; freigestellte Fassung auf dem Mac:
+`~/Claude_Projekte/PzBat12/Testdaten/wappen-pzbat12.png`, 274 × 368 Pixel).
+Die Login-Seite zeigt es 150 Pixel hoch. Daraus entstehen auch die App-Symbole:
+für Android/Chrome über das Manifest, für das iPhone (Home-Bildschirm) als
+180 Pixel auf weissem Grund. Das iPhone übernimmt ein neues Symbol erst, wenn
+die App vom Home-Bildschirm entfernt und neu hinzugefügt wird.
 
 ### Iconsets für alle (z. B. Signaturen)
 
