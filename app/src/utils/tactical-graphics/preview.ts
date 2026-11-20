@@ -44,6 +44,10 @@ function spriteSize(id: string): { w: number; h: number } {
     return sprite ? { w: sprite.w, h: sprite.h } : { w: 16, h: 16 };
 }
 
+function scaledBy(size: { w: number; h: number }, k: number): { w: number; h: number } {
+    return { w: size.w * k, h: size.h * k };
+}
+
 function escapeXml(text: string): string {
     return text.replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', '\'': '&apos;' }[c] as string));
 }
@@ -102,6 +106,9 @@ export function previewSvg(entry: CatalogEntry, opts: { width?: number; height?:
     ];
 
     const derived = tacticalDerived(sampleFeature(entry, opts.model), (id) => id.length);
+    // Pixel sizes (sprites, lines, labels) shrink with the preview so the sample stays readable
+    const k = Math.min(1, width / 160);
+    const scaled = (size: { w: number; h: number }) => scaledBy(size, k);
     const defs: string[] = [];
     const body: string[] = [];
 
@@ -121,7 +128,7 @@ export function previewSvg(entry: CatalogEntry, opts: { width?: number; height?:
         const id = String(f.properties.pat);
         const url = spriteUrl(id);
         if (!url) continue;
-        const size = spriteSize(id);
+        const size = scaled(spriteSize(id));
         const patternId = `p${defs.length}-${entry.id}`;
         defs.push(`<pattern id="${patternId}" width="${size.w}" height="${size.h}" patternUnits="userSpaceOnUse"><image href="${url}" width="${size.w}" height="${size.h}"/></pattern>`);
         body.push(`<polygon points="${lineCoords(f).join(' ')}" fill="url(#${patternId})"/>`);
@@ -129,10 +136,10 @@ export function previewSvg(entry: CatalogEntry, opts: { width?: number; height?:
 
     for (const f of ofKind('line')) {
         const pts = lineCoords(f).join(' ');
-        const w = Number(f.properties.w) * 0.8;
+        const w = Math.max(1, Number(f.properties.w) * k);
         const dash = f.properties.dash === 'dashed' ? `stroke-dasharray="${w * 3} ${w * 2}"` : f.properties.dash === 'dotted' ? `stroke-dasharray="0.1 ${w * 2}"` : '';
         if (f.properties.dash === 'solid') {
-            body.push(`<polyline points="${pts}" fill="none" stroke="${f.properties.cas}" stroke-opacity="0.6" stroke-width="${w + 2}" stroke-linejoin="round" stroke-linecap="round"/>`);
+            body.push(`<polyline points="${pts}" fill="none" stroke="${f.properties.cas}" stroke-opacity="0.6" stroke-width="${w + 2 * k}" stroke-linejoin="round" stroke-linecap="round"/>`);
         }
         body.push(`<polyline points="${pts}" fill="none" stroke="${f.properties.color}" stroke-width="${w}" ${dash} stroke-linejoin="round" stroke-linecap="round"/>`);
     }
@@ -141,7 +148,7 @@ export function previewSvg(entry: CatalogEntry, opts: { width?: number; height?:
         const id = String(f.properties.pat);
         const url = spriteUrl(id);
         if (!url) continue;
-        const size = spriteSize(id);
+        const size = scaled(spriteSize(id));
         const pts = lineCoords(f);
         let carry = 0;
         for (let i = 1; i < pts.length; i++) {
@@ -149,13 +156,14 @@ export function previewSvg(entry: CatalogEntry, opts: { width?: number; height?:
             const [bx, by] = pts[i];
             const len = Math.hypot(bx - ax, by - ay);
             const angle = Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
-            for (let d = carry; d < len; d += size.w) {
+            let d = carry;
+            for (; d < len; d += size.w) {
                 const x = ax + (bx - ax) * (d / len);
                 const y = ay + (by - ay) * (d / len);
                 // MapLibre draws the bottom of a line pattern to the left - flip it
                 body.push(`<image href="${url}" width="${size.w}" height="${size.h}" transform="translate(${x} ${y}) rotate(${angle}) scale(1 -1) translate(0 ${-size.h / 2})"/>`);
-                carry = d + size.w - len;
             }
+            carry = d - len;
         }
     }
 
@@ -163,15 +171,15 @@ export function previewSvg(entry: CatalogEntry, opts: { width?: number; height?:
         const id = String(f.properties.icon);
         const url = spriteUrl(id);
         if (!url) continue;
-        const size = spriteSize(id);
+        const size = scaled(spriteSize(id));
         const [x, y] = pointOf(f);
         body.push(`<image href="${url}" width="${size.w}" height="${size.h}" transform="translate(${x} ${y}) rotate(${Number(f.properties.rot)}) translate(${-size.w / 2} ${-size.h / 2})"/>`);
     }
 
-    const textAttrs = (f: DerivedFeature, size: number) => `font-family="Open Sans, sans-serif" font-weight="700" font-size="${size}" fill="${f.properties.color}" stroke="${f.properties.cas}" stroke-width="2" paint-order="stroke"`;
+    const textAttrs = (f: DerivedFeature, size: number) => `font-family="Open Sans, sans-serif" font-weight="700" font-size="${size}" fill="${f.properties.color}" stroke="${f.properties.cas}" stroke-width="${2 * k}" paint-order="stroke"`;
 
     for (const f of [...ofKind('tmap'), ...ofKind('tview')]) {
-        const size = Number(f.properties.size) * 0.8;
+        const size = Number(f.properties.size) * Math.min(0.8, k);
         const [x, y] = pointOf(f);
         const [ox, oy] = (f.properties.tof as [number, number] | undefined) ?? [0, 0];
         const anchor = String(f.properties.anchor ?? 'center');
@@ -183,7 +191,7 @@ export function previewSvg(entry: CatalogEntry, opts: { width?: number; height?:
 
     for (const f of ofKind('rtext')) {
         const pts = lineCoords(f);
-        const size = 9;
+        const size = 11 * k;
         for (let i = 1; i < pts.length; i += Math.max(1, Math.floor(pts.length / 3))) {
             const [ax, ay] = pts[i - 1];
             const [bx, by] = pts[i];
