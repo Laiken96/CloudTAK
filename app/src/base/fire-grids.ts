@@ -1,6 +1,7 @@
 import { reactive } from 'vue';
 import { v4 as randomUUID } from 'uuid';
 import KV from './kv.ts';
+import type { FireGridTargetHost } from './fire-grid-targets.ts';
 import {
     cellAt,
     designation,
@@ -16,12 +17,18 @@ import {
  * Fire grids (Einheitsfeuerplan rasters) shown on the map. Kept on this device
  * only (Dexie KV): a grid is a handful of numbers, shared as an Einheitsfeuerplan
  * link rather than as map data.
+ *
+ * A grid imported from an Einheitsfeuerplan data package owns its targets:
+ * local features of this device (see fire-grid-targets.ts) that are shown and
+ * hidden with the grid and deleted with it.
  */
 
 export interface FireGrid extends FireGridParams {
     id: string;
     name: string;
     visible: boolean;
+    /** UIDs of the targets that belong to this grid */
+    targets: string[];
 }
 
 /** A cell or fine field found in a grid */
@@ -46,9 +53,21 @@ const state = reactive<{ loaded: boolean; grids: FireGrid[] }>({
 
 let loading: Promise<FireGrid[]> | null = null;
 
+/** Distinct, non-empty UIDs of a stored target list */
+function uids(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value.filter((uid): uid is string => typeof uid === 'string' && uid.length > 0))];
+}
+
 export default class FireGrids {
     /** Reactive list, filled by load() */
     static readonly state = state;
+
+    /**
+     * Where the targets of the grids live, set by the map once it runs. Showing,
+     * hiding and deleting a grid with targets goes through it.
+     */
+    static targetHost: FireGridTargetHost | null = null;
 
     /** Parse a stored list, dropping malformed entries and repeated ids */
     static parse(value: string | undefined): FireGrid[] {
@@ -80,7 +99,8 @@ export default class FireGrids {
                 id: g.id,
                 name: typeof g.name === 'string' && g.name.trim() ? g.name.trim() : 'Fire Grid',
                 visible: g.visible !== false,
-                ...params
+                ...params,
+                targets: uids(g.targets)
             });
         }
 
@@ -115,7 +135,7 @@ export default class FireGrids {
     }
 
     /** Add a grid; throws with the validation messages if the parameters are invalid */
-    static async add(grid: Omit<FireGrid, 'id' | 'visible'> & { visible?: boolean }): Promise<FireGrid> {
+    static async add(grid: Omit<FireGrid, 'id' | 'visible' | 'targets'> & { visible?: boolean; targets?: string[] }): Promise<FireGrid> {
         await this.load();
 
         const errors = validateFireGrid(grid);
@@ -129,7 +149,8 @@ export default class FireGrids {
             n0: grid.n0,
             z: grid.z,
             ncols: grid.ncols,
-            nrows: grid.nrows
+            nrows: grid.nrows,
+            targets: uids(grid.targets)
         };
 
         state.grids = [...state.grids, entry];
@@ -148,7 +169,7 @@ export default class FireGrids {
      * Take over a grid from elsewhere (an Einheitsfeuerplan file or object):
      * a grid with the same cells is kept and shown instead of added again
      */
-    static async ensure(grid: Omit<FireGrid, 'id' | 'visible'>): Promise<{ grid: FireGrid; added: boolean }> {
+    static async ensure(grid: Omit<FireGrid, 'id' | 'visible' | 'targets'>): Promise<{ grid: FireGrid; added: boolean }> {
         await this.load();
 
         const existing = this.same(grid);
@@ -159,7 +180,10 @@ export default class FireGrids {
         return { grid: await this.add(grid), added: true };
     }
 
-    /** Change a grid; throws with the validation messages if the result is invalid */
+    /**
+     * Change a grid; throws with the validation messages if the result is invalid.
+     * Showing or hiding the grid shows or hides its targets as well.
+     */
     static async update(id: string, patch: Partial<Omit<FireGrid, 'id'>>): Promise<FireGrid> {
         await this.load();
 
@@ -168,6 +192,7 @@ export default class FireGrids {
 
         const next: FireGrid = { ...current, ...patch, id };
         if (typeof next.name === 'string') next.name = next.name.trim() || 'Fire Grid';
+        next.targets = uids(next.targets);
 
         const errors = validateFireGrid(next);
         if (errors.length) throw new Error(errors.join(' · '));
@@ -175,11 +200,68 @@ export default class FireGrids {
         state.grids = state.grids.map((g) => g.id === id ? next : g);
         await this.persist();
 
+        if (next.visible !== current.visible && next.targets.length) {
+            this.targetHost?.setHidden(next.targets, !next.visible);
+        }
+
         return next;
     }
 
+    /**
+     * Make targets belong to a grid (added to its list, taken off any other
+     * grid: a target belongs to one grid). Their visibility follows the grid.
+     */
+    static async bindTargets(id: string, targets: string[]): Promise<FireGrid> {
+        await this.load();
+
+        const current = state.grids.find((g) => g.id === id);
+        if (!current) throw new Error('Fire grid not found');
+
+        const bound = new Set(uids(targets));
+        if (!bound.size) return current;
+
+        state.grids = state.grids.map((g) => {
+            if (g.id === id) return { ...g, targets: uids([...g.targets, ...bound]) };
+            if (g.targets.some((uid) => bound.has(uid))) return { ...g, targets: g.targets.filter((uid) => !bound.has(uid)) };
+            return g;
+        });
+        await this.persist();
+
+        const next = state.grids.find((g) => g.id === id) as FireGrid;
+        this.targetHost?.setHidden([...bound], !next.visible);
+
+        return next;
+    }
+
+    /** How many targets of the grid are on this device as features */
+    static async targetCount(grid: FireGrid): Promise<number> {
+        const host = this.targetHost;
+        if (!host || !grid.targets.length) return 0;
+
+        const present = await Promise.all(grid.targets.map((uid) => host.has(uid)));
+        return present.filter(Boolean).length;
+    }
+
+    /**
+     * Delete a grid together with its targets. Only local features of this
+     * device are deleted: a mission feature with the same UID stays.
+     */
     static async remove(id: string): Promise<void> {
         await this.load();
+
+        const grid = state.grids.find((g) => g.id === id);
+
+        if (grid && grid.targets.length) {
+            const host = this.targetHost;
+            if (!host) throw new Error('The map is not ready, the targets of the grid cannot be deleted yet');
+
+            for (const uid of grid.targets) {
+                if (await host.has(uid)) await host.remove(uid);
+            }
+
+            // Hidden with the grid: forget it, the UID may come back with a new import
+            host.setHidden(grid.targets, false);
+        }
 
         state.grids = state.grids.filter((g) => g.id !== id);
         await this.persist();

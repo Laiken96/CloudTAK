@@ -337,7 +337,7 @@ describe('CloudTAK/util/SearchBox', () => {
     });
 
     it('finds an Einheitsfeuerplan cell in a shown fire grid and outlines it', async () => {
-        const grid = { id: 'efp', name: 'EFP MERKUR', visible: true, ...FIRE_GRID_DEFAULTS };
+        const grid = { id: 'efp', name: 'EFP MERKUR', visible: true, ...FIRE_GRID_DEFAULTS, targets: [] };
         FireGrids.state.grids = [grid];
         FireGrids.state.loaded = true;
 
@@ -356,7 +356,7 @@ describe('CloudTAK/util/SearchBox', () => {
     });
 
     it('offers no cell of a hidden fire grid', async () => {
-        FireGrids.state.grids = [{ id: 'efp', name: 'EFP MERKUR', visible: false, ...FIRE_GRID_DEFAULTS }];
+        FireGrids.state.grids = [{ id: 'efp', name: 'EFP MERKUR', visible: false, ...FIRE_GRID_DEFAULTS, targets: [] }];
         FireGrids.state.loaded = true;
 
         const wrapper = await search([], 'D2/6');

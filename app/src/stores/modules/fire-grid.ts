@@ -2,6 +2,7 @@ import { watch, type WatchStopHandle } from 'vue';
 import type * as mapgl from 'maplibre-gl';
 import type { useMapStore } from '../map.ts';
 import FireGrids, { FIRE_GRID_COLOR, type FireGrid } from '../../base/fire-grids.ts';
+import { useFireGridTargets } from './fire-grid-targets.ts';
 import {
     fireGridBounds,
     fireGridCellPolygon,
@@ -57,6 +58,9 @@ export default class FireGridLayer {
     async init(): Promise<void> {
         if (this.initialized) return;
         this.initialized = true;
+
+        // The targets of a grid are shown, hidden and deleted with it
+        useFireGridTargets(this.mapStore);
 
         const map = this.mapStore.map;
 
