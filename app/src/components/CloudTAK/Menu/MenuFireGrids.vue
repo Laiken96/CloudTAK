@@ -248,6 +248,12 @@
                                 class='text-secondary small'
                                 v-text='gridSummary(grid)'
                             />
+                            <div
+                                v-if='targetCounts[grid.id]'
+                                class='text-secondary small'
+                                data-test='fire-grid-targets'
+                                v-text='targetSummary(targetCounts[grid.id])'
+                            />
                         </div>
 
                         <div
@@ -268,12 +274,16 @@
                                     stroke='1'
                                 />
                             </TablerIconButton>
-                            <TablerDelete
-                                displaytype='icon'
-                                :size='20'
+                            <TablerIconButton
                                 :title='`Delete ${grid.name}`'
-                                @delete='remove(grid)'
-                            />
+                                data-test='fire-grid-delete'
+                                @click='askRemove(grid)'
+                            >
+                                <IconTrash
+                                    :size='20'
+                                    stroke='1'
+                                />
+                            </TablerIconButton>
                         </div>
                     </StandardItem>
 
@@ -311,6 +321,18 @@
                         data-test='efp-message'
                         v-text='efpMessage'
                     />
+                    <div
+                        v-if='efpWarnings.length'
+                        class='alert alert-warning m-0 d-flex flex-column gap-2'
+                        role='status'
+                        data-test='efp-warning'
+                    >
+                        <div
+                            v-for='warning of efpWarnings'
+                            :key='warning'
+                            v-text='warning'
+                        />
+                    </div>
                     <button
                         type='button'
                         class='btn btn-outline-secondary w-100'
@@ -326,23 +348,70 @@
                         Import EFP File
                     </button>
                     <div class='text-secondary small'>
-                        The data package (ATAK) exported by the Einheitsfeuerplan: its grid becomes a fire grid with cell lookup, its targets are added to the map.
+                        The data package (ATAK) exported by the Einheitsfeuerplan: its grid becomes a fire grid with cell lookup, its targets are added to the map as features of this device. The targets belong to the grid: they are shown and hidden with it and deleted with it, and are not added to a mission.
                     </div>
                 </section>
             </div>
+
+            <TablerModal
+                v-if='removing'
+                size='sm'
+            >
+                <button
+                    type='button'
+                    class='btn-close'
+                    aria-label='Close'
+                    @click='removing = null'
+                />
+                <div class='modal-status bg-red' />
+                <div
+                    class='modal-header text-center py-3'
+                    v-text='removeTitle'
+                />
+                <div
+                    class='modal-body text-center py-3'
+                    data-test='fire-grid-delete-text'
+                    v-text='removeText'
+                />
+                <div
+                    v-if='removeError'
+                    class='alert alert-danger mx-3'
+                    role='alert'
+                    v-text='removeError'
+                />
+                <div class='modal-footer d-flex gap-2'>
+                    <button
+                        type='button'
+                        class='btn btn-outline-secondary flex-grow-1'
+                        @click='removing = null'
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type='button'
+                        class='btn btn-danger flex-grow-1'
+                        data-test='fire-grid-delete-confirm'
+                        :disabled='removeBusy'
+                        @click='remove'
+                    >
+                        Delete
+                    </button>
+                </div>
+            </TablerModal>
         </template>
     </MenuTemplate>
 </template>
 
 <script setup lang='ts'>
 /** MenuFireGrids - Einheitsfeuerplan fire grids on the map, cell lookup and target markers */
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { v4 as randomUUID } from 'uuid';
 import MenuTemplate from '../util/MenuTemplate.vue';
 import StandardItem from '../util/StandardItem.vue';
 import FireGrids, { type FireGrid, type FireGridHit } from '../../../base/fire-grids.ts';
 import { importEfpPackage, type EfpImportResult } from '../../../base/efp-import.ts';
-import { EfpPackageError, readEfpPackage } from '../../../utils/efp-package.ts';
+import { EfpPackageError, readEfpPackage, type EfpPackage } from '../../../utils/efp-package.ts';
+import { useFireGridTargets } from '../../../stores/modules/fire-grid-targets.ts';
 import { tr } from '../../../i18n/index.ts';
 import {
     FIRE_GRID_DEFAULTS,
@@ -360,11 +429,11 @@ import { formatCoordPair } from '../../../utils/coordinateFormat.ts';
 import { formatLv95, lv95ToLngLat } from '../../../utils/lv95.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import {
-    TablerDelete,
     TablerEnum,
     TablerIconButton,
     TablerInput,
     TablerLoading,
+    TablerModal,
     TablerNone,
     TablerToggle,
 } from '@tak-ps/vue-tabler';
@@ -376,6 +445,7 @@ import {
     IconPencil,
     IconPlus,
     IconSearch,
+    IconTrash,
     IconZoomIn,
 } from '@tabler/icons-vue';
 
@@ -391,6 +461,7 @@ interface GridForm {
 }
 
 const mapStore = useMapStore();
+const targetHost = useFireGridTargets(mapStore);
 
 const sizes = FIRE_GRID_SIZES.map(String);
 
@@ -408,11 +479,37 @@ const lookupMessage = ref('');
 const efpInput = ref<HTMLInputElement | null>(null);
 const efpError = ref('');
 const efpMessage = ref('');
+const efpWarnings = ref<string[]>([]);
 const importing = ref(false);
+
+/** Targets of each grid on this device, by grid id */
+const targetCounts = ref<Record<string, number>>({});
+
+const removing = ref<{ grid: FireGrid; count: number } | null>(null);
+const removeBusy = ref(false);
+const removeError = ref('');
 
 onMounted(async () => {
     await FireGrids.load();
 });
+
+async function countTargets(): Promise<void> {
+    const counts: Record<string, number> = {};
+    for (const grid of grids.value) {
+        if (grid.targets.length) counts[grid.id] = await FireGrids.targetCount(grid);
+    }
+    targetCounts.value = counts;
+}
+
+watch(() => grids.value.map((g) => `${g.id}:${g.targets.length}`).join(';'), () => {
+    countTargets().catch((err) => console.error('Failed to count fire grid targets', err));
+}, { immediate: true });
+
+function targetSummary(count: number): string {
+    return count === 1
+        ? tr('1 target, shown and hidden with the grid')
+        : tr('{count} targets, shown and hidden with the grid', { count });
+}
 
 function formParams(f: GridForm): FireGridParams {
     return { e0: Number(f.e0), n0: Number(f.n0), z: Number(f.z), ncols: Number(f.ncols), nrows: Number(f.nrows) };
@@ -536,9 +633,42 @@ async function setVisible(grid: FireGrid, visible: boolean): Promise<void> {
     hits.value = hits.value.filter((hit) => hit.grid.id !== grid.id || visible);
 }
 
-async function remove(grid: FireGrid): Promise<void> {
-    await FireGrids.remove(grid.id);
-    hits.value = hits.value.filter((hit) => hit.grid.id !== grid.id);
+async function askRemove(grid: FireGrid): Promise<void> {
+    removeError.value = '';
+    removeBusy.value = false;
+    removing.value = { grid, count: await FireGrids.targetCount(grid) };
+}
+
+const removeTitle = computed(() => removing.value ? tr('Delete fire grid {name}?', { name: removing.value.grid.name }) : '');
+
+const removeText = computed(() => {
+    if (!removing.value) return '';
+
+    const { count } = removing.value;
+    if (count === 0) return tr('The grid has no targets on this device, only the grid is deleted.');
+    if (count === 1) return tr('The grid is deleted together with 1 target.');
+    return tr('The grid is deleted together with {count} targets.', { count });
+});
+
+/** Delete the grid in the confirmation, with its targets */
+async function remove(): Promise<void> {
+    if (!removing.value) return;
+    const { grid } = removing.value;
+
+    removeBusy.value = true;
+    removeError.value = '';
+
+    try {
+        await FireGrids.remove(grid.id);
+        if (grid.targets.length) await mapStore.refresh();
+
+        hits.value = hits.value.filter((hit) => hit.grid.id !== grid.id);
+        removing.value = null;
+    } catch (err) {
+        removeError.value = err instanceof Error ? tr(err.message) : String(err);
+    } finally {
+        removeBusy.value = false;
+    }
 }
 
 function zoomTo(grid: FireGrid): void {
@@ -619,10 +749,11 @@ async function placeMarker(hit: FireGridHit): Promise<void> {
 function pickEfp(): void {
     efpError.value = '';
     efpMessage.value = '';
+    efpWarnings.value = [];
     efpInput.value?.click();
 }
 
-function efpSummary(result: EfpImportResult): string {
+function efpSummary(pkg: EfpPackage, result: EfpImportResult): string {
     const parts: string[] = [];
 
     if (!result.grid) {
@@ -633,21 +764,57 @@ function efpSummary(result: EfpImportResult): string {
         parts.push(tr('Fire grid {name} was already there', { name: result.grid.name }));
     }
 
-    if (result.targets.length === 0) {
+    if (pkg.targets.length === 0) {
         parts.push(tr('No targets in this file'));
     } else if (result.targets.length === 1) {
         parts.push(tr('1 target imported'));
-    } else {
+    } else if (result.targets.length > 1) {
         parts.push(tr('{count} targets imported', { count: result.targets.length }));
     }
 
-    return parts.join(' · ');
+    let summary = parts.join(' · ');
+
+    if (result.targets.length && !result.grid) {
+        summary += '. ' + tr('Without a grid the targets belong to no grid: they are features of this device in the folder {folder} (menu Features), not in a mission.', {
+            folder: pkg.name.replace(/\//g, '')
+        });
+    }
+
+    return summary;
+}
+
+/**
+ * Targets of an earlier import still in a mission, per mission: left there,
+ * the user deletes them in the mission and imports the file again
+ */
+function efpMissionWarnings(result: EfpImportResult): string[] {
+    const byMission = new Map<string, { name: string; targets: string[] }>();
+
+    for (const { target, mission } of result.inMission) {
+        const entry = byMission.get(mission.guid) ?? { name: mission.name, targets: [] };
+        entry.targets.push(target.properties.callsign || target.id);
+        byMission.set(mission.guid, entry);
+    }
+
+    return [...byMission.values()].map(({ name, targets }) => {
+        if (targets.length === 1) {
+            return tr('{target} is still in the mission {mission} from an earlier import and was left there unchanged.', { target: targets[0], mission: name })
+                + ' ' + (result.grid
+                    ? tr('Delete it there and import this file again: then it belongs to the fire grid.')
+                    : tr('Delete it there and import this file again: then it is a feature of this device.'));
+        }
+
+        return tr('{targets} are still in the mission {mission} from an earlier import and were left there unchanged.', { targets: targets.join(', '), mission: name })
+            + ' ' + (result.grid
+                ? tr('Delete them there and import this file again: then they belong to the fire grid.')
+                : tr('Delete them there and import this file again: then they are features of this device.'));
+    });
 }
 
 /**
  * Import the data package (ATAK) of the Einheitsfeuerplan: its grid as a fire
- * grid, its targets as map features. Read on this device; the targets are then
- * stored like any other feature drawn here.
+ * grid, its targets as local features of this device that belong to the grid.
+ * Read on this device; the targets are never filed into a mission.
  */
 async function importEfp(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
@@ -658,14 +825,17 @@ async function importEfp(event: Event): Promise<void> {
     importing.value = true;
     efpError.value = '';
     efpMessage.value = '';
+    efpWarnings.value = [];
 
     try {
         const pkg = readEfpPackage(new Uint8Array(await file.arrayBuffer()));
-        const result = await importEfpPackage(pkg, (feature) => mapStore.worker.db.add(feature, { authored: true }));
+        const result = await importEfpPackage(pkg, targetHost);
 
         if (result.targets.length) await mapStore.refresh();
 
-        efpMessage.value = efpSummary(result);
+        efpMessage.value = efpSummary(pkg, result);
+        efpWarnings.value = efpMissionWarnings(result);
+        await countTargets();
 
         if (result.grid) {
             zoomTo(result.grid);

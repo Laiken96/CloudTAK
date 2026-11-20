@@ -334,7 +334,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
         id: 'menu-fire-grids',
         section: 'menu',
         menuKey: 'fire-grids',
-        description: 'Fire grids of the Einheitsfeuerplan on the map. Import EFP File takes over grid and targets from the EFP data package, or enter the EFP link. Find a cell such as D2 or D2/6 and show it or mark it.',
+        description: 'Fire grids of the Einheitsfeuerplan on the map. Import EFP File takes over grid and targets from the EFP data package, or enter the EFP link. The targets belong to the grid: they are shown and hidden with it and deleted with it, and are not added to a mission. Find a cell such as D2 or D2/6 and show it or mark it.',
     },
     {
         id: 'menu-rubber-sheets',

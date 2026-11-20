@@ -61,6 +61,7 @@ describe('function overview', () => {
 
         expect(text('fire-grids')).toContain('Import EFP File');
         expect(text('fire-grids')).toContain('D2/6');
+        expect(text('fire-grids')).toContain('The targets belong to the grid');
         expect(text('routes')).toContain('GPX');
         expect(text('hashtags')).toContain('Sticky');
         expect(text('rubber-sheets').length).toBeGreaterThan(20);

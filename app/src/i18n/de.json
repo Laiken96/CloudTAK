@@ -2532,5 +2532,21 @@
     "Bridge": "Brücke",
     "Draw the bridge, across the river.": "Die Brücke quer zum Fluss zeichnen.",
     "Clear an area": "Säubern",
-    "Search an area": "Durchsuchen"
+    "Search an area": "Durchsuchen",
+    "The data package (ATAK) exported by the Einheitsfeuerplan: its grid becomes a fire grid with cell lookup, its targets are added to the map as features of this device. The targets belong to the grid: they are shown and hidden with it and deleted with it, and are not added to a mission.": "Das Datenpaket (ATAK) aus dem Einheitsfeuerplan: Sein Raster wird ein Feuerraster mit Zellsuche, seine Ziele kommen als Objekte dieses Geräts auf die Karte. Die Ziele gehören zum Raster: Sie werden mit ihm ein- und ausgeblendet und mit ihm gelöscht und kommen in keine Mission.",
+    "Fire grids of the Einheitsfeuerplan on the map. Import EFP File takes over grid and targets from the EFP data package, or enter the EFP link. The targets belong to the grid: they are shown and hidden with it and deleted with it, and are not added to a mission. Find a cell such as D2 or D2/6 and show it or mark it.": "Feuerraster des Einheitsfeuerplans auf der Karte. «EFP-Datei importieren» übernimmt Raster und Ziele aus dem Datenpaket des EFP, alternativ den EFP-Link eingeben. Die Ziele gehören zum Raster und werden mit ihm ein- und ausgeblendet und mit ihm gelöscht; sie kommen in keine Mission. Eine Zelle wie D2 oder D2/6 suchen, anzeigen oder markieren.",
+    "1 target, shown and hidden with the grid": "1 Ziel, wird mit dem Raster ein- und ausgeblendet",
+    "{count} targets, shown and hidden with the grid": "{count} Ziele, werden mit dem Raster ein- und ausgeblendet",
+    "Delete fire grid {name}?": "Feuerraster {name} löschen?",
+    "The grid has no targets on this device, only the grid is deleted.": "Das Raster hat keine Ziele auf diesem Gerät, nur das Raster wird gelöscht.",
+    "The grid is deleted together with 1 target.": "Das Raster wird zusammen mit 1 Ziel gelöscht.",
+    "The grid is deleted together with {count} targets.": "Das Raster wird zusammen mit {count} Zielen gelöscht.",
+    "The map is not ready, the targets of the grid cannot be deleted yet": "Die Karte ist noch nicht bereit, die Ziele des Rasters können noch nicht gelöscht werden",
+    "Without a grid the targets belong to no grid: they are features of this device in the folder {folder} (menu Features), not in a mission.": "Ohne Raster gehören die Ziele zu keinem Raster: Sie liegen als Objekte dieses Geräts im Ordner {folder} (Menü Objekte), nicht in einer Mission.",
+    "{target} is still in the mission {mission} from an earlier import and was left there unchanged.": "{target} liegt von einem früheren Import noch in der Mission {mission} und bleibt dort unverändert.",
+    "{targets} are still in the mission {mission} from an earlier import and were left there unchanged.": "{targets} liegen von einem früheren Import noch in der Mission {mission} und bleiben dort unverändert.",
+    "Delete it there and import this file again: then it belongs to the fire grid.": "Dort löschen und diese Datei nochmals importieren: Dann gehört das Ziel zum Feuerraster.",
+    "Delete it there and import this file again: then it is a feature of this device.": "Dort löschen und diese Datei nochmals importieren: Dann ist das Ziel ein Objekt dieses Geräts.",
+    "Delete them there and import this file again: then they belong to the fire grid.": "Dort löschen und diese Datei nochmals importieren: Dann gehören die Ziele zum Feuerraster.",
+    "Delete them there and import this file again: then they are features of this device.": "Dort löschen und diese Datei nochmals importieren: Dann sind die Ziele Objekte dieses Geräts."
 }
