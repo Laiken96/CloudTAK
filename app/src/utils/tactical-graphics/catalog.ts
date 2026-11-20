@@ -102,12 +102,12 @@ export const CATALOG: CatalogEntry[] = [
     },
     {
         id: 'flot', sig: 'flot', label: 'Forward line of own troops', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
-        hint: 'The arcs face the left of the drawing direction.', fields: ['planned', 'side'], defaults: { aff: 'f' },
+        hint: 'The arcs face the left of the drawing direction.', fields: ['side'], defaults: { aff: 'f' },
         sidc: { cat: 'G', fn: 'GLF' },
     },
     {
         id: 'flet', sig: 'flet', label: 'Forward line of enemy troops', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
-        hint: 'The arcs face the left of the drawing direction.', fields: ['planned', 'side'], defaults: { aff: 'h' },
+        hint: 'The arcs face the left of the drawing direction.', fields: ['side'], defaults: { aff: 'h' },
         sidc: { cat: 'G', fn: 'GLF' },
     },
     {
