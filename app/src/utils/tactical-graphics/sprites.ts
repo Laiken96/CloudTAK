@@ -143,6 +143,25 @@ export const SPRITES: Record<string, Sprite> = {
             }, color, casing, 1.8);
         },
     },
+    // Wavy line (infiltrate)
+    'wave': {
+        w: 20,
+        h: 14,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(0, 7);
+                for (let x = 0; x <= 20; x += 1) g.lineTo(x, 7 - 4 * Math.sin(x / 20 * Math.PI * 2));
+            }, color, casing, 1.8);
+        },
+    },
+    // Zigzag line (surveil)
+    'zigzag': {
+        w: 12,
+        h: 16,
+        draw(g, color, casing) {
+            stroke(g, () => { g.moveTo(0, 8); g.lineTo(3, 3); g.lineTo(9, 13); g.lineTo(12, 8); }, color, casing, 1.8);
+        },
+    },
     'ticks-l': ticks(LEFT, 10, 6),
     'ticks-r': ticks(RIGHT, 10, 6),
 
@@ -174,6 +193,167 @@ export const SPRITES: Record<string, Sprite> = {
         h: 32,
         draw(g, color, casing) {
             stroke(g, () => g.roundRect(4, 20, 22, 7, 3.5), color, casing, 1.8);
+        },
+    },
+
+    // Filled arrow head, tip at the centre
+    'head-f': {
+        w: 24,
+        h: 24,
+        draw(g, color, casing) {
+            fill(g, () => { g.moveTo(12, 12); g.lineTo(2, 6); g.lineTo(2, 18); g.closePath(); }, color, casing);
+        },
+    },
+    // Intervene: two filled heads, the front tip at the centre
+    'head-ff': {
+        w: 44,
+        h: 24,
+        draw(g, color, casing) {
+            fill(g, () => {
+                g.moveTo(22, 12); g.lineTo(13, 6); g.lineTo(13, 18); g.closePath();
+                g.moveTo(13, 12); g.lineTo(4, 6); g.lineTo(4, 18); g.closePath();
+            }, color, casing);
+        },
+    },
+    // Filled dot (direction of fire, engage)
+    'dot': {
+        w: 16,
+        h: 16,
+        draw(g, color, casing) {
+            fill(g, () => circle(g, 8, 8, 4.6), color, casing);
+        },
+    },
+    // Fixed wing aircraft on the line
+    'plane': {
+        w: 30,
+        h: 24,
+        draw(g, color, casing) {
+            fill(g, () => {
+                g.ellipse(17, 12, 7, 3.4, 0, 0, Math.PI * 2);
+                g.moveTo(11, 12); g.lineTo(5, 7); g.lineTo(5, 17); g.closePath();
+            }, color, casing);
+        },
+    },
+    // Rotary wing: filled bow tie on the line
+    'heli': {
+        w: 26,
+        h: 24,
+        draw(g, color, casing) {
+            fill(g, () => {
+                g.moveTo(13, 12); g.lineTo(5, 7); g.lineTo(5, 17); g.closePath();
+                g.moveTo(13, 12); g.lineTo(21, 7); g.lineTo(21, 17); g.closePath();
+            }, color, casing);
+        },
+    },
+    // Rail: ticks across the line
+    'railmid': {
+        w: 34,
+        h: 20,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                for (let x = 5; x <= 29; x += 4.8) { g.moveTo(x, 6); g.lineTo(x, 14); }
+            }, color, casing, 1.5);
+        },
+    },
+    // On foot: one peak below the line
+    'foot': {
+        w: 24,
+        h: 32,
+        draw(g, color, casing) {
+            stroke(g, () => { g.moveTo(8, 25); g.lineTo(12, 19); g.lineTo(16, 25); }, color, casing, 1.7);
+        },
+    },
+    // With animals: two peaks below the line
+    'animals': {
+        w: 28,
+        h: 32,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(6, 25); g.lineTo(10, 19); g.lineTo(14, 25); g.lineTo(18, 19); g.lineTo(22, 25);
+            }, color, casing, 1.7);
+        },
+    },
+    // Boat hull below the line
+    'boat': {
+        w: 30,
+        h: 32,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(5, 19); g.lineTo(25, 19);
+                g.moveTo(25, 19); g.ellipse(15, 19, 10, 6, 0, 0, Math.PI);
+            }, color, casing, 1.6);
+        },
+    },
+    // Hook at the start (delay, withdrawal): a half circle to the left, open forwards
+    'hook': {
+        w: 32,
+        h: 40,
+        draw(g, color, casing) {
+            // the start of the line is at the centre (16, 20)
+            stroke(g, () => g.arc(16, 11, 9, Math.PI / 2, Math.PI * 1.5), color, casing, 2);
+        },
+    },
+    // Two ticks across the line
+    'dticks': {
+        w: 16,
+        h: 22,
+        draw(g, color, casing) {
+            stroke(g, () => { g.moveTo(6, 4); g.lineTo(6, 18); g.moveTo(10, 4); g.lineTo(10, 18); }, color, casing, 1.6);
+        },
+    },
+    // Comb of a sensor (above the line, left of travel)
+    'comb-l': {
+        w: 20,
+        h: 40,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(4, 5); g.lineTo(16, 5);
+                for (let x = 4; x <= 16; x += 4) { g.moveTo(x, 5); g.lineTo(x, 15); }
+            }, color, casing, 1.4);
+        },
+    },
+    // Comb of an effector (below the line)
+    'comb-r': {
+        w: 20,
+        h: 40,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(4, 35); g.lineTo(16, 35);
+                for (let x = 4; x <= 16; x += 4) { g.moveTo(x, 35); g.lineTo(x, 25); }
+            }, color, casing, 1.4);
+        },
+    },
+    // Bar across the line (end of a patient collecting line)
+    'bar': {
+        w: 10,
+        h: 24,
+        draw(g, color, casing) {
+            stroke(g, () => { g.moveTo(5, 4); g.lineTo(5, 20); }, color, casing, 2);
+        },
+    },
+    // Slanted ticks at the ends (keep open): start `/`, end `\`
+    'slant-s': {
+        w: 20,
+        h: 24,
+        draw(g, color, casing) {
+            stroke(g, () => { g.moveTo(4, 19); g.lineTo(16, 5); }, color, casing, 2);
+        },
+    },
+    'slant-e': {
+        w: 20,
+        h: 24,
+        draw(g, color, casing) {
+            stroke(g, () => { g.moveTo(4, 5); g.lineTo(16, 19); }, color, casing, 2);
+        },
+    },
+    // Bracket behind the start (engage)
+    'brkt': {
+        w: 24,
+        h: 32,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(6, 3); g.lineTo(12, 9); g.lineTo(12, 23); g.lineTo(6, 29);
+            }, color, casing, 2);
         },
     },
 

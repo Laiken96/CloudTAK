@@ -275,8 +275,8 @@ export function zStep(points: XY[], at = 0.5): XY[] {
     const total = length(pts);
     if (pts.length < 2 || total <= 0) return pts;
 
-    const half = total * 0.07;
-    const drop = total * 0.1;
+    const half = total * 0.045;
+    const drop = total * 0.07;
     const mid = total * at;
 
     const head = slice(pts, 0, mid + half);

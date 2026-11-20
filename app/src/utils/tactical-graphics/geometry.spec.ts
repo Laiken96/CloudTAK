@@ -75,7 +75,7 @@ describe('tactical geometry', () => {
         expect(z[0]).toEqual([0, 0]);
         const last = z[z.length - 1];
         expect(last[0]).toBeCloseTo(1000);
-        expect(last[1]).toBeCloseTo(-100);
+        expect(last[1]).toBeCloseTo(-70);
     });
 
     it('draws a sector arc through the smaller angle', () => {

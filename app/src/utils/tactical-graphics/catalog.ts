@@ -12,6 +12,14 @@ import {
     type Affiliation, type TacticalModel,
 } from './model.ts';
 
+/** Fixed colours of regulation chapters 3.4.1 (damage) and 4.5 (topography) */
+export const REGULATION_COLORS = {
+    damage: '#e8473f',
+    water: '#2d6fd2',
+    forest: '#1f8a4c',
+    black: '#262626',
+} as const;
+
 export type DrawKind = 'line' | 'area';
 
 export type FieldKey = 't' | 't1' | 'ech' | 'aff' | 'planned' | 'width' | 'side';
@@ -115,6 +123,11 @@ export const CATALOG: CatalogEntry[] = [
         hint: LINE_HINT, fields: LINE_FIELDS, tLabel: 'Name', prefix: PREFIXES.fireCoordinationLine, sidc: { cat: 'F', fn: 'LCF' },
     },
 
+    {
+        id: 'patient-collecting-line', sig: 'patient-collecting-line', label: 'Patient collecting line (Pat SaL)', group: 'lines', chapter: '3.3', page: 40, draw: 'line',
+        hint: LINE_HINT, fields: LINE_FIELDS, tLabel: 'Name', prefix: PREFIXES.patientCollectingLine,
+    },
+
     // --- 3.3 movement -------------------------------------------------------
     {
         id: 'movement', sig: 'movement', label: 'Movement, transport, march', group: 'movement', chapter: '3.3', page: 40, draw: 'line',
@@ -129,6 +142,31 @@ export const CATALOG: CatalogEntry[] = [
         hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
     },
 
+    {
+        id: 'movement-air', sig: 'movement-air', label: 'Air transport, fixed wing', group: 'movement', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'movement-heli', sig: 'movement-heli', label: 'Air transport, rotary wing', group: 'movement', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'movement-rail', sig: 'movement-rail', label: 'Rail transport', group: 'movement', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'movement-foot', sig: 'movement-foot', label: 'Movement on foot', group: 'movement', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'movement-animals', sig: 'movement-animals', label: 'Movement with animals', group: 'movement', chapter: '3.3', page: 41, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'transport-ship', sig: 'transport-ship', label: 'Transport by ship or ferry', group: 'movement', chapter: '3.3', page: 41, draw: 'line',
+        hint: LINE_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+
     // --- 3.3 attack ---------------------------------------------------------
     {
         id: 'main-attack', sig: 'main-attack', label: 'Main attack', group: 'attack', chapter: '3.3', page: 41, draw: 'line',
@@ -141,6 +179,60 @@ export const CATALOG: CatalogEntry[] = [
     {
         id: 'axis-of-attack', sig: 'axis-of-attack', label: 'Axis of attack', group: 'attack', chapter: '3.3', page: 40, draw: 'line',
         hint: 'Draw from the intermediate objective to the objective.', fields: BROAD_FIELDS, tLabel: 'Name',
+    },
+
+    // --- 3.3 tasks ----------------------------------------------------------
+    {
+        id: 'intervene', sig: 'intervene', label: 'Intervene', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'engage', sig: 'engage', label: 'Engage, attrit', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'fire-direction', sig: 'fire-direction', label: 'Direction of fire', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'keep-open', sig: 'keep-open', label: 'Keep open', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: LINE_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'delay', sig: 'delay', label: 'Delay', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'withdraw', sig: 'withdraw', label: 'Withdrawal', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'evacuate', sig: 'evacuate', label: 'Evacuate', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: ARROW_HINT, fields: ['aff', 'planned'],
+    },
+    {
+        id: 'reconnaissance', sig: 'reconnaissance', label: 'Reconnoitre', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
+    },
+    {
+        id: 'ew', sig: 'ew', label: 'Electronic warfare', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: LINE_HINT, fields: ['aff', 'planned'],
+    },
+    {
+        id: 'ew-sensors', sig: 'ew-sensors', label: 'Electronic warfare by sensors', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: LINE_HINT, fields: ['aff', 'planned'],
+    },
+    {
+        id: 'ew-effectors', sig: 'ew-effectors', label: 'Electronic warfare by effectors', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: LINE_HINT, fields: ['aff', 'planned'],
+    },
+    {
+        id: 'infiltrate', sig: 'infiltrate', label: 'Infiltrate or exfiltrate', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: ARROW_HINT, fields: ['aff'],
+    },
+    {
+        id: 'surveil', sig: 'surveil', label: 'Surveil', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
+        hint: LINE_HINT, fields: ['aff'],
     },
 
     // --- 3.3 obstacles ------------------------------------------------------
@@ -190,6 +282,18 @@ export const CATALOG: CatalogEntry[] = [
     {
         id: 'strong-point', sig: 'strong-point', label: 'Strong point, hold', group: 'areas', chapter: '3.4', page: 45, draw: 'area',
         hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name', sidc: { cat: 'M', fn: 'SP' },
+    },
+
+    // --- 3.4.1 destruction and damage --------------------------------------
+    {
+        id: 'flow-direction', sig: 'flow-direction', label: 'Direction of outflow or slide', group: 'damage', chapter: '3.4.1', page: 46, draw: 'line',
+        hint: ARROW_HINT, fields: [], color: REGULATION_COLORS.damage,
+    },
+
+    // --- 4.5 topography -----------------------------------------------------
+    {
+        id: 'river', sig: 'river', label: 'River with direction of flow', group: 'topo', chapter: '4.5', page: 55, draw: 'line',
+        hint: 'Draw in the direction of flow.', fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.water,
     },
 ];
 
