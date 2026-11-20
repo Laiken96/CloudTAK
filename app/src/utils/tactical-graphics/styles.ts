@@ -91,7 +91,8 @@ export function tacticalLayers(id: string, sourceLayer?: string): LayerSpecifica
         type: 'line',
         source: id,
         filter: kind('pat'),
-        layout: { 'line-join': 'round' },
+        // Round joins pile the pattern up into a blot on sharp corners
+        layout: { 'line-join': 'bevel' },
         paint: {
             'line-pattern': ['get', 'pat'],
             'line-width': ['get', 'pw'],

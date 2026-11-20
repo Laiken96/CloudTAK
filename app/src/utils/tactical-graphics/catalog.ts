@@ -317,7 +317,54 @@ export const CATALOG: CatalogEntry[] = [
         hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name', sidc: { cat: 'M', fn: 'SP' },
     },
 
+    {
+        id: 'key-terrain', sig: 'key-terrain', label: 'Key terrain', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name',
+    },
+    {
+        id: 'guard', sig: 'guard', label: 'Guard', group: 'areas', chapter: '3.4', page: 45, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name',
+    },
+    {
+        id: 'secure', sig: 'secure', label: 'Secure an area', group: 'areas', chapter: '3.4', page: 45, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name',
+    },
+
+    // --- 3.4 NBC ------------------------------------------------------------
+    {
+        id: 'contaminated-n', sig: 'contaminated-n', label: 'Contaminated area, nuclear', group: 'nbc', chapter: '3.4', page: 45, draw: 'area',
+        hint: AREA_HINT, fields: ['aff'], sidc: { cat: 'M', fn: 'NR' },
+    },
+    {
+        id: 'contaminated-b', sig: 'contaminated-b', label: 'Contaminated area, biological', group: 'nbc', chapter: '3.4', page: 45, draw: 'area',
+        hint: AREA_HINT, fields: ['aff'], sidc: { cat: 'M', fn: 'NB' },
+    },
+    {
+        id: 'contaminated-c', sig: 'contaminated-c', label: 'Contaminated area, chemical', group: 'nbc', chapter: '3.4', page: 45, draw: 'area',
+        hint: AREA_HINT, fields: ['aff'], sidc: { cat: 'M', fn: 'NC' },
+    },
+
     // --- 3.4.1 destruction and damage --------------------------------------
+    {
+        id: 'destroyed-zone', sig: 'destroyed-zone', label: 'Destroyed impassable zone', group: 'damage', chapter: '3.4.1', page: 46, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.black,
+    },
+    {
+        id: 'damage-area', sig: 'damage-area', label: 'Damage area', group: 'damage', chapter: '3.4.1', page: 46, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.damage, fillOpacity: 0.5,
+    },
+    {
+        id: 'area-fire', sig: 'area-fire', label: 'Fire of several buildings, area fire', group: 'damage', chapter: '3.4.1', page: 46, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.damage,
+    },
+    {
+        id: 'debris', sig: 'debris', label: 'Debris area', group: 'damage', chapter: '3.4.1', page: 46, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.damage,
+    },
+    {
+        id: 'flooded', sig: 'flooded', label: 'Flooded area', group: 'damage', chapter: '3.4.1', page: 46, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.damage, fillOpacity: 0.5,
+    },
     {
         id: 'flow-direction', sig: 'flow-direction', label: 'Direction of outflow or slide', group: 'damage', chapter: '3.4.1', page: 46, draw: 'line',
         hint: ARROW_HINT, fields: [], color: REGULATION_COLORS.damage,
@@ -328,10 +375,44 @@ export const CATALOG: CatalogEntry[] = [
         hint: 'The ticks face downhill, to the right of the drawing direction.', fields: ['t', 'side'], tLabel: 'Name', color: REGULATION_COLORS.damage,
     },
 
+    // --- 3.4.2 mines and explosive ordnance ---------------------------------
+    {
+        id: 'mined-area', sig: 'mined-area', label: 'Mined area', group: 'mines', chapter: '3.4.2', page: 47, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name', sidc: { cat: 'M', fn: 'OFA' },
+    },
+    {
+        id: 'mined-area-ap', sig: 'mined-area-ap', label: 'Mined area, anti-personnel mines', group: 'mines', chapter: '3.4.2', page: 47, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name',
+    },
+    {
+        id: 'mined-area-at', sig: 'mined-area-at', label: 'Mined area, anti-tank mines', group: 'mines', chapter: '3.4.2', page: 47, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name',
+    },
+    {
+        id: 'explosive-ordnance', sig: 'explosive-ordnance', label: 'Area contaminated by explosive ordnance', group: 'mines', chapter: '3.4.2', page: 47, draw: 'area',
+        hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name',
+    },
+
     // --- 4.5 topography -----------------------------------------------------
     {
         id: 'river', sig: 'river', label: 'River with direction of flow', group: 'topo', chapter: '4.5', page: 55, draw: 'line',
         hint: 'Draw in the direction of flow.', fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.water,
+    },
+    {
+        id: 'standing-water', sig: 'standing-water', label: 'Standing water: pond, lake', group: 'topo', chapter: '4.5', page: 55, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.water,
+    },
+    {
+        id: 'swamp', sig: 'swamp', label: 'Swamp', group: 'topo', chapter: '4.5', page: 55, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.water,
+    },
+    {
+        id: 'forest', sig: 'forest', label: 'Forest, covered terrain', group: 'topo', chapter: '4.5', page: 55, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.forest,
+    },
+    {
+        id: 'built-up-area', sig: 'built-up-area', label: 'Town, built-up area', group: 'topo', chapter: '4.5', page: 55, draw: 'area',
+        hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.black,
     },
     {
         id: 'railway', sig: 'railway', label: 'Railway', group: 'topo', chapter: '4.5', page: 55, draw: 'line',

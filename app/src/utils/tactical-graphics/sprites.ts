@@ -57,6 +57,35 @@ function fill(g: Ctx, path: () => void, color: string, casing: string): void {
     g.fill();
 }
 
+/** Thin hatch strokes with a light casing */
+function hatch(g: Ctx, path: () => void, color: string, casing: string, width = 1.2): void {
+    g.lineCap = 'butt';
+    g.beginPath();
+    path();
+    g.globalAlpha = 0.35;
+    g.strokeStyle = casing;
+    g.lineWidth = width + 1.6;
+    g.stroke();
+    g.globalAlpha = 1;
+    g.strokeStyle = color;
+    g.lineWidth = width;
+    g.stroke();
+}
+
+/** A letter centred at x, y */
+function letter(g: Ctx, text: string, x: number, y: number, color: string, casing: string, size = 9): void {
+    g.font = `bold ${size}px sans-serif`;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.lineWidth = 2.4;
+    g.strokeStyle = casing;
+    g.globalAlpha = 0.7;
+    g.strokeText(text, x, y + 0.5);
+    g.globalAlpha = 1;
+    g.fillStyle = color;
+    g.fillText(text, x, y + 0.5);
+}
+
 function circle(g: Ctx, x: number, y: number, r: number): void {
     g.moveTo(x + r, y);
     g.arc(x, y, r, 0, Math.PI * 2);
@@ -184,6 +213,29 @@ export const SPRITES: Record<string, Sprite> = {
                 g.moveTo(0, 9); g.lineTo(8, 9);
                 g.moveTo(4, 4); g.lineTo(4, 14);
             }, color, casing, 1.5);
+        },
+    },
+    'sticks-r': ticks(RIGHT, 16, 7),
+    // Small open triangles to the right (secure an area, pointing out of a counter-clockwise ring)
+    'tri-r': {
+        w: 14,
+        h: 22,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(0, 11); g.lineTo(14, 11);
+                g.moveTo(3, 11); g.lineTo(7, 11 + 7 * RIGHT); g.lineTo(11, 11);
+            }, color, casing, 1.6);
+        },
+    },
+    // Teeth pointing to the right (isolate, towards the centre of a clockwise circle)
+    'teeth-r': {
+        w: 22,
+        h: 30,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(0, 15); g.lineTo(22, 15);
+                g.moveTo(5, 15); g.lineTo(11, 15 + 10 * RIGHT); g.lineTo(13, 15);
+            }, color, casing, 1.8);
         },
     },
     'ticks-l': ticks(LEFT, 10, 6),
@@ -393,6 +445,70 @@ export const SPRITES: Record<string, Sprite> = {
         },
     },
 
+    // Key terrain: circle with two arrows pointing into the area (south-west)
+    'key': {
+        w: 28,
+        h: 28,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                circle(g, 14, 14, 10);
+                g.moveTo(19, 6); g.lineTo(11, 14); g.moveTo(11, 9.5); g.lineTo(11, 14); g.lineTo(15.5, 14);
+                g.moveTo(22, 10); g.lineTo(15, 17); g.moveTo(15, 13); g.lineTo(15, 17); g.lineTo(19, 17);
+            }, color, casing, 1.6);
+        },
+    },
+    // Nuclear: mushroom cloud with N
+    'nbc-n': {
+        w: 28,
+        h: 34,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(4, 13); g.arc(14, 13, 10, Math.PI, 0); g.lineTo(4, 13);
+                g.rect(9, 13, 10, 16);
+            }, color, casing, 1.6);
+            letter(g, 'N', 14, 21.5, color, casing);
+        },
+    },
+    // Biological: flask with B
+    'nbc-b': {
+        w: 28,
+        h: 34,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(11, 4); g.lineTo(11, 13); g.lineTo(4, 29); g.lineTo(24, 29); g.lineTo(17, 13); g.lineTo(17, 4);
+            }, color, casing, 1.6);
+            letter(g, 'B', 14, 22, color, casing);
+        },
+    },
+    // Chemical: bottle with C
+    'nbc-c': {
+        w: 28,
+        h: 34,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(11, 4); g.lineTo(11, 10); g.lineTo(7, 14); g.lineTo(7, 29); g.lineTo(21, 29); g.lineTo(21, 14); g.lineTo(17, 10); g.lineTo(17, 4);
+            }, color, casing, 1.6);
+            letter(g, 'C', 14, 22, color, casing);
+        },
+    },
+    // Primary / secondary effect: circled P / S
+    'circle-p': {
+        w: 24,
+        h: 24,
+        draw(g, color, casing) {
+            stroke(g, () => circle(g, 12, 12, 8.5), color, casing, 1.6);
+            letter(g, 'P', 12, 12, color, casing, 10);
+        },
+    },
+    'circle-s': {
+        w: 24,
+        h: 24,
+        draw(g, color, casing) {
+            stroke(g, () => circle(g, 12, 12, 8.5), color, casing, 1.6);
+            letter(g, 'S', 12, 12, color, casing, 10);
+        },
+    },
+
     // --- fill patterns ------------------------------------------------------
     // Indirect fire: circles with a cross
     'fp-fire': {
@@ -409,6 +525,85 @@ export const SPRITES: Record<string, Sprite> = {
         },
     },
 };
+
+const FILL_PATTERNS: Record<string, Sprite> = {
+    // Diagonal hatch (contamination, area fire, forest)
+    'fp-diag': {
+        w: 12,
+        h: 12,
+        draw(g, color, casing) {
+            hatch(g, () => {
+                g.moveTo(-6, 6); g.lineTo(6, -6);
+                g.moveTo(-6, 18); g.lineTo(18, -6);
+                g.moveTo(6, 18); g.lineTo(18, 6);
+            }, color, casing);
+        },
+    },
+    // Horizontal hatch (standing water)
+    'fp-h': {
+        w: 12,
+        h: 6,
+        draw(g, color, casing) {
+            hatch(g, () => { g.moveTo(0, 3); g.lineTo(12, 3); }, color, casing);
+        },
+    },
+    // Dashed horizontal hatch (swamp)
+    'fp-hd': {
+        w: 16,
+        h: 12,
+        draw(g, color, casing) {
+            hatch(g, () => {
+                g.moveTo(1, 3); g.lineTo(9, 3);
+                g.moveTo(9, 9); g.lineTo(16, 9);
+                g.moveTo(0, 9); g.lineTo(1, 9);
+            }, color, casing);
+        },
+    },
+    // Vertical hatch (built-up area)
+    'fp-v': {
+        w: 6,
+        h: 12,
+        draw(g, color, casing) {
+            hatch(g, () => { g.moveTo(3, 0); g.lineTo(3, 12); }, color, casing);
+        },
+    },
+    // Destroyed impassable zone: asterisks
+    'fp-destroyed': {
+        w: 32,
+        h: 32,
+        draw(g, color, casing) {
+            for (const [x, y] of [[8, 8], [24, 24]]) {
+                stroke(g, () => {
+                    g.moveTo(x - 5, y); g.lineTo(x + 5, y);
+                    g.moveTo(x, y - 5); g.lineTo(x, y + 5);
+                    g.moveTo(x - 4, y - 4); g.lineTo(x + 4, y + 4);
+                    g.moveTo(x + 4, y - 4); g.lineTo(x - 4, y + 4);
+                }, color, casing, 1.3);
+            }
+        },
+    },
+    // Anti-personnel mines: dot with two prongs
+    'fp-ap': {
+        w: 32,
+        h: 32,
+        draw(g, color, casing) {
+            for (const [x, y] of [[8, 9], [24, 25]]) {
+                fill(g, () => circle(g, x, y, 3.4), color, casing);
+                stroke(g, () => { g.moveTo(x - 2, y - 3); g.lineTo(x - 4, y - 7); g.moveTo(x + 2, y - 3); g.lineTo(x + 4, y - 7); }, color, casing, 1.2);
+            }
+        },
+    },
+    // Anti-tank mines: dots
+    'fp-at': {
+        w: 32,
+        h: 32,
+        draw(g, color, casing) {
+            for (const [x, y] of [[8, 8], [24, 24]]) fill(g, () => circle(g, x, y, 3.8), color, casing);
+        },
+    },
+};
+
+Object.assign(SPRITES, FILL_PATTERNS);
 
 for (const sign of [['D', '●●●'], ['E', 'I'], ['F', 'II'], ['G', 'III'], ['H', 'X'], ['I', 'XX'], ['J', 'XXX'], ['K', 'XXXX']]) {
     SPRITES[`ech-${sign[0]}`] = echelon(sign[1]);
