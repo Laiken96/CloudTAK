@@ -445,6 +445,38 @@ export const SPRITES: Record<string, Sprite> = {
         },
     },
 
+    // Air corridor: open bow tie on the line
+    'bowtie': {
+        w: 24,
+        h: 20,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(12, 10); g.lineTo(5, 5); g.lineTo(5, 15); g.closePath();
+                g.moveTo(12, 10); g.lineTo(19, 5); g.lineTo(19, 15); g.closePath();
+            }, color, casing, 1.5);
+        },
+    },
+    // Ford: zigzag across both parallels
+    'fordzig': {
+        w: 20,
+        h: 30,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(10, 3); g.lineTo(6, 8); g.lineTo(14, 13); g.lineTo(6, 18); g.lineTo(14, 23); g.lineTo(10, 27);
+            }, color, casing, 1.6);
+        },
+    },
+    // Bridge: the parallels flare out at the end
+    'flare': {
+        w: 24,
+        h: 32,
+        draw(g, color, casing) {
+            stroke(g, () => {
+                g.moveTo(12, 11); g.lineTo(19, 4);
+                g.moveTo(12, 21); g.lineTo(19, 28);
+            }, color, casing, 2);
+        },
+    },
     // Key terrain: circle with two arrows pointing into the area (south-west)
     'key': {
         w: 28,

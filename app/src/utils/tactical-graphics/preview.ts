@@ -57,7 +57,10 @@ export function sampleShape(entry: CatalogEntry): { type: 'LineString' | 'Polygo
         };
     }
 
-    if (entry.points === 2) return { type: 'LineString', points: [[0, 0], [170, 0]] };
+    if (entry.points === 2) {
+        if (entry.sample === 'arrow') return { type: 'LineString', points: [[-330, 0], [330, 0]] };
+        return { type: 'LineString', points: [[0, 0], [170, 0]] };
+    }
     if (entry.points === 3) {
         if (entry.sample === 'sector') return { type: 'LineString', points: [[-380, 0], [330, 170], [330, -170]] };
         return { type: 'LineString', points: [[-150, 170], [-150, -170], [200, 0]] };

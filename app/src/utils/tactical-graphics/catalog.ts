@@ -81,7 +81,7 @@ export interface CatalogEntry {
     /** Drawn with exactly this many points (eg centre and radius) */
     points?: 2 | 3;
     /** Shape of the sample in the preview */
-    sample?: 'sector';
+    sample?: 'sector' | 'arrow';
 }
 
 const LINE_FIELDS: FieldKey[] = ['t', 'aff', 'planned'];
@@ -219,6 +219,26 @@ export const CATALOG: CatalogEntry[] = [
         hint: LINE_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
     },
     {
+        id: 'breach', sig: 'breach', label: 'Open (reversible obstacles) or clear (explosive ordnance)', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: 'Three points: one open end, the other open end, then the closed side.', fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+        points: 3, sidc: { cat: 'T', fn: 'H' },
+    },
+    {
+        id: 'canalize', sig: 'canalize', label: 'Canalize', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: 'Three points: one open end, the other open end, then the closed side.', fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+        points: 3, sidc: { cat: 'T', fn: 'C' },
+    },
+    {
+        id: 'clear', sig: 'clear', label: 'Clear an area', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: 'Two points: where the arrow starts and where it ends inside the square.', fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+        points: 2, sample: 'arrow',
+    },
+    {
+        id: 'search', sig: 'search', label: 'Search an area', group: 'tasks', chapter: '3.3', page: 42, draw: 'line',
+        hint: 'Two points: where the arrow starts and where it ends inside the square.', fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+        points: 2, sample: 'arrow',
+    },
+    {
         id: 'delay', sig: 'delay', label: 'Delay', group: 'tasks', chapter: '3.3', page: 43, draw: 'line',
         hint: ARROW_HINT, fields: ARROW_FIELDS, tLabel: 'Name',
     },
@@ -318,6 +338,35 @@ export const CATALOG: CatalogEntry[] = [
     },
 
     {
+        id: 'zone', sig: 'zone', label: 'Zone (zone of attack)', group: 'areas', chapter: '3.4', page: 44, draw: 'line',
+        hint: 'Draw the centre line in the direction of attack.', fields: ['ech', 't', 'aff', 'planned', 'width'], tLabel: 'Responsible unit',
+        unitFields: true,
+    },
+    {
+        id: 'air-corridor', sig: 'air-corridor', label: 'Air corridor', group: 'areas', chapter: '3.4', page: 44, draw: 'line',
+        hint: 'Draw the centre line of the corridor.', fields: ['t', 'aff', 'planned', 'width'], tLabel: 'Name',
+    },
+    {
+        id: 'isolate', sig: 'isolate', label: 'Isolate', group: 'areas', chapter: '3.4', page: 44, draw: 'line',
+        hint: 'Two points: the centre, then the edge of the circle.', fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+        points: 2, sidc: { cat: 'T', fn: 'E' },
+    },
+    {
+        id: 'effect-primary', sig: 'effect-primary', label: 'Area of effect, primary', group: 'areas', chapter: '3.4', page: 45, draw: 'line',
+        hint: 'Three points: the position, then the left and the right edge.', fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+        points: 3, sample: 'sector',
+    },
+    {
+        id: 'effect-secondary', sig: 'effect-secondary', label: 'Area of effect, secondary', group: 'areas', chapter: '3.4', page: 45, draw: 'line',
+        hint: 'Three points: the position, then the left and the right edge.', fields: ['t', 'aff', 'planned'], tLabel: 'Name',
+        points: 3, sample: 'sector',
+    },
+    {
+        id: 'observation-sector', sig: 'observation-sector', label: 'Observation sector', group: 'areas', chapter: '3.4', page: 45, draw: 'line',
+        hint: 'Three points: the position, then the left and the right edge.', fields: ['t', 'aff'], tLabel: 'Name',
+        points: 3, sample: 'sector',
+    },
+    {
         id: 'key-terrain', sig: 'key-terrain', label: 'Key terrain', group: 'areas', chapter: '3.4', page: 44, draw: 'area',
         hint: AREA_HINT, fields: ['t', 'aff'], tLabel: 'Name',
     },
@@ -342,6 +391,11 @@ export const CATALOG: CatalogEntry[] = [
     {
         id: 'contaminated-c', sig: 'contaminated-c', label: 'Contaminated area, chemical', group: 'nbc', chapter: '3.4', page: 45, draw: 'area',
         hint: AREA_HINT, fields: ['aff'], sidc: { cat: 'M', fn: 'NC' },
+    },
+
+    {
+        id: 'nbc-zones', sig: 'nbc-zones', label: 'NBC minimum safe distance zones', group: 'nbc', chapter: '3.4', page: 45, draw: 'line',
+        hint: 'Two points: the centre, then the edge of the outer circle.', fields: ['aff'], points: 2,
     },
 
     // --- 3.4.1 destruction and damage --------------------------------------
@@ -413,6 +467,14 @@ export const CATALOG: CatalogEntry[] = [
     {
         id: 'built-up-area', sig: 'built-up-area', label: 'Town, built-up area', group: 'topo', chapter: '4.5', page: 55, draw: 'area',
         hint: AREA_HINT, fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.black,
+    },
+    {
+        id: 'ford', sig: 'ford', label: 'Ford', group: 'topo', chapter: '4.5', page: 55, draw: 'line',
+        hint: 'Draw the crossing, across the river.', fields: [], color: REGULATION_COLORS.black,
+    },
+    {
+        id: 'bridge', sig: 'bridge', label: 'Bridge', group: 'topo', chapter: '4.5', page: 55, draw: 'line',
+        hint: 'Draw the bridge, across the river.', fields: ['t'], tLabel: 'Name', color: REGULATION_COLORS.black,
     },
     {
         id: 'railway', sig: 'railway', label: 'Railway', group: 'topo', chapter: '4.5', page: 55, draw: 'line',

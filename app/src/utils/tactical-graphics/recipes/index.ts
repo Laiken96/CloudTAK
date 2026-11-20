@@ -7,6 +7,7 @@ import { MOVEMENT } from './movement.ts';
 import { ATTACK } from './attack.ts';
 import { AREAS } from './areas.ts';
 import { TASKS } from './tasks.ts';
+import { GROUND } from './ground.ts';
 
 export const RECIPES: Record<string, Recipe> = {
     ...LINES,
@@ -14,4 +15,5 @@ export const RECIPES: Record<string, Recipe> = {
     ...ATTACK,
     ...AREAS,
     ...TASKS,
+    ...GROUND,
 };
