@@ -53,6 +53,7 @@ import { db, suspendDatabase, resumeDatabase, liveQuery } from '../database.ts';
 import { serializeWorkerBootConfig } from '../utils/worker-boot.ts';
 import { isSignatureArmed } from '../base/signature-placement.ts';
 import { attachMapLongPress } from '../base/long-press.ts';
+import { attachFeatureDrag, storeFeatureDragOptions, type FeatureDragStore } from '../base/feature-drag-map.ts';
 
 import type { ProfileOverlay, Feature } from '../types.ts';
 import type { LngLat, LngLatLike, Point, MapMouseEvent, MapGeoJSONFeature, GeoJSONSource, LayerSpecification, PropertyValueSpecification } from 'maplibre-gl';
@@ -1663,8 +1664,15 @@ export const useMapStore = defineStore('cloudtak', {
                 });
             });
 
+            // Long press (mouse: drag) on an own object moves it - see feature-drag-map.ts
+            const featureDrag = attachFeatureDrag(map, storeFeatureDragOptions(
+                this as unknown as FeatureDragStore,
+                () => [...OverlayManager.clickableLayerMap().values()].filter((l) => l.type === 'cot').map((l) => l.id),
+                () => this.draw.mode === DrawToolMode.STATIC && !this.draw.editing
+            ));
+
             // iOS Safari fires no contextmenu for a long press - see long-press.ts
-            attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC);
+            attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC && !featureDrag.claimed());
 
             OverlayManager.clearLoaded();
             const profileOverlays = await OverlayManager.list({ localFirst: true });
