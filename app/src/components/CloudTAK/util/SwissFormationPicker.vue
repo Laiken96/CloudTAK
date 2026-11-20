@@ -586,6 +586,11 @@ async function addFavorite(): Promise<void> {
     font-weight: 500;
 }
 
+/* The Swiss name of the chosen level - a pill so it reads apart from the levels */
+.chip--term {
+    border-radius: 999px;
+}
+
 .chip-sign {
     font-weight: 700;
     letter-spacing: -0.05em;
