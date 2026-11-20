@@ -235,10 +235,11 @@ export function attachFeatureDrag(map: DragMap, opts: FeatureDragOptions): Featu
     let panWasEnabled = false;
     let cursorBefore: string | undefined;
 
-    // No text selection or callout from a long press in iOS Safari
-    canvasContainer.style.setProperty('-webkit-touch-callout', 'none');
-    canvasContainer.style.setProperty('-webkit-user-select', 'none');
-    canvasContainer.style.setProperty('user-select', 'none');
+    // No text selection or callout from a long press in iOS Safari - on the
+    // canvas only, text in popups over the map stays selectable
+    canvas.style.setProperty('-webkit-touch-callout', 'none');
+    canvas.style.setProperty('-webkit-user-select', 'none');
+    canvas.style.setProperty('user-select', 'none');
 
     function holdMap(): void {
         if (panHeld) return;
@@ -585,14 +586,12 @@ export function attachFeatureDrag(map: DragMap, opts: FeatureDragOptions): Featu
             && !tour.state.active
             && (opts.allowed ? opts.allowed() : true),
         probe,
-        onClaim: (target, kind) => {
+        onClaim: (_target, kind) => {
+            // A touch may still pan the map until the object is picked up.
+            // A mouse drags the object: the map holds still from here on (a
+            // mouse that moved past the threshold first has panned the map
+            // and never gets here)
             if (kind !== 'mouse') return;
-
-            // The map already pans - the gesture is the map's
-            if (map.dragPan.isActive()) {
-                gesture.cancel();
-                return;
-            }
 
             holdMap();
             setCursor('grab');

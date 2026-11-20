@@ -102,9 +102,7 @@ function fakeMap() {
 
     const dragPan = {
         enabled: true,
-        active: false,
         isEnabled: vi.fn(() => dragPan.enabled),
-        isActive: vi.fn(() => dragPan.active),
         enable: vi.fn(() => { dragPan.enabled = true; }),
         disable: vi.fn(() => { dragPan.enabled = false; }),
     };
@@ -625,16 +623,21 @@ describe('attachFeatureDrag - mouse', () => {
         expect(resolve).not.toHaveBeenCalled();
     });
 
-    it('the map pans when its pan started before the object was known', async () => {
+    it('the map pans when the mouse moves on before the object is known', async () => {
+        let answer: (value: DragSubject | undefined) => void = () => undefined;
+        resolve.mockImplementation(() => new Promise((r) => { answer = r; }));
+
         attach();
-        fake.dragPan.active = true;
         mouse(fake.canvas, 'mousedown', 100, 200);
-        await flush();
         mouse(document, 'mousemove', 160, 260);
-        mouse(document, 'mouseup', 160, 260);
+        answer(subject());
+        await flush();
+        mouse(document, 'mousemove', 180, 280);
+        mouse(document, 'mouseup', 180, 280);
         await settle();
 
         expect(fake.dragPan.disable).not.toHaveBeenCalled();
+        expect(fake.sources.has(PREVIEW_SOURCE)).toBe(false);
         expect(save).not.toHaveBeenCalled();
     });
 

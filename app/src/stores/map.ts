@@ -1631,8 +1631,16 @@ export const useMapStore = defineStore('cloudtak', {
                 }
             });
 
+            // Long press (mouse: drag) on an own object moves it - see feature-drag-map.ts
+            const featureDrag = attachFeatureDrag(map, storeFeatureDragOptions(
+                this as unknown as FeatureDragStore,
+                () => [...OverlayManager.clickableLayerMap().values()].filter((l) => l.type === 'cot').map((l) => l.id),
+                () => this.draw.mode === DrawToolMode.STATIC && !this.draw.editing
+            ));
+
             map.on('contextmenu', (e) => {
-                if (this.draw.editing) return;
+                // MapLibre's own touch long press fires this too - not over an object being picked up
+                if (this.draw.editing || featureDrag.claimed()) return;
 
                 const lngLat = e.lngLat.wrap();
                 const id = randomUUID();
@@ -1663,13 +1671,6 @@ export const useMapStore = defineStore('cloudtak', {
                     lngLat
                 });
             });
-
-            // Long press (mouse: drag) on an own object moves it - see feature-drag-map.ts
-            const featureDrag = attachFeatureDrag(map, storeFeatureDragOptions(
-                this as unknown as FeatureDragStore,
-                () => [...OverlayManager.clickableLayerMap().values()].filter((l) => l.type === 'cot').map((l) => l.id),
-                () => this.draw.mode === DrawToolMode.STATIC && !this.draw.editing
-            ));
 
             // iOS Safari fires no contextmenu for a long press - see long-press.ts
             attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC && !featureDrag.claimed());
