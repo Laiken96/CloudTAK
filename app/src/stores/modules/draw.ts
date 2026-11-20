@@ -151,13 +151,13 @@ export default class DrawTool {
 
         if (this.route.layer === 'No Snapping') {
             if (this.mode === DrawToolMode.SNAPPING) {
-               this.start(DrawToolMode.LINESTRING);
+               this.start(DrawToolMode.LINESTRING, { keepTemplate: true });
             }
         } else {
             if (this.mode === DrawToolMode.LINESTRING) {
-                this.start(DrawToolMode.SNAPPING);
+                this.start(DrawToolMode.SNAPPING, { keepTemplate: true });
             } else if (this.mode === DrawToolMode.SNAPPING) {
-                this.start(DrawToolMode.SNAPPING);
+                this.start(DrawToolMode.SNAPPING, { keepTemplate: true });
             }
         }
     }
@@ -726,7 +726,10 @@ export default class DrawTool {
     }
 
 
-    async start(mode: DrawToolMode): Promise<void> {
+    async start(mode: DrawToolMode, opts: { keepTemplate?: boolean } = {}): Promise<void> {
+        // A template belongs to the drawing it was set for - a new tool starts plain
+        if (!opts.keepTemplate) this.template = null;
+
         if (mode !== DrawToolMode.SNAPPING) {
             await this.removeNetwork();
         }
