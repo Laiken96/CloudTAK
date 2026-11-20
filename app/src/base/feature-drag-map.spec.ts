@@ -71,8 +71,12 @@ function fakeMap() {
     canvasContainer.getBoundingClientRect = () => ({
         top: 0, left: 0, width: 400, height: 800, right: 400, bottom: 800, x: 0, y: 0, toJSON: () => ({}),
     });
+    // As in the browser: the canvas has the size of the map, the canvas
+    // container around it no height of its own (the canvas is absolute)
     Object.defineProperty(canvasContainer, 'clientWidth', { value: 400 });
-    Object.defineProperty(canvasContainer, 'clientHeight', { value: 800 });
+    Object.defineProperty(canvasContainer, 'clientHeight', { value: 0 });
+    Object.defineProperty(canvas, 'clientWidth', { value: 400 });
+    Object.defineProperty(canvas, 'clientHeight', { value: 800 });
 
     const layers = new Map<string, FakeLayer>();
     const order: string[] = [];
@@ -508,6 +512,20 @@ describe('attachFeatureDrag - touch', () => {
         const native = new Event('contextmenu', { bubbles: true, cancelable: true });
         fake.canvasContainer.dispatchEvent(native);
         expect(native.defaultPrevented).toBe(true);
+    });
+
+    it('a drag down the map drops where the finger is, not at the top edge', async () => {
+        attach();
+        await pickUp();
+        touch(fake.canvas, 'touchmove', [[150, 600]]);
+        touch(fake.canvas, 'touchend', [], [[150, 600]]);
+        await settle();
+
+        // 100 px = 1°: from (100, 200) to (150, 600) is 0.5° east, 4° south
+        const saved = save.mock.calls[0][0] as Feature;
+        const [lng, lat] = (saved.geometry as { coordinates: number[] }).coordinates;
+        expect(lng).toBeCloseTo(1.5);
+        expect(lat).toBeCloseTo(-6);
     });
 
     it('a drag past the edge drops at the edge', async () => {

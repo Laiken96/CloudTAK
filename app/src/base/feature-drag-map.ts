@@ -274,10 +274,14 @@ export function attachFeatureDrag(map: DragMap, opts: FeatureDragOptions): Featu
         };
     }
 
-    /** Dragging past the edge drops at the edge */
+    /**
+     * Dragging past the edge drops at the edge. The canvas has the size of the
+     * map; the canvas container has no height of its own (the canvas inside it
+     * is absolutely positioned), so clamping to it pinned every drag to the top
+     */
     function clamp(point: DragPoint): DragPoint {
-        const width = canvasContainer.clientWidth;
-        const height = canvasContainer.clientHeight;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
         return {
             x: width > 0 ? Math.min(Math.max(point.x, 0), width) : point.x,
             y: height > 0 ? Math.min(Math.max(point.y, 0), height) : point.y,
