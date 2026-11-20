@@ -37,6 +37,7 @@ import {
     IconBroadcast,
     IconCrosshair,
     IconMedicalCross,
+    IconShieldHalfFilled,
 } from '@tabler/icons-vue';
 import type { TourStep, TourView } from './tour.ts';
 
@@ -192,6 +193,16 @@ export const HELP_ENTRIES: HelpEntry[] = [
     { id: 'coordinates', section: 'map', step: 'coordinates', icon: IconCrosshair },
     { id: 'favorites-bar', section: 'map', step: 'favorites-bar', icon: IconStar },
     { id: 'favorites-more', section: 'map', step: 'favorites-more', icon: IconStars },
+    {
+        id: 'swiss-formations',
+        section: 'map',
+        icon: IconShieldHalfFilled,
+        // Show opens the signature picker and points at its Swiss Formation tab
+        open: testid('favorites-bar-more'),
+        target: testid('signature-source-swiss'),
+        title: 'Swiss Formations',
+        description: 'The plus of the favorites bar, tab Swiss Formation: search a formation by its Swiss name (e.g. Panzer, Aufklärung, Sanität), then choose the echelon (Zug, Kp, Bat, Abt ...), Staff if needed and the affiliation. It is placed as a 2525 symbol with echelon that ATAK shows the same way; formations without a 2525 equivalent get the nearest symbol and their designation as name. The star keeps the choice as a favorite, echelon included.',
+    },
     { id: 'objects', section: 'map', step: 'objects', icon: IconHandFinger },
     {
         id: 'long-press',
