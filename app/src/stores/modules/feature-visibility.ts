@@ -6,6 +6,7 @@ import PathManager from '../../utils/path-manager.ts';
 import type Overlay from '../../base/overlay-class.ts';
 import { useMapStore } from '../map.ts';
 import OverlayManager from '../../base/overlay.ts';
+import HiddenHashtags from './hidden-hashtags.ts';
 
 /**
  * Source id used for the internal "Map Features" GeoJSON overlay that holds
@@ -27,6 +28,9 @@ const visibilityState = reactive<VisibilityState>({
 
 export class FeatureVisibility {
     static async load(): Promise<void> {
+        // PzBat12: Features hidden by the hashtags in their remarks
+        await HiddenHashtags.load();
+
         try {
             const row = await db.kv.get(VISIBILITY_KEY);
             if (!row || !row.value) return;
@@ -154,6 +158,10 @@ export class FeatureVisibility {
         if (visibilityState.features.length) {
             clauses.push(['in', ['get', 'id'], ['literal', [...visibilityState.features]]]);
         }
+
+        // PzBat12: Features hidden by the hashtags in their remarks
+        const hashtags = HiddenHashtags.expression();
+        if (hashtags) clauses.push(hashtags);
 
         if (!clauses.length) return null;
 
