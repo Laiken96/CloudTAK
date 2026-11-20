@@ -16,6 +16,8 @@ import { CoTParser, DataPackage, Iconset, Basemap } from '@tak-ps/node-cot';
 import { createImportResult } from './api.ts';
 import { withMedevac } from './medevac.ts';
 import { openNestedIconset } from './nested-iconset.ts';
+import { IconsetImportError, iconsetAction, planIconSync } from './iconset-update.ts';
+import type { InstalledIcon, IncomingIcon } from './iconset-update.ts';
 import { fetch } from '@tak-ps/node-safeurl';
 
 const SHAPEFILE_SIDECAR_EXTENSIONS = new Set(['.dbf', '.prj', '.qix', '.sbn', '.sbx', '.shx']);
@@ -355,16 +357,33 @@ export default class Worker extends EventEmitter {
         try {
             const iconset = await Iconset.parse(xml);
 
+            // PzBat12: same UID with a higher version updates the Iconset - see iconset-update.ts
+            const { token, admin } = await this.importerToken();
             const check = await fetch(new URL(`/api/iconset/${iconset.uid}`, this.msg.api), {
                 safeUrlAllow: [this.msg.api],
                 method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${jwt.sign({ access: 'user', email: this.msg.job.username }, this.msg.secret)}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
 
-            if (check.status === 200) {
-                throw new Error(`Iconset ${iconset.name} (${iconset.uid}) already exists`);
+            const installed = check.status === 200 ? await check.json() as { version: number; username: string | null } : undefined;
+            const action = iconsetAction(check.status, installed?.version, iconset.to_json().version);
+
+            if (action === 'foreign') {
+                throw new IconsetImportError(`Iconset ${iconset.name} (${iconset.uid}) was already imported privately by another user. A System Administrator has to import it and make it public.`);
+            } else if (action === 'update' && installed?.username === null && !admin) {
+                throw new IconsetImportError(`Iconset ${iconset.name} version ${iconset.to_json().version} is newer than the installed version ${installed.version}. Only a System Administrator can update a public Iconset.`);
+            } else if (action !== 'create') {
+                if (action === 'update') await this.updateIconset(iconset, pkg, token);
+
+                await createImportResult(this.msg, {
+                    name: iconset.name,
+                    type: 'Iconset',
+                    type_id: iconset.uid,
+                });
+
+                return;
             }
 
             const iconset_req = await fetch(new URL(`/api/iconset`, this.msg.api), {
@@ -412,7 +431,8 @@ export default class Worker extends EventEmitter {
                         continue;
                     }
 
-                    const icon_req = await fetch(new URL(`/api/iconset/${iconset.uid}/icon`, this.msg.api), {
+                    // PzBat12: rebuild the sprite sheet once at the end, not after every icon
+                    const icon_req = await fetch(new URL(`/api/iconset/${iconset.uid}/icon?regen=false`, this.msg.api), {
                         safeUrlAllow: [this.msg.api],
                         method: 'POST',
                         headers: {
@@ -429,10 +449,97 @@ export default class Worker extends EventEmitter {
 
                     if (!icon_req.ok) console.error(await icon_req.text());
                 }
+
+                const regen = await fetch(new URL(`/api/iconset/${iconset.uid}/regen`, this.msg.api), {
+                    safeUrlAllow: [this.msg.api],
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${jwt.sign({ access: 'user', email: this.msg.job.username }, this.msg.secret)}`,
+                    },
+                });
+
+                if (!regen.ok) console.error(await regen.text());
             }
         } catch (err) {
+            if (err instanceof IconsetImportError) throw err;
             console.log(`Import: ${this.msg.job.id} - Is not an Iconset:`, err instanceof Error ? err.message : String(err));
         }
+    }
+
+    /**
+     * PzBat12: token with the importing user's real access. Imports normally run
+     * as a plain user; updating a public (server) Iconset needs a System Admin.
+     */
+    async importerToken(): Promise<{ token: string; admin: boolean }> {
+        const email = this.msg.job.username;
+        const user = jwt.sign({ access: 'user', email }, this.msg.secret);
+
+        const res = await fetch(new URL('/api/profile', this.msg.api), {
+            safeUrlAllow: [this.msg.api],
+            method: 'GET',
+            headers: { Authorization: `Bearer ${user}` },
+        });
+
+        if (res.ok && (await res.json() as { system_admin?: boolean }).system_admin === true) {
+            return { token: jwt.sign({ access: 'admin', email }, this.msg.secret), admin: true };
+        }
+
+        return { token: user, admin: false };
+    }
+
+    /** PzBat12: install a newer version of an existing Iconset in place, see iconset-update.ts */
+    async updateIconset(iconset: Iconset, pkg: DataPackage, token: string): Promise<void> {
+        const api = (url: string, method: string, body?: unknown) => fetch(new URL(url, this.msg.api), {
+            safeUrlAllow: [this.msg.api],
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: body === undefined ? undefined : JSON.stringify(body),
+        });
+
+        const list = await api(`/api/icon?iconset=${encodeURIComponent(iconset.uid)}&limit=0`, 'GET');
+        if (!list.ok) throw new IconsetImportError(`Iconset ${iconset.name}: ${await list.text()}`);
+        const installed = (await list.json() as { items: InstalledIcon[] }).items;
+
+        const files = new Map<string, string>();
+        for (const file of await pkg.files()) {
+            if (['.png', '.svg'].includes(path.parse(file).ext)) files.set(path.parse(file).base, file);
+        }
+
+        const incoming: IncomingIcon[] = [];
+        for (const icon of iconset.icons()) {
+            const file = files.get(icon.name);
+            const ext = path.parse(icon.name).ext;
+            if (!file || !['.png', '.svg'].includes(ext)) continue;
+
+            const mime = ext === '.png' ? 'image/png' : 'image/svg+xml';
+            incoming.push({
+                file,
+                data: `data:${mime};base64,${(await pkg.getFileBuffer(file)).toString('base64')}`,
+                type2525b: icon.type2525b || null,
+            });
+        }
+
+        const plan = planIconSync(installed, incoming);
+
+        for (const { id, icon } of plan.patch) {
+            const res = await api(`/api/iconset/${iconset.uid}/icon/${id}`, 'PATCH', { data: icon.data, type2525b: icon.type2525b });
+            if (!res.ok) throw new IconsetImportError(`Iconset ${iconset.name}: ${await res.text()}`);
+        }
+
+        for (const icon of plan.create) {
+            const res = await api(`/api/iconset/${iconset.uid}/icon?regen=false`, 'POST', { name: icon.file, data: icon.data, type2525b: icon.type2525b });
+            if (!res.ok) throw new IconsetImportError(`Iconset ${iconset.name}: ${await res.text()}`);
+        }
+
+        if (plan.create.length) await api(`/api/iconset/${iconset.uid}/regen`, 'POST');
+
+        const meta = await api(`/api/iconset/${iconset.uid}`, 'PATCH', { name: iconset.name, version: iconset.to_json().version });
+        if (!meta.ok) throw new IconsetImportError(`Iconset ${iconset.name}: ${await meta.text()}`);
+
+        console.log(`Import: ${this.msg.job.id} - Iconset ${iconset.name} updated: ${plan.create.length} new, ${plan.patch.length} changed icons`);
     }
 
     async processBasemap(

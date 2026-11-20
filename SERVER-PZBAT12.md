@@ -67,6 +67,22 @@ Konfiguration > Login-Einstellungen das Wappen als Logo hochladen (PNG oder SVG,
 etwa 450 Pixel hoch, sonst unscharf; die Login-Seite zeigt es 150 Pixel hoch
 und das App-Icon auf dem iPhone wird daraus in 512 Pixel erzeugt).
 
+### Iconsets für alle (z. B. Signaturen)
+
+Ein Iconset aus einem Datenpaket gehört nach dem Import nur der Person, die
+es importiert hat. Damit alle es sehen:
+
+1. Ein Admin importiert das Datenpaket (Menü > Datenpakete > Paket > Import
+   Package, oder Menü > Iconsets > Import).
+2. Menü > Iconsets > Iconset > Bearbeiten: «Public» einschalten.
+
+Eine neue Version (gleiche UID, höhere Version im `iconset.xml`) ersetzt beim
+Import die alte: neue Icons kommen dazu, geänderte werden ersetzt, entfernte
+bleiben stehen, damit gesetzte Marker ihr Icon behalten. Ein öffentliches
+Iconset kann nur ein Admin aktualisieren. Wer ein schon installiertes Iconset
+nochmals importiert, bekommt einfach den Verweis darauf. Hat jemand anderes es
+privat importiert, bricht der Import mit einer Meldung ab.
+
 ## Betrieb
 
 ```bash

@@ -139,6 +139,9 @@ export default async function router(schema: Schema, config: ConfigStateless) {
             iconset: Type.String(),
         }),
         body: Type.Object({
+            // PzBat12: an Iconset import with the same UID and a higher version updates name and version
+            name: Type.Optional(Default.NameField),
+            version: Type.Optional(Type.Integer()),
             public: Type.Optional(Type.Boolean()),
             default_group: Type.Optional(Type.String()),
             default_friendly: Type.Optional(Type.String()),
