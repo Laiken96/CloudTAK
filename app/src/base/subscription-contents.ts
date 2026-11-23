@@ -2,6 +2,7 @@ import { db } from '../database.ts';
 import { server, downloadUrl } from '../std.ts';
 import type { DBSubscriptionContent } from '../database.ts';
 import type { Mission } from '../types.ts';
+import { missionFileHashes, announceMissionFileChange } from './mission-file-hooks.ts';
 
 /**
  * High Level Wrapper around Mission Contents (file attachments)
@@ -32,6 +33,9 @@ export default class SubscriptionContents {
      * Populate the subscription_contents table from the Mission's contents field
      */
     async refresh(contents: Mission['contents']): Promise<void> {
+        // PzBat12: objects of attached files follow the files (base/mission-files.ts)
+        const files = await missionFileHashes(this.guid);
+
         await db.transaction('rw', db.subscription_contents, async () => {
             await db.subscription_contents
                 .where('mission')
@@ -55,12 +59,16 @@ export default class SubscriptionContents {
                 });
             }
         });
+
+        await announceMissionFileChange(this.guid, files);
     }
 
     /**
      * Delete/detach a content entry from the mission and remove it from the local database
      */
     async delete(hash: string): Promise<void> {
+        const files = await missionFileHashes(this.guid);
+
         await server.DELETE('/api/marti/missions/{:guid}/upload/{:hash}', {
             params: { path: { ':guid': this.guid, ':hash': hash } },
             headers: this.headers(),
@@ -71,6 +79,8 @@ export default class SubscriptionContents {
             .equals(this.guid)
             .filter((c) => c.hash === hash)
             .delete();
+
+        await announceMissionFileChange(this.guid, files);
     }
 
     async download(name: string, hash: string): Promise<void> {
