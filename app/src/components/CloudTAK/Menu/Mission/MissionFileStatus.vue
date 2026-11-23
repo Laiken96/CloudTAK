@@ -1,56 +1,73 @@
 <template>
-    <div
-        v-if='kind'
-        class='d-flex align-items-center gap-1 small'
-        :class='problem ? "text-warning" : "text-secondary"'
-        data-testid='mission-file-status'
-    >
-        <IconMapPin
-            v-if='state === "loaded" && !problem'
-            :size='16'
-            stroke='1.5'
-            class='flex-shrink-0'
-        />
-        <IconLoader2
-            v-else-if='state === "loading"'
-            :size='16'
-            stroke='1.5'
-            class='flex-shrink-0 mission-file-spin'
-        />
-        <IconMapOff
-            v-else
-            :size='16'
-            stroke='1.5'
-            class='flex-shrink-0'
-        />
-
-        <span
-            class='text-break'
-            v-text='text'
-        />
-
-        <TablerIconButton
-            v-if='state === "failed"'
-            title='Retry'
-            class='ms-1'
-            @click='missionFiles.retry(props.subscription.guid, props.content.hash)'
+    <div v-if='kind'>
+        <div
+            class='d-flex align-items-center gap-1 small'
+            :class='problem ? "text-warning" : "text-secondary"'
+            data-testid='mission-file-status'
         >
-            <IconRefresh
-                :size='24'
-                stroke='1'
+            <IconMapPin
+                v-if='state === "loaded" && !problem'
+                :size='16'
+                stroke='1.5'
+                class='flex-shrink-0'
             />
-        </TablerIconButton>
+            <IconLoader2
+                v-else-if='state === "loading"'
+                :size='16'
+                stroke='1.5'
+                class='flex-shrink-0 mission-file-spin'
+            />
+            <IconMapOff
+                v-else
+                :size='16'
+                stroke='1.5'
+                class='flex-shrink-0'
+            />
+
+            <span
+                class='text-break'
+                v-text='text'
+            />
+
+            <TablerIconButton
+                v-if='state === "failed"'
+                title='Retry'
+                class='ms-1'
+                @click='missionFiles.retry(props.subscription.guid, props.content.hash)'
+            >
+                <IconRefresh
+                    :size='24'
+                    stroke='1'
+                />
+            </TablerIconButton>
+        </div>
+
+        <button
+            v-if='takeover'
+            type='button'
+            class='btn btn-outline-primary mt-2 d-inline-flex align-items-center gap-1'
+            style='min-height: 44px'
+            data-testid='mission-file-takeover-file'
+            @click='requestTakeover(props.subscription.guid, [props.content.hash])'
+        >
+            <IconFileImport
+                :size='20'
+                stroke='1.5'
+            />
+            <span v-text='takeoverText' />
+        </button>
     </div>
 </template>
 
 <script setup lang='ts'>
 import { computed } from 'vue';
-import { IconMapPin, IconMapOff, IconLoader2, IconRefresh } from '@tabler/icons-vue';
+import { IconMapPin, IconMapOff, IconLoader2, IconRefresh, IconFileImport } from '@tabler/icons-vue';
 import { TablerIconButton } from '@tak-ps/vue-tabler';
 import { tr } from '../../../../i18n/index.ts';
 import OverlayManager from '../../../../base/overlay.ts';
 import { missionFiles } from '../../../../base/mission-files.ts';
 import { missionFileKind, MISSION_FILE_MAX_BYTES } from '../../../../utils/mission-file-kind.ts';
+import { canTakeOver, requestTakeover, takeoverState } from '../../../../base/mission-file-takeover.ts';
 import type Subscription from '../../../../base/subscription.ts';
 import type { DBSubscriptionContent } from '../../../../database.ts';
 
@@ -74,6 +91,18 @@ const state = computed(() => {
     if (!onMap.value || !status.value) return 'loading';
     return status.value.state;
 });
+
+/** Objects of the file not in the mission yet - offered to users with write access */
+const takeover = computed(() => {
+    if (!canTakeOver(props.subscription)) return 0;
+
+    const file = takeoverState.pending.get(props.subscription.guid)?.find((f) => f.hash === props.content.hash);
+    return file?.features.length ?? 0;
+});
+
+const takeoverText = computed(() => takeover.value === 1
+    ? tr('Take over 1 drawing into the mission')
+    : tr('Take over {count} drawings into the mission', { count: takeover.value }));
 
 const problem = computed(() => {
     if (state.value === 'loaded') return status.value?.count === 0;
