@@ -11,6 +11,7 @@ import type { BBox, FeatureCollection as GeoJSONFeatureCollection } from 'geojso
 import type { Feature, FeatureCollection } from '../types.ts';
 import type { paths } from '@cloudtak/api-types';
 import { WorkerMessageType } from '../utils/events.ts';
+import { HASHTAG_KEYS_PROPERTY, renderedHashtagKeys } from '../utils/hashtag-visibility.ts';
 
 type SubmitFeature = paths["/api/marti/missions/{:guid}/cot"]["put"]["requestBody"]["content"]["application/json"]["features"][number];
 
@@ -67,7 +68,9 @@ export function renderMissionFeature(feat: Feature): Feature {
         properties: {
             ...feat.properties,
             path: feat.path || '/',
-            ...(icon !== undefined ? { icon } : {})
+            ...(icon !== undefined ? { icon } : {}),
+            // PzBat12: the map hides Features by the tags in their remarks
+            [HASHTAG_KEYS_PROPERTY]: renderedHashtagKeys(feat.properties.remarks)
         },
         geometry: feat.geometry,
     };

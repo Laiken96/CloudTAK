@@ -13,6 +13,7 @@ import { applyEllipseMutation } from './cot/ellipse.ts';
 import FeatureOutbox from './feature-outbox.ts';
 import FeatureWriter from './feature-writer.ts';
 import { derivedFeatures, type DerivedFeature } from './cot/derived.ts';
+import { HASHTAG_KEYS_PROPERTY, renderedHashtagKeys } from '../utils/hashtag-visibility.ts';
 import type { COTMutation, COTUpdate } from './cot/types.ts';
 import type { Feature, FeaturePropertyCreator, Subscription } from '../types.ts'
 import type {
@@ -353,6 +354,11 @@ export default class COT {
                         delete this._properties.icon;
                     }
 
+                    // PzBat12: the map hides Features by the tags in their remarks
+                    if (renderedHashtagKeys(this._properties.remarks) !== renderedHashtagKeys(update.properties.remarks)) {
+                        visuallyChanged = true;
+                    }
+
                     // The sensor cone is derived at render time from this block
                     const sensorBefore = this._properties.sensor;
                     if (sensorBefore && update.properties.sensor === undefined) {
@@ -606,7 +612,15 @@ export default class COT {
     }
 
     static as_derived(input: Feature): DerivedFeature[] {
-        return derivedFeatures(input, COT.vectorId);
+        const derived = derivedFeatures(input, COT.vectorId);
+
+        // PzBat12: hidden along with their Feature by the tags in its remarks
+        const keys = renderedHashtagKeys(input.properties.remarks);
+        for (const feat of derived) {
+            if (feat.properties) feat.properties[HASHTAG_KEYS_PROPERTY] = keys;
+        }
+
+        return derived;
     }
 
     /**
@@ -639,6 +653,10 @@ export default class COT {
         // alone, so a MIL-STD symbol's generated key is supplied here
         const icon = renderedIcon(input.properties);
         if (icon !== undefined) feat.properties.icon = icon;
+
+        // PzBat12: the map hides Features by the tags in their remarks - always
+        // set, so a diff update clears the tags of a Feature that lost them
+        feat.properties[HASHTAG_KEYS_PROPERTY] = renderedHashtagKeys(input.properties.remarks);
 
         return feat;
     }

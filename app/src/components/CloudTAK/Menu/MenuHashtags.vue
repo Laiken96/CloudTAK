@@ -73,6 +73,28 @@
                 <section class='d-flex flex-column gap-2'>
                     <SearchSortFilter v-model='filter' />
 
+                    <div
+                        v-if='hiddenCount'
+                        class='d-flex align-items-center gap-2'
+                    >
+                        <IconEyeOff
+                            :size='20'
+                            stroke='1'
+                            class='flex-shrink-0'
+                        />
+                        <span
+                            class='flex-grow-1 small'
+                            v-text='hiddenSummary'
+                        />
+                        <button
+                            type='button'
+                            class='btn btn-outline-secondary flex-shrink-0'
+                            @click='showAll'
+                        >
+                            Show All
+                        </button>
+                    </div>
+
                     <TablerLoading
                         v-if='loading'
                         desc='Loading Hashtags'
@@ -80,7 +102,7 @@
                     <TablerNone
                         v-else-if='visible.length === 0'
                         :create='false'
-                        :label='entries.length ? "No matching Hashtags" : "No Hashtags in remarks"'
+                        :label='listed.length ? "No matching Hashtags" : "No Hashtags in remarks"'
                     />
                     <template v-else>
                         <div
@@ -91,7 +113,10 @@
                         >
                             <StandardItem
                                 class='d-flex align-items-center gap-3 p-2'
-                                :class='{ "hashtags-row--focus": focusKey === entry.key }'
+                                :class='{
+                                    "hashtags-row--focus": focusKey === entry.key,
+                                    "hashtags-row--hidden": isHidden(entry.tag)
+                                }'
                                 @click='toggleOpen(entry.key)'
                             >
                                 <div
@@ -116,9 +141,30 @@
                                         class='text-secondary small'
                                         v-text='entry.features.length === 1 ? "1 Feature" : `${entry.features.length} Features`'
                                     />
+                                    <div
+                                        v-if='isHidden(entry.tag)'
+                                        class='hashtags-hidden-label small'
+                                    >
+                                        Hidden on the map
+                                    </div>
                                 </div>
 
                                 <div class='d-flex btn-list ms-auto'>
+                                    <TablerIconButton
+                                        :title='visibilityTitle(entry.tag)'
+                                        @click.stop='toggleHidden(entry.tag)'
+                                    >
+                                        <IconEyeOff
+                                            v-if='isHidden(entry.tag)'
+                                            :size='20'
+                                            stroke='1'
+                                        />
+                                        <IconEye
+                                            v-else
+                                            :size='20'
+                                            stroke='1'
+                                        />
+                                    </TablerIconButton>
                                     <TablerIconButton
                                         v-if='!isSticky(entry.tag)'
                                         :title='`Use ${entry.tag} as Sticky Hashtag`'
@@ -182,6 +228,8 @@ import SearchSortFilter from '../util/SearchSortFilter.vue';
 import StandardItem from '../util/StandardItem.vue';
 import Feature from '../util/FeatureRow.vue';
 import StickyHashtags, { type StickyHashtag } from '../../../base/sticky-hashtags.ts';
+import HiddenHashtags from '../../../stores/modules/hidden-hashtags.ts';
+import { tr } from '../../../i18n/index.ts';
 import { hashtagKey, stripHashtags, validateHashtag } from '../../../utils/hashtags.ts';
 import type { WorkerMessage } from '../../../utils/events.ts';
 import { WorkerMessageType } from '../../../utils/events.ts';
@@ -197,6 +245,8 @@ import {
 } from '@tak-ps/vue-tabler';
 import {
     IconX,
+    IconEye,
+    IconEyeOff,
     IconPin,
     IconHash,
     IconPlus,
@@ -228,11 +278,33 @@ const newSticky = ref('');
 
 const rows = new Map<string, Element>();
 
+/**
+ * The tags in remarks plus hidden tags no loaded Feature carries right now -
+ * they stay hidden for Features that get them later and must stay listed to be shown again
+ */
+const listed = computed<HashtagEntry[]>(() => {
+    const keys = new Set(entries.value.map((entry) => entry.key));
+
+    const absent = HiddenHashtags.state.tags
+        .filter((tag) => !keys.has(hashtagKey(tag)))
+        .map((tag) => ({ tag, key: hashtagKey(tag), features: [] }));
+
+    if (!absent.length) return entries.value;
+
+    return [...entries.value, ...absent].sort((a, b) => a.key.localeCompare(b.key));
+});
+
 const visible = computed(() => {
     const needle = filter.value.trim().toLowerCase().replace(/^#/, '');
-    if (!needle) return entries.value;
-    return entries.value.filter((entry) => entry.key.includes(needle));
+    if (!needle) return listed.value;
+    return listed.value.filter((entry) => entry.key.includes(needle));
 });
+
+const hiddenCount = computed(() => HiddenHashtags.state.tags.length);
+
+const hiddenSummary = computed(() => hiddenCount.value === 1
+    ? tr('1 hashtag hidden on the map')
+    : tr('{count} hashtags hidden on the map', { count: hiddenCount.value }));
 
 const channel = new BroadcastChannel('cloudtak');
 let pending: ReturnType<typeof setTimeout> | undefined;
@@ -359,11 +431,46 @@ async function toggleSticky(tag: string, enabled: boolean): Promise<void> {
 async function removeSticky(tag: string): Promise<void> {
     stickyTags.value = await StickyHashtags.remove(tag);
 }
+
+function isHidden(tag: string): boolean {
+    return HiddenHashtags.isHidden(tag);
+}
+
+function visibilityTitle(tag: string): string {
+    return isHidden(tag)
+        ? tr('Show {tag} on the map', { tag })
+        : tr('Hide {tag} on the map', { tag });
+}
+
+/** ATAK's per-tag visibility: every Feature carrying the tag leaves the map of this device */
+async function toggleHidden(tag: string): Promise<void> {
+    try {
+        await HiddenHashtags.toggle(tag);
+    } catch (err) {
+        console.error('Failed to change hashtag visibility', err);
+    }
+}
+
+async function showAll(): Promise<void> {
+    try {
+        await HiddenHashtags.showAll();
+    } catch (err) {
+        console.error('Failed to show all hashtags', err);
+    }
+}
 </script>
 
 <style scoped>
 .hashtags-row--focus {
     outline: 2px solid var(--tblr-primary);
     outline-offset: -2px;
+}
+
+.hashtags-row--hidden .fw-bold {
+    opacity: 0.6;
+}
+
+.hashtags-hidden-label {
+    color: var(--tblr-warning);
 }
 </style>
