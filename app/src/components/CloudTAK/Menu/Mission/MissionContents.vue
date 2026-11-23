@@ -162,6 +162,11 @@
                                     v-text='content.submissionTime'
                                 />
                             </div>
+                            <!-- PzBat12: whether the file's objects are on the map -->
+                            <MissionFileStatus
+                                :subscription='props.subscription'
+                                :content='content'
+                            />
                         </div>
                     </div>
                     <div class='col-auto'>
@@ -231,6 +236,7 @@ import {
 
 import MenuTemplate from '../../util/MenuTemplate.vue';
 import StandardItem from '../../util/StandardItem.vue';
+import MissionFileStatus from './MissionFileStatus.vue';
 
 const props = defineProps<{
     subscription: Subscription
