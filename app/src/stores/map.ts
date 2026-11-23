@@ -39,6 +39,7 @@ import { invalidateOfflinePMTiles } from './modules/pmtiles.ts';
 import { FeatureVisibility } from './modules/feature-visibility.ts';
 import Subscription from '../base/subscription.ts';
 import { renderMissionFeature } from '../base/subscription-feature.ts';
+import { missionFiles } from '../base/mission-files.ts';
 import Filter from '../base/filter.ts';
 import { getRuntimeToken, serverUrl } from '../std.js';
 import * as mapgl from 'maplibre-gl'
@@ -1030,6 +1031,9 @@ export const useMapStore = defineStore('cloudtak', {
                     ...pending.add.map((feat) => renderMissionFeature(feat))
                 ];
             }
+
+            // PzBat12: read-only objects of the files attached to the Mission
+            collection.features.push(...await missionFiles.features(subscription, collection.features));
 
             // @ts-expect-error Source.setData is not defined
             oStore.setData(collection);

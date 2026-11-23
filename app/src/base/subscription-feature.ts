@@ -12,6 +12,7 @@ import type { Feature, FeatureCollection } from '../types.ts';
 import type { paths } from '@cloudtak/api-types';
 import { WorkerMessageType } from '../utils/events.ts';
 import { HASHTAG_KEYS_PROPERTY, renderedHashtagKeys } from '../utils/hashtag-visibility.ts';
+import { isMissionFileFeature } from './mission-file-hooks.ts';
 
 type SubmitFeature = paths["/api/marti/missions/{:guid}/cot"]["put"]["requestBody"]["content"]["application/json"]["features"][number];
 
@@ -369,6 +370,9 @@ export default class SubscriptionFeature {
             skipNetwork?: boolean
         } = {}
     ): Promise<void> {
+        // PzBat12: objects of mission files are read-only and never go into the Mission
+        if (isMissionFileFeature(cot)) throw new Error(`${cot.id} is a read-only object of a mission file`);
+
         const isChat = cot.properties.type === 'b-t-f';
 
         if (isChat) {
