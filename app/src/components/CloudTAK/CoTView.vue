@@ -56,7 +56,7 @@
                     class='text-yellow'
                 />
                 <TablerIconButton
-                    v-else-if='cot.is_archivable'
+                    v-else-if='cot.is_archivable && !missionFile'
                     title='Save Feature'
                     @click='cot.properties.archived = true'
                 >
@@ -123,6 +123,7 @@
                 </TablerIconButton>
 
                 <TablerIconButton
+                    v-if='!missionFile'
                     title='Share'
                     @click='share = true'
                 >
@@ -306,6 +307,13 @@
                     </TablerDropdown>
                 </div>
             </div>
+
+            <!-- PzBat12: object of a file attached to a mission, read-only -->
+            <MissionFileNotice
+                v-if='missionFile'
+                :cot='cot'
+                class='flex-shrink-0'
+            />
 
             <PropertyTabs
                 v-model='mode'
@@ -630,6 +638,8 @@ import PropertyBattery from './Property/PropertyBattery.vue';
 import PropertyFactRow from './util/PropertyFactRow.vue';
 import PropertyTabs, { type PropertyTab } from './util/PropertyTabs.vue';
 import MenuDropdownItem from './util/MenuDropdownItem.vue';
+import MissionFileNotice from './util/MissionFileNotice.vue';
+import { isMissionFileFeature } from '../../base/mission-file-hooks.ts';
 import Type2525 from '@tak-ps/node-cot/2525';
 
 function isSIDCType(type: string): boolean {
@@ -827,6 +837,9 @@ onUnmounted(() => {
     }
 });
 
+// PzBat12: an object of a file attached to a mission - read-only, not saved, shared or buffered
+const missionFile = computed(() => isMissionFileFeature(cot.value));
+
 const is_editable = computed(() => {
     if (!cot.value || !cot.value.is_editable) return false;
 
@@ -875,7 +888,7 @@ const isLocked = computed(() => {
 });
 
 const hasGeoJSONTransforms = computed(() => {
-    return !!cot.value && cot.value.geometry.type !== 'GeometryCollection';
+    return !!cot.value && cot.value.geometry.type !== 'GeometryCollection' && !missionFile.value;
 });
 
 const canChat = computed(() => {

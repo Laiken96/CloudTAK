@@ -15,6 +15,8 @@ import StickyHashtags from '../base/sticky-hashtags.ts';
 import { indexHashtags } from '../utils/hashtags.ts';
 import { coordEach } from '@turf/meta'
 import COT, { OriginMode } from '../base/cot.ts';
+import { isMissionFileFeature } from '../base/mission-file-hooks.ts';
+import { missionFileCOT } from '../base/mission-files.ts';
 import FeatureOutbox, { OutboxState, isPendingFeature } from '../base/feature-outbox.ts';
 import ContactManager from '../base/contact.ts';
 import TAKNotification, { NotificationType } from '../base/notification.ts';
@@ -903,7 +905,8 @@ export default class AtlasDatabase {
         }
     ): Promise<void> {
         const cot = await this.get(id, {
-            mission: opts.mission
+            mission: opts.mission,
+            files: false
         });
 
         // TODO Throw an error?
@@ -1158,12 +1161,19 @@ export default class AtlasDatabase {
     ): Promise<COT | void> {
         if (!opts) opts = {};
 
+        // PzBat12: objects of mission files are read-only and never stored or sent
+        if (isMissionFileFeature(feature)) {
+            console.warn(`Not storing ${feature.id}: it is a read-only object of a mission file`);
+            return;
+        }
+
         feature.properties.id = feature.id;
 
         const feat = feature as Feature;
 
         let exists = await this.get(feat.properties.id, {
-            mission: opts.skipMissionLookup !== true
+            mission: opts.skipMissionLookup !== true,
+            files: false
         });
 
         if (opts.authored && !exists) {
@@ -1516,11 +1526,13 @@ export default class AtlasDatabase {
      * @param id - ID of the CoT to return
      * @param opts - Options
      * @param opts.mission - If true, search Mission Stores for the CoT
+     * @param opts.files - PzBat12: with mission, false leaves out the read-only objects of mission files
      */
     async get(
         id: string,
         opts: {
             mission?: boolean,
+            files?: boolean,
         } = {
             mission: false
         }
@@ -1550,7 +1562,11 @@ export default class AtlasDatabase {
             // subscribed mission's store
             const feat = await db.subscription_feature.get(id);
 
-            if (!feat || feat.deleted) return;
+            if (!feat || feat.deleted) {
+                // PzBat12: an object of a file attached to a subscribed Mission (base/mission-files.ts)
+                if (opts.files === false) return;
+                return await missionFileCOT(id);
+            }
 
             const sub = await db.subscription.get(feat.mission);
 

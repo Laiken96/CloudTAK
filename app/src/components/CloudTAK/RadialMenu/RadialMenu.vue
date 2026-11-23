@@ -206,6 +206,7 @@
 import { ref, shallowRef, onMounted, onUnmounted, nextTick, useTemplateRef, watch } from 'vue';
 import { OriginMode } from '../../../base/cot.ts';
 import Subscription from '../../../base/subscription.ts';
+import { isMissionFileFeature } from '../../../base/mission-file-hooks.ts';
 // @ts-expect-error no declaration file for RadialMenu.js
 import RadialMenu from './RadialMenu.js';
 import './RadialMenu.css';
@@ -344,6 +345,12 @@ async function genMenuItems(
             });
 
             if (!cot.value) throw new Error('Could not find marker');
+
+            // PzBat12: an object of a mission file is read-only - view only
+            if (isMissionFileFeature(cot.value)) {
+                menuItems.value.push({ id: 'view', icon: '#radial-view' });
+                return;
+            }
 
             if (cot.value.origin.mode === OriginMode.CONNECTION) {
                 // User pucks/skittles cannot be edited

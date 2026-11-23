@@ -14,6 +14,7 @@ import FeatureOutbox from './feature-outbox.ts';
 import FeatureWriter from './feature-writer.ts';
 import { derivedFeatures, type DerivedFeature } from './cot/derived.ts';
 import { HASHTAG_KEYS_PROPERTY, renderedHashtagKeys } from '../utils/hashtag-visibility.ts';
+import { isMissionFileFeature } from './mission-file-hooks.ts';
 import type { COTMutation, COTUpdate } from './cot/types.ts';
 import type { Feature, FeaturePropertyCreator, Subscription } from '../types.ts'
 import type {
@@ -497,6 +498,8 @@ export default class COT {
     get is_editable(): boolean {
         if (this.is_self) return true;
         if (this.is_machine_generated) return false;
+        // PzBat12: objects of mission files are read-only
+        if (isMissionFileFeature(this)) return false;
 
         return this.properties.archived || false;
     }
