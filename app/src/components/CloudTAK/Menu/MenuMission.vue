@@ -151,6 +151,12 @@
         </template>
     </MenuTemplate>
 
+    <!-- PzBat12: offer to take the objects of attached files over into the mission -->
+    <MissionFileTakeover
+        v-if='subscription && subscription.subscribed'
+        :subscription='subscription'
+    />
+
     <ShareToPackage
         v-if='shareToPackage.shown && subscription'
         :name='`${new Date().toISOString().replace(/T.*/, "")} ${subscription ? subscription.meta.name : "Mission"}`'
@@ -190,6 +196,7 @@ import {
 } from '@tak-ps/vue-tabler';
 import MenuTemplate from '../util/MenuTemplate.vue';
 import ShareToPackage from '../util/ShareToPackage.vue';
+import MissionFileTakeover from './Mission/MissionFileTakeover.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMapStore } from '../../../stores/map.ts';
 import OverlayManager from '../../../base/overlay.ts';

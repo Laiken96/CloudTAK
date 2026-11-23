@@ -40,6 +40,7 @@ import {
     IconRoute2,
     IconShieldHalfFilled,
     IconFiles,
+    IconFileImport,
 } from '@tabler/icons-vue';
 import type { TourStep, TourView } from './tour.ts';
 
@@ -301,6 +302,13 @@ export const HELP_ENTRIES: HelpEntry[] = [
         icon: IconFiles,
         title: 'Files of a Mission on the Map',
         description: 'Drawings (.cot), data packages (.zip) and KML or KMZ files attached to a subscribed mission, e.g. from WinTAK or ATAK, appear on the map as part of the mission. They are read-only: a tap shows the object, it cannot be edited, moved or deleted here; change the file and attach it again. They are hidden and shown with the mission. An object of the mission with the same UID wins. Mission > Files shows for each file whether it is on the map and with how many objects, or why not: larger than 20 MB, format not readable or download failed (tap to retry).',
+    },
+    {
+        id: 'mission-files-takeover',
+        section: 'menu',
+        icon: IconFileImport,
+        title: 'Take Over Files into the Mission',
+        description: 'With write access to a mission, CloudTAK asks once per file when you open the mission: take over the drawings of the attached files into the mission? Taken over, they become objects of the mission with UID, type and details from the file: listed under Layers and in the Hashtag Manager, editable, and sent to everyone. By default each file gets a folder named after the file; an existing folder of that name is used. Later keeps them read-only; Mission > Files has the button Take over into the mission for each file. The files stay attached.',
     },
     {
         id: 'menu-packages',

@@ -16,6 +16,8 @@
  *   entry never changes), never in the mission's object store
  *   (subscription_feature), whose changes are submitted to the TAK Server.
  *   AtlasDatabase.add() and SubscriptionFeature.update() refuse them as well.
+ *   Only a takeover on request (base/mission-file-takeover.ts) writes a clean
+ *   copy into the mission.
  * - An object of the mission with the same UID wins over a file's object, and
  *   the newest file wins over older ones.
  * - Files above MISSION_FILE_MAX_BYTES are skipped. Each file has a status
@@ -120,7 +122,7 @@ export async function downloadMissionFile(hash: string, headers: Record<string, 
     return bytes;
 }
 
-function repaintMission(guid: string): void {
+export function repaintMission(guid: string): void {
     const channel = new BroadcastChannel('cloudtak');
     try {
         channel.postMessage({
@@ -318,6 +320,14 @@ export class MissionFileStore {
         }
 
         return undefined;
+    }
+
+    /**
+     * The objects of a file already read (memory or cache), marked with
+     * MISSION_FILE_PROPERTY - undefined when not read or not readable
+     */
+    async read(hash: string): Promise<Feature[] | undefined> {
+        return (await this.entry(hash))?.features;
     }
 
     /** Read a file once per session: memory, then the cache */

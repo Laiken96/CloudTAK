@@ -18,15 +18,21 @@ vi.mock('../../../../base/overlay.ts', () => ({
 }));
 
 import MissionFileStatus from './MissionFileStatus.vue';
+import { takeoverState } from '../../../../base/mission-file-takeover.ts';
+import type { Feature } from '../../../../types.ts';
 import type Subscription from '../../../../base/subscription.ts';
 import type { DBSubscriptionContent } from '../../../../database.ts';
 
 const GUID = 'mission-a';
 
-function render(name: string, opts: { subscribed?: boolean } = {}) {
+function render(name: string, opts: { subscribed?: boolean, permissions?: string[] } = {}) {
     return mount(MissionFileStatus, {
         props: {
-            subscription: { guid: GUID, subscribed: opts.subscribed ?? true } as unknown as Subscription,
+            subscription: {
+                guid: GUID,
+                subscribed: opts.subscribed ?? true,
+                role: { permissions: opts.permissions ?? ['MISSION_READ'] },
+            } as unknown as Subscription,
             content: { hash: 'h1', name, size: 1000 } as DBSubscriptionContent,
         }
     });
@@ -37,6 +43,8 @@ describe('MissionFileStatus', () => {
         statuses.clear();
         retry.mockReset();
         loaded.value = true;
+        takeoverState.pending.clear();
+        takeoverState.request.value = null;
     });
 
     it('says nothing for a file that is not a map file', () => {
@@ -84,5 +92,31 @@ describe('MissionFileStatus', () => {
 
         await wrapper.find('[title="Retry"]').trigger('click');
         expect(retry).toHaveBeenCalledWith(GUID, 'h1');
+    });
+
+    it('offers to take the objects over into the mission, only with write access', async () => {
+        statuses.set(`${GUID}:h1`, { state: 'loaded', count: 2, shown: 2 });
+        takeoverState.pending.set(GUID, [{
+            hash: 'h1',
+            name: 'Lage.cot',
+            features: [{ id: 'a' }, { id: 'b' }] as unknown as Feature[],
+        }]);
+
+        expect(render('Lage.cot').find('[data-testid="mission-file-takeover-file"]').exists()).toBe(false);
+
+        const wrapper = render('Lage.cot', { permissions: ['MISSION_READ', 'MISSION_WRITE'] });
+        const button = wrapper.find('[data-testid="mission-file-takeover-file"]');
+        expect(button.text()).toBe('Take over 2 drawings into the mission');
+
+        await button.trigger('click');
+        expect(takeoverState.request.value).toEqual({ guid: GUID, hashes: ['h1'] });
+    });
+
+    it('offers nothing for a file without objects left to take over', () => {
+        statuses.set(`${GUID}:h1`, { state: 'loaded', count: 1, shown: 0 });
+        takeoverState.pending.set(GUID, []);
+
+        const wrapper = render('Lage.cot', { permissions: ['MISSION_WRITE'] });
+        expect(wrapper.find('[data-testid="mission-file-takeover-file"]').exists()).toBe(false);
     });
 });
