@@ -5,6 +5,7 @@ import { db, type DBBreadcrumb, type DBFeatureHistory } from '../../database.ts'
 import FeatureHistory from '../../base/feature-history.ts';
 import COT from '../../base/cot.ts';
 import { DrawToolMode } from './draw.ts';
+import { isMeasuring } from '../../base/measure-tool.ts';
 import type { Feature } from '../../types.ts';
 import type { useMapStore } from '../map.ts';
 import type { HistoryChangeBody } from '../../utils/events.ts';
@@ -591,6 +592,8 @@ export default class HistoryLayer {
         // Mirror the map click handler: never open a point mid-draw or over an open radial
         if (this.mapStore.draw.mode !== DrawToolMode.STATIC) return;
         if (this.mapStore.radial.mode) return;
+        // PzBat12: a tap sets a measure point - see measure-tool.ts
+        if (isMeasuring()) return;
 
         const row = this.rowAt(event);
         if (!row) return;
