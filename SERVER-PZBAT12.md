@@ -39,7 +39,7 @@ Texte der Oberfläche: `app/src/i18n/de.json` (englischer Text → deutsch).
 
 - **Server:** Ubuntu 24.04 LTS, x86-64 (kein ARM), Richtwert 4 vCPU, 8 GB RAM, 50 GB Disk
 - **DNS:** zwei A-Records auf die Server-IP, z. B. `cloudtak.example.ch` und `tiles.cloudtak.example.ch`
-- **Firewall Server, eingehend:** 22 (SSH, wenn möglich nur eigene IP), 80 und 443 (HTTPS)
+- **Firewall Server, eingehend:** 22 (SSH, wenn möglich nur eigene IP), 80 und 443 (HTTPS), 9997 (Video)
 - **TAK-Server:** Port 8089 (Streaming), 8443 (API) und 8446 (Login) müssen vom CloudTAK-Server
   erreichbar sein. In der Azure-NSG des TAK-Servers 8443 für die IP des CloudTAK-Servers öffnen.
 - **Admin-Zertifikat** (`.p12`, ROLE_ADMIN) des TAK-Servers für die Ersteinrichtung
@@ -145,19 +145,30 @@ bleiben erhalten.
 
 ## Sicherheit
 
-- Nur 22, 80 und 443 offen. API, Kacheln, Datenbank und Video-Server sind nur
-  lokal gebunden (`docker-compose.pzbat12.yml`).
+- Nur 22, 80, 443 und 9997 (Video, siehe unten) offen. API, Kacheln, Datenbank
+  und Video-Server sind nur lokal gebunden (`docker-compose.pzbat12.yml`).
 - Die Instanz hält das Admin-Zertifikat des TAK-Servers: Server aktuell halten
   (`sudo apt install unattended-upgrades`), SSH nur mit Schlüssel.
 - **Variante ohne öffentlichen Zugang:** `setup <domain> --no-caddy`, dann
   Tailscale auf dem Server installieren und `tailscale serve` für 5000 und 5002
-  einrichten (wie auf dem Mac); `API_URL`/`PMTILES_URL` in der `.env` auf die
-  ts.net-Adressen setzen. Jedes Gerät braucht dann die Tailscale-App, dafür ist
+  einrichten (wie auf dem Mac), für Video zusätzlich
+  `tailscale serve --bg --https=9997 http://127.0.0.1:9997`;
+  `API_URL`/`PMTILES_URL`/`CLOUDTAK_Config_media_external` in der `.env` auf
+  die ts.net-Adressen setzen. Jedes Gerät braucht dann die Tailscale-App, dafür ist
   keine Firewall-Öffnung nötig.
 
 ## Video-Streaming
 
-Die Video-Ports (RTSP 8554, RTMP 1935, HLS 8888, SRT 8890) sind nur lokal
+Die Clients (Browser, iPhone) spielen Videos als HLS über Port 9997 ab:
+`https://<domain>:9997/stream/<lease>/index.m3u8`. Die Adresse kommt aus der
+Einstellung `media::external` (`.env`: `CLOUDTAK_Config_media_external`,
+von `setup` auf `https://<domain>` gesetzt). Ohne sie gibt CloudTAK
+`http://localhost` heraus, und Video läuft nur auf dem Server selbst.
+Caddy leitet `<domain>:9997` mit HTTPS an den Video-Server weiter, Port 9997
+muss dafür in der Firewall offen sein. Streams vom TAK-Server (z. B. Drohne)
+holt der Video-Server selbst ab, dafür braucht es keine weiteren Ports.
+
+Die übrigen Video-Ports (RTSP 8554, RTMP 1935, HLS 8888, SRT 8890) sind nur lokal
 gebunden. Für Video in `docker-compose.local.yml` beim Dienst `media` mit
 `ports: !override` alle Ports neu angeben, die benötigten ohne `127.0.0.1:`
 (siehe oben), und diese in der Firewall öffnen.

@@ -159,6 +159,27 @@ export default class VideoServiceControl {
         }
     }
 
+    /**
+     * PzBat12: address clients reach the media server at (setting
+     * media::external, env CLOUDTAK_Config_media_external), e.g. the public
+     * HTTPS name when media::url is the internal Docker Compose name `media`.
+     * Null when unset or not a URL.
+     */
+    async externalUrl(): Promise<string | null> {
+        try {
+            const kv = await this.config.models.Setting.from('media::external');
+            if (typeof kv.value !== 'string' || !kv.value.trim()) return null;
+            return String(new URL(kv.value.trim()));
+        } catch (err) {
+            if (err instanceof Error && err.message.includes('Not Found')) return null;
+            if (err instanceof TypeError) {
+                console.error('media::external is not a URL - ignored');
+                return null;
+            }
+            throw err;
+        }
+    }
+
     async settings(): Promise<{
         configured: boolean;
         url?: string;
@@ -224,8 +245,12 @@ export default class VideoServiceControl {
         const paths = await this.paths();
 
         // Special case for supporting internal Docker Compose network
+        // PzBat12: media::external wins - clients cannot reach the internal name
         let external = video.url;
-        if (video.url && new URL(video.url).hostname === 'media') {
+        const override = await this.externalUrl();
+        if (override) {
+            external = override;
+        } else if (video.url && new URL(video.url).hostname === 'media') {
             external = 'http://localhost';
         }
 

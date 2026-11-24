@@ -76,6 +76,7 @@ cmd_setup() {
 COMPOSE_FILE=$COMPOSE_FILES
 CLOUDTAK_Mode=docker-compose
 CLOUDTAK_Config_media_url=http://media
+CLOUDTAK_Config_media_external=https://$domain
 SigningSecret=$(secret 32)
 ASSET_BUCKET=cloudtak
 AWS_S3_Endpoint=http://store:3900
@@ -104,9 +105,14 @@ $domain {
 tiles.$domain {
     reverse_proxy localhost:5002
 }
+
+# Video (HLS) für die Clients, siehe media::external
+$domain:9997 {
+    reverse_proxy localhost:9997
+}
 EOF
         systemctl reload caddy || systemctl restart caddy
-        info "HTTPS über Caddy für $domain und tiles.$domain eingerichtet"
+        info "HTTPS über Caddy für $domain, tiles.$domain und Video ($domain:9997) eingerichtet"
     fi
 
     cmd_update_images
