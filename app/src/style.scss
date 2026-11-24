@@ -33,7 +33,10 @@ body {
  * - All orientations: up to one status bar taller, which is 0 with an opaque
  *   status bar, so nothing can scroll there.
  * - Landscape: 100lvh, which matched the real window in landscape on the test
- *   device (in portrait lvh was too large, so it is not used there). */
+ *   device (in portrait lvh was too large, so it is not used there).
+ * Confirmed on the device on 24.11.2026 together with the black-translucent
+ * status bar meta in index.html. iOS reads that meta only when the app is added
+ * to the home screen (WebKit 316008): older installs must be re-added. */
 @media (display-mode: standalone) {
     html {
         min-height: min(100lvh, calc(100% + env(safe-area-inset-top, 0px)));
