@@ -22,6 +22,21 @@ body {
     overscroll-behavior: none;
 }
 
+/* PzBat12: after rotating to landscape, the iOS home screen app can keep the
+ * inset of the portrait status bar and report a viewport one status bar too
+ * short (innerHeight 587 instead of 669 on the test device), leaving an empty
+ * bar below the map. The web view still covers the whole screen, which 100lvh
+ * reports correctly in landscape. Portrait keeps `inset: 0` (there lvh also
+ * counts the status bar). Standalone only: in Safari, lvh would reach under
+ * the toolbar. */
+@media (display-mode: standalone) and (orientation: landscape) {
+    .map-shell {
+        bottom: auto !important;
+        height: 100%;
+        height: 100lvh;
+    }
+}
+
 /* -------------------------------------------------------------------------
  * Design tokens
  * ------------------------------------------------------------------------- */
