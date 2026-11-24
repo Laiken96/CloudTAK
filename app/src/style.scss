@@ -15,6 +15,13 @@
 $cloudtak-navy: #023047;
 $cloudtak-blue: #07556d;
 
+/* PzBat12: no rubber band of the whole page on iOS - it could leave the map
+ * shifted with an empty bar. Panels keep their own scrolling. */
+html,
+body {
+    overscroll-behavior: none;
+}
+
 /* -------------------------------------------------------------------------
  * Design tokens
  * ------------------------------------------------------------------------- */

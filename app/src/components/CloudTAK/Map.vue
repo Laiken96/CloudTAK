@@ -1,7 +1,7 @@
 <template>
     <div
         class='d-flex position-relative map-shell'
-        style='height: calc(100vh) !important;'
+        style='position: fixed !important; inset: 0;'
         :style='{
             "--map-side-offset": `${mapSideOffset}px`,
             "--map-compact-menu-size": "60px"
@@ -371,6 +371,7 @@ import PluginPane from './PluginPane.vue';
 import FavoritesBar from './FavoritesBar.vue';
 import FeatureDragStatus from './FeatureDragStatus.vue';
 import { installViewportGuard } from '../../base/viewport-guard.ts';
+import { installViewportDebug, viewportDebugWanted } from '../../base/viewport-debug.ts';
 import MeasurePanel from './MeasurePanel.vue';
 import { measureState } from '../../base/measure-tool.ts';
 import { simpleMode } from '../../stores/modules/simple-mode.ts';
@@ -447,6 +448,7 @@ const mode = ref<string>('Default');
 const locationClickHandler = ref<((e: MapMouseEvent) => void) | null>(null);
 const height = ref<number>(window.innerHeight);
 let stopViewportGuard: (() => void) | undefined;
+let stopViewportDebug: (() => void) | undefined;
 const width = ref<number>(window.innerWidth);
 
 appStore.isMobileDetected = detectMobile();
@@ -623,6 +625,8 @@ onMounted(async () => {
 
     // PzBat12: iOS leaves the page shifted after rotation or keyboard
     stopViewportGuard = installViewportGuard();
+    // PzBat12, TEMPORARY: size readout for the bar below the map on iOS
+    if (viewportDebugWanted()) stopViewportDebug = installViewportDebug();
 
     if (!mapRef.value) throw new Error('Map Element could not be found - Please refresh the page and try again');
 
@@ -739,6 +743,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     stopViewportGuard?.();
+    stopViewportDebug?.();
     unmounted = true;
     bootComplete = true;
     removeAppLifecycleListeners?.();
