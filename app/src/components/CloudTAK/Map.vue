@@ -92,8 +92,10 @@
                 @set-location='setLocation'
                 @to-location='toLocation'
             />
-            <PluginPane v-if='mode === "Default" && !isDrawing && !simpleMode' />
-            <FavoritesBar v-if='mode === "Default" && !isDrawing && !mapStore.selected.size' />
+            <PluginPane v-if='mode === "Default" && !isDrawing && !simpleMode && !measureState.active' />
+            <FavoritesBar v-if='mode === "Default" && !isDrawing && !mapStore.selected.size && !measureState.active' />
+            <!-- After FavoritesBar: its unmount must not re-enable double tap zoom after the tool took it -->
+            <MeasurePanel v-if='mode === "Default" && measureState.active' />
             <FeatureDragStatus v-if='mode === "Default"' />
             <div
                 v-if='mapStore.selected.size'
@@ -369,6 +371,8 @@ import PluginPane from './PluginPane.vue';
 import FavoritesBar from './FavoritesBar.vue';
 import FeatureDragStatus from './FeatureDragStatus.vue';
 import { installViewportGuard } from '../../base/viewport-guard.ts';
+import MeasurePanel from './MeasurePanel.vue';
+import { measureState } from '../../base/measure-tool.ts';
 import { simpleMode } from '../../stores/modules/simple-mode.ts';
 import {useRoute, useRouter } from 'vue-router';
 import Navigating from './Navigating.vue';

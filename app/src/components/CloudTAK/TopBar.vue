@@ -70,6 +70,21 @@
                 v-if='!simpleMode'
                 data-testid='top-bar-draw-tools'
             />
+            <!-- PzBat12: the simple view keeps measuring from the drawing tools -->
+            <TablerIconButton
+                v-else
+                title='Measure Distance'
+                class='mx-2 cloudtak-hover'
+                data-testid='top-bar-measure'
+                :hover='false'
+                @click='measureState.active ? stopMeasure() : startMeasure()'
+            >
+                <IconRuler2
+                    :size='40'
+                    stroke='1'
+                    :color='measureState.active ? "#1E90FF" : undefined'
+                />
+            </TablerIconButton>
 
             <div
                 v-if='!simpleMode'
@@ -118,6 +133,7 @@ import {
     IconAlertTriangle,
     IconMenu2,
     IconBell,
+    IconRuler2,
     IconX,
 } from '@tabler/icons-vue';
 import ActiveMission from './ActiveMission.vue';
@@ -125,6 +141,7 @@ import Notifications from './Notifications.vue';
 import DrawTools from './DrawTools.vue';
 import SimpleModeExit from './util/SimpleModeExit.vue';
 import { simpleMode } from '../../stores/modules/simple-mode.ts';
+import { measureState, startMeasure, stopMeasure } from '../../base/measure-tool.ts';
 import TAKNotification, { NotificationType } from '../../base/notification.ts';
 import { useAppStore } from '../../stores/app.ts';
 

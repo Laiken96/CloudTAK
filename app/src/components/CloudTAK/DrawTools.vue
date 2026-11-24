@@ -100,10 +100,12 @@ import {
     IconPencilPlus,
     IconMedicalCross,
     IconRoute2,
+    IconRuler2,
 } from '@tabler/icons-vue';
 import { useRouter } from 'vue-router';
 import { useMapStore } from '../../stores/map';
 import { startMedevac } from './Medevac/medevac-draw.ts';
+import { startMeasure } from '../../base/measure-tool.ts';
 import { useFloatStore } from '../../stores/float.ts';
 import {
     TablerNone,
@@ -131,6 +133,8 @@ const drawTools: DrawToolItem[] = [
     { key: 'event', label: 'Create Event', icon: IconCalendarEvent, action: () => { openPane('create-event', 'Create Event', CreateCoreEntity, 640, 600); } },
     { key: 'quick_pic', label: 'Quick Pic', icon: IconCamera, action: () => { openPane('quick-pic', 'Quick Pic', QuickPicInput, 300); } },
     { key: 'range', label: 'Range & Bearing', icon: IconCompass, action: () => { openPane('range-bearing-input', 'Range & Bearing', RangeInput, 560); } },
+    // PzBat12: point to point on the map, nothing is saved
+    { key: 'measure', label: 'Measure Distance', icon: IconRuler2, action: () => { startMeasure(); } },
     { key: 'range_rings', label: 'Range Rings', icon: IconTarget, action: () => { openPane('range-rings-input', 'Range Rings', RangeRingsInput, 640); } },
     { key: 'point', label: 'Draw Point', icon: IconPoint, action: () => { mapStore.draw.start(DrawToolMode.POINT); } },
     { key: 'medevac', label: 'MEDEVAC', icon: IconMedicalCross, action: () => { void startMedevac(mapStore); } },
