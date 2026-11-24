@@ -368,6 +368,7 @@ import GPSPanel from './GPSPanel/GPSPanel.vue';
 import PluginPane from './PluginPane.vue';
 import FavoritesBar from './FavoritesBar.vue';
 import FeatureDragStatus from './FeatureDragStatus.vue';
+import { installViewportGuard } from '../../base/viewport-guard.ts';
 import { simpleMode } from '../../stores/modules/simple-mode.ts';
 import {useRoute, useRouter } from 'vue-router';
 import Navigating from './Navigating.vue';
@@ -441,6 +442,7 @@ const emit = defineEmits(['err']);
 const mode = ref<string>('Default');
 const locationClickHandler = ref<((e: MapMouseEvent) => void) | null>(null);
 const height = ref<number>(window.innerHeight);
+let stopViewportGuard: (() => void) | undefined;
 const width = ref<number>(window.innerWidth);
 
 appStore.isMobileDetected = detectMobile();
@@ -615,6 +617,9 @@ onMounted(async () => {
         width.value = window.innerWidth;
     });
 
+    // PzBat12: iOS leaves the page shifted after rotation or keyboard
+    stopViewportGuard = installViewportGuard();
+
     if (!mapRef.value) throw new Error('Map Element could not be found - Please refresh the page and try again');
 
     if (isNativePlatform()) {
@@ -729,6 +734,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    stopViewportGuard?.();
     unmounted = true;
     bootComplete = true;
     removeAppLifecycleListeners?.();
