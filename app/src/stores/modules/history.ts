@@ -6,6 +6,7 @@ import FeatureHistory from '../../base/feature-history.ts';
 import COT from '../../base/cot.ts';
 import { DrawToolMode } from './draw.ts';
 import { isMeasuring } from '../../base/measure-tool.ts';
+import { isPlacingTarget } from '../../base/point-target-tool.ts';
 import type { Feature } from '../../types.ts';
 import type { useMapStore } from '../map.ts';
 import type { HistoryChangeBody } from '../../utils/events.ts';
@@ -594,6 +595,8 @@ export default class HistoryLayer {
         if (this.mapStore.radial.mode) return;
         // PzBat12: a tap sets a measure point - see measure-tool.ts
         if (isMeasuring()) return;
+        // PzBat12: a tap sets a point target - see point-target-tool.ts
+        if (isPlacingTarget()) return;
 
         const row = this.rowAt(event);
         if (!row) return;

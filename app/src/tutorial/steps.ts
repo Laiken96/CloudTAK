@@ -42,6 +42,7 @@ import {
     IconFiles,
     IconFileImport,
     IconRuler2,
+    IconViewfinder,
 } from '@tabler/icons-vue';
 import type { TourStep, TourView } from './tour.ts';
 
@@ -258,6 +259,17 @@ export const HELP_ENTRIES: HelpEntry[] = [
         description: 'Choose Measure Distance in the drawing tools, in the simple view the ruler at the top. Tap point A, then point B; further taps add segments. Each segment shows its length on the map, the panel the total and the bearing of the last segment from true north in degrees and artillery mils (A‰, 6400 to the circle). A tap near a signature or your own position snaps onto it, e.g. to measure from you to a target. Drag a point to move it. Remove Last Point, New and Close. The measurement is never saved or sent; while it is open, taps do not open objects.',
     },
     { id: 'measure-simple', section: 'map', step: 'measure', icon: IconRuler2, views: ['simple'] },
+    {
+        id: 'point-target',
+        section: 'map',
+        icon: IconViewfinder,
+        views: ['full'],
+        // Show opens the drawing tools and points at the Point Target entry
+        open: DRAW_TOOLS_BUTTON,
+        target: testid('draw-tool-point_target'),
+        title: 'Point Target',
+        description: 'Choose Point Target in the drawing tools and tap the map where the target is. A yellow target named Z01, Z02 ... is set: the number after the highest target on the map, targets of the Einheitsfeuerplan included. It is saved like a drawn point, in the Data Sync when one is active. The panel shows its LV95 coordinates, whatever coordinate format is chosen, and follows the target when it is moved; outside Switzerland there are no LV95 coordinates. One target per start, Cancel before the tap sets none. Rename, move, share or delete the target like any object; ATAK shows it as a yellow point with its name.',
+    },
     {
         id: 'notifications',
         section: 'map',
