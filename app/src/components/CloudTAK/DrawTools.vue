@@ -101,11 +101,13 @@ import {
     IconMedicalCross,
     IconRoute2,
     IconRuler2,
+    IconViewfinder,
 } from '@tabler/icons-vue';
 import { useRouter } from 'vue-router';
 import { useMapStore } from '../../stores/map';
 import { startMedevac } from './Medevac/medevac-draw.ts';
 import { startMeasure } from '../../base/measure-tool.ts';
+import { startPointTarget } from '../../base/point-target-tool.ts';
 import { useFloatStore } from '../../stores/float.ts';
 import {
     TablerNone,
@@ -137,6 +139,8 @@ const drawTools: DrawToolItem[] = [
     { key: 'measure', label: 'Measure Distance', icon: IconRuler2, action: () => { startMeasure(); } },
     { key: 'range_rings', label: 'Range Rings', icon: IconTarget, action: () => { openPane('range-rings-input', 'Range Rings', RangeRingsInput, 640); } },
     { key: 'point', label: 'Draw Point', icon: IconPoint, action: () => { mapStore.draw.start(DrawToolMode.POINT); } },
+    // PzBat12: one tap sets a target Z01, Z02 ... and shows its LV95 coordinates
+    { key: 'point_target', label: 'Point Target', icon: IconViewfinder, action: () => { startPointTarget(); } },
     { key: 'medevac', label: 'MEDEVAC', icon: IconMedicalCross, action: () => { void startMedevac(mapStore); } },
     { key: 'line', label: 'Draw Line', icon: IconLine, action: () => { mapStore.draw.start(DrawToolMode.LINESTRING); } },
     // PzBat12: lines & areas of regulation 52.003

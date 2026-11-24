@@ -56,6 +56,7 @@ import { isSignatureArmed } from '../base/signature-placement.ts';
 import { attachMapLongPress } from '../base/long-press.ts';
 import { attachFeatureDrag, storeFeatureDragOptions, type FeatureDragStore } from '../base/feature-drag-map.ts';
 import { isMeasuring } from '../base/measure-tool.ts';
+import { isPlacingTarget } from '../base/point-target-tool.ts';
 
 import type { ProfileOverlay, Feature } from '../types.ts';
 import type { LngLat, LngLatLike, Point, MapMouseEvent, MapGeoJSONFeature, GeoJSONSource, LayerSpecification, PropertyValueSpecification } from 'maplibre-gl';
@@ -1567,6 +1568,8 @@ export const useMapStore = defineStore('cloudtak', {
                 if (isSignatureArmed()) return;
                 // PzBat12: a tap sets a measure point - see measure-tool.ts
                 if (isMeasuring()) return;
+                // PzBat12: a tap sets a point target - see point-target-tool.ts
+                if (isPlacingTarget()) return;
 
                 if (this.radial.mode) {
                     this.radial.mode = undefined;
@@ -1642,7 +1645,7 @@ export const useMapStore = defineStore('cloudtak', {
             const featureDrag = attachFeatureDrag(map, storeFeatureDragOptions(
                 this as unknown as FeatureDragStore,
                 () => [...OverlayManager.clickableLayerMap().values()].filter((l) => l.type === 'cot').map((l) => l.id),
-                () => this.draw.mode === DrawToolMode.STATIC && !this.draw.editing && !isMeasuring()
+                () => this.draw.mode === DrawToolMode.STATIC && !this.draw.editing && !isMeasuring() && !isPlacingTarget()
             ));
 
             // PzBat12: MapLibre's own touch long press and long-press.ts can both
@@ -1651,7 +1654,7 @@ export const useMapStore = defineStore('cloudtak', {
 
             map.on('contextmenu', (e) => {
                 // MapLibre's own touch long press fires this too - not over an object being picked up
-                if (this.draw.editing || featureDrag.claimed() || isMeasuring()) return;
+                if (this.draw.editing || featureDrag.claimed() || isMeasuring() || isPlacingTarget()) return;
 
                 const now = performance.now();
                 if (now - lastContext.at < 1000 && Math.hypot(e.point.x - lastContext.x, e.point.y - lastContext.y) < 20) return;
@@ -1688,7 +1691,7 @@ export const useMapStore = defineStore('cloudtak', {
             });
 
             // iOS Safari fires no contextmenu for a long press - see long-press.ts
-            attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC && !featureDrag.claimed() && !isMeasuring());
+            attachMapLongPress(map, () => this.draw.mode === DrawToolMode.STATIC && !featureDrag.claimed() && !isMeasuring() && !isPlacingTarget());
 
             OverlayManager.clearLoaded();
             const profileOverlays = await OverlayManager.list({ localFirst: true });
