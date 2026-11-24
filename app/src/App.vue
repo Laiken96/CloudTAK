@@ -6,55 +6,58 @@
         data-bs-theme-base='neutral'
         data-bs-theme-primary='blue'
     >
-        <!-- New-version upgrade banner -->
-        <div
-            v-if='updateAvailable'
-            class='d-flex align-items-center justify-content-center flex-wrap gap-2 px-3 pb-2'
-            style='background: rgba(20,20,20,0.88); backdrop-filter: blur(6px); padding-top: calc(0.5rem + var(--status-bar-height, 0px));'
-        >
-            <IconRefresh
-                size='16'
-                class='text-success flex-shrink-0'
-            />
-            <span class='text-white small'>
-                A new version of CloudTAK is ready
-            </span>
-            <button
-                class='btn btn-sm btn-success py-0'
-                @click='applyUpdate'
+        <!-- PzBat12: banners lie over the page, so the map never shifts down -->
+        <div class='app-banners'>
+            <!-- New-version upgrade banner -->
+            <div
+                v-if='updateAvailable'
+                class='d-flex align-items-center justify-content-center flex-wrap gap-2 px-3 pb-2'
+                style='background: rgba(20,20,20,0.88); backdrop-filter: blur(6px); padding-top: calc(0.5rem + var(--status-bar-height, 0px));'
             >
-                Update Now
-            </button>
-            <button
-                class='btn-close btn-close-white'
-                style='font-size: 0.65rem;'
-                @click='updateAvailable = false'
-            />
-        </div>
-        <!-- Session expiry warning banner -->
-        <div
-            v-if='sessionWarningShown'
-            class='d-flex align-items-center justify-content-center flex-wrap gap-2 px-3 pb-2'
-            style='background: rgba(20,20,20,0.88); backdrop-filter: blur(6px); padding-top: calc(0.5rem + var(--status-bar-height, 0px));'
-        >
-            <IconClock
-                size='16'
-                class='text-warning flex-shrink-0'
-            />
-            <span class='text-white small'>
-                Your session expires in <span v-text='sessionRemainingLabel' /> &mdash; sign in again to stay connected
-            </span>
-            <button
-                class='btn btn-sm btn-warning py-0'
-                @click='appStore.sessionExpired'
+                <IconRefresh
+                    size='16'
+                    class='text-success flex-shrink-0'
+                />
+                <span class='text-white small'>
+                    A new version of CloudTAK is ready
+                </span>
+                <button
+                    class='btn btn-sm btn-success py-0'
+                    @click='applyUpdate'
+                >
+                    Update Now
+                </button>
+                <button
+                    class='btn-close btn-close-white'
+                    style='font-size: 0.65rem;'
+                    @click='updateAvailable = false'
+                />
+            </div>
+            <!-- Session expiry warning banner -->
+            <div
+                v-if='sessionWarningShown'
+                class='d-flex align-items-center justify-content-center flex-wrap gap-2 px-3 pb-2'
+                style='background: rgba(20,20,20,0.88); backdrop-filter: blur(6px); padding-top: calc(0.5rem + var(--status-bar-height, 0px));'
             >
-                Sign In Again
-            </button>
-            <button
-                class='btn-close btn-close-white'
-                style='font-size: 0.65rem;'
-                @click='sessionWarningDismissed = true'
-            />
+                <IconClock
+                    size='16'
+                    class='text-warning flex-shrink-0'
+                />
+                <span class='text-white small'>
+                    Your session expires in <span v-text='sessionRemainingLabel' /> &mdash; sign in again to stay connected
+                </span>
+                <button
+                    class='btn btn-sm btn-warning py-0'
+                    @click='appStore.sessionExpired'
+                >
+                    Sign In Again
+                </button>
+                <button
+                    class='btn-close btn-close-white'
+                    style='font-size: 0.65rem;'
+                    @click='sessionWarningDismissed = true'
+                />
+            </div>
         </div>
 
         <Loading
@@ -283,3 +286,14 @@ onUnmounted(() => {
 });
 
 </script>
+
+<style scoped>
+/* PzBat12: over the map controls, below modals */
+.app-banners {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1045;
+}
+</style>

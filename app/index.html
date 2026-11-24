@@ -16,6 +16,9 @@
 
         <!-- iOS PWA Settings: ref: https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html?ref=frontendchecklist -->
         <meta name="format-detection" content="telephone=no">
+        <!-- PzBat12: the home screen web app draws under a translucent status bar,
+             so iOS keeps the same web view size in portrait and landscape -->
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <!-- PzBat12: the login logo of the instance (falls back to the CloudTAK logo), see api/stateless/lib/logos.ts -->
         <link rel="apple-touch-icon" href="/api/manifest.webmanifest/apple-touch-icon">
 
