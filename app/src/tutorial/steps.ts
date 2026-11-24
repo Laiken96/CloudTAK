@@ -41,6 +41,7 @@ import {
     IconShieldHalfFilled,
     IconFiles,
     IconFileImport,
+    IconRuler2,
 } from '@tabler/icons-vue';
 import type { TourStep, TourView } from './tour.ts';
 
@@ -120,6 +121,12 @@ export const TOUR_STEPS: TourStep[] = [
         target: testid('top-bar-draw-tools'),
         title: 'Drawing Tools',
         description: 'Draw points, lines, areas, circles and sectors, measure with Range & Bearing and Range Rings, enter coordinates or take a Quick Pic. MEDEVAC sets a red cross for a 9-Line casualty report.',
+    },
+    {
+        id: 'measure',
+        target: testid('top-bar-measure'),
+        title: 'Measure Distance',
+        description: 'Tap the ruler, then tap point A and point B on the map. More taps add segments. The map shows each length, the panel the total and the bearing in degrees and A‰. Nothing is saved.',
     },
     {
         id: 'menu-button',
@@ -239,6 +246,18 @@ export const HELP_ENTRIES: HelpEntry[] = [
         title: 'Tactical Graphics',
         description: 'Choose Tactical Graphic in the drawing tools for the lines and areas of regulation 52.003: boundaries, front and phase lines, movements, attacks, tasks, obstacles, areas, damage and topography. Draw with your finger and finish with the check mark, then enter name, hierarchy sign, affiliation and planned or executed. Swap side turns arcs and ticks to the other side. ATAK shows the 2525 graphic where there is one, otherwise the line in the same colour with its name.',
     },
+    {
+        id: 'measure',
+        section: 'map',
+        icon: IconRuler2,
+        views: ['full'],
+        // Show opens the drawing tools and points at the Measure Distance entry
+        open: DRAW_TOOLS_BUTTON,
+        target: testid('draw-tool-measure'),
+        title: 'Measure Distance',
+        description: 'Choose Measure Distance in the drawing tools, in the simple view the ruler at the top. Tap point A, then point B; further taps add segments. Each segment shows its length on the map, the panel the total and the bearing of the last segment from true north in degrees and artillery mils (A‰, 6400 to the circle). A tap near a signature or your own position snaps onto it, e.g. to measure from you to a target. Drag a point to move it. Remove Last Point, New and Close. The measurement is never saved or sent; while it is open, taps do not open objects.',
+    },
+    { id: 'measure-simple', section: 'map', step: 'measure', icon: IconRuler2, views: ['simple'] },
     {
         id: 'notifications',
         section: 'map',
