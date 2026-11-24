@@ -52,7 +52,7 @@ export function installViewportDebug(win: Window = window): () => void {
             `vv ${r(vv?.width)}x${r(vv?.height)} off ${r(vv?.offsetTop)} page ${r(vv?.pageTop)}`,
             `${units}`,
             `safe t${parseInt(inset.paddingTop)} r${parseInt(inset.paddingRight)} b${parseInt(inset.paddingBottom)} l${parseInt(inset.paddingLeft)}`,
-            `scroll ${r(win.scrollY)} html ${r(doc.documentElement.scrollTop)} body ${r(doc.body.scrollTop)}`,
+            `scroll ${r(win.scrollY)} html ${r(doc.documentElement.scrollTop)} body ${r(doc.body.scrollTop)} doc h ${r(doc.documentElement.getBoundingClientRect().height)}`,
             `map top ${r(shell?.top)} h ${r(shell?.height)} w ${r(shell?.width)}`,
         ].join('\n');
     };
