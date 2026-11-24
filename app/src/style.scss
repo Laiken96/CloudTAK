@@ -22,18 +22,27 @@ body {
     overscroll-behavior: none;
 }
 
-/* PzBat12: after rotating to landscape, the iOS home screen app can keep the
- * inset of the portrait status bar and report a viewport one status bar too
- * short (innerHeight 587 instead of 669 on the test device), leaving an empty
- * bar below the map. The web view still covers the whole screen, which 100lvh
- * reports correctly in landscape. Portrait keeps `inset: 0` (there lvh also
- * counts the status bar). Standalone only: in Safari, lvh would reach under
- * the toolbar. */
+/* PzBat12: iOS 26 home screen app, viewport shorter than the screen.
+ * After rotating to landscape the test device reported innerHeight 587 while
+ * 100lvh was 669, leaving an empty bar below the map. A taller map does not
+ * help: WebKit clips fixed content at the short edge (tried, it cut off the
+ * GPS panel). Reported elsewhere (frappe-ui PR 1284, WebKit 301108/316008):
+ * the viewport is only short while the document is shorter than the screen,
+ * so the document is made screen tall and the map (`inset: 0`) follows the
+ * grown viewport.
+ * - All orientations: up to one status bar taller, which is 0 with an opaque
+ *   status bar, so nothing can scroll there.
+ * - Landscape: 100lvh, which matched the real window in landscape on the test
+ *   device (in portrait lvh was too large, so it is not used there). */
+@media (display-mode: standalone) {
+    html {
+        min-height: min(100lvh, calc(100% + env(safe-area-inset-top, 0px)));
+    }
+}
+
 @media (display-mode: standalone) and (orientation: landscape) {
-    .map-shell {
-        bottom: auto !important;
-        height: 100%;
-        height: 100lvh;
+    html {
+        min-height: 100lvh;
     }
 }
 
