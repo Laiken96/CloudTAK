@@ -57,6 +57,7 @@ import { attachMapLongPress } from '../base/long-press.ts';
 import { attachFeatureDrag, storeFeatureDragOptions, type FeatureDragStore } from '../base/feature-drag-map.ts';
 import { isMeasuring } from '../base/measure-tool.ts';
 import { isPlacingTarget } from '../base/point-target-tool.ts';
+import { armedAtBoot, awayLongEnough, createAutoCenter, localStore, watchAway, type AutoCenter } from '../base/auto-center.ts';
 
 import type { ProfileOverlay, Feature } from '../types.ts';
 import type { LngLat, LngLatLike, Point, MapMouseEvent, MapGeoJSONFeature, GeoJSONSource, LayerSpecification, PropertyValueSpecification } from 'maplibre-gl';
@@ -73,6 +74,12 @@ const sweepWarned = new Set<string>();
 // A Feature_Render nudge is waiting to run - a burst of them (eg. a bulk
 // delete) collapses into one updateCOT
 let cotRenderQueued = false;
+
+// Jump to the own position when the app opens - see base/auto-center.ts
+let autoCenter: AutoCenter | null = null;
+let stopAutoCenterWatch: (() => void) | null = null;
+// Fresh GPS fix of this start: it may come before the map exists
+let autoCenterFix: [number, number] | null = null;
 
 const WORKER_READY_TIMEOUT_MS = 20000;
 const WORKER_INIT_TIMEOUT_MS = 30000;
@@ -377,6 +384,9 @@ export const useMapStore = defineStore('cloudtak', {
                 this.gpsHeading = finiteOrNull(position.coords.heading);
                 this.location = LocationState.Live;
 
+                autoCenterFix = [position.coords.longitude, position.coords.latitude];
+                autoCenter?.offer(autoCenterFix, true);
+
                 // Drive the puck from the fix itself rather than waiting on the
                 // worker to echo Profile_Location_Source back over the channel
                 this.syncGeolocateControl();
@@ -409,6 +419,22 @@ export const useMapStore = defineStore('cloudtak', {
                     console.error(err);
                 }
             }, native);
+        },
+        /**
+         * Offer the best known own position to the auto center: a preset
+         * location or a fresh fix as final, a last known location as a
+         * first guess that a fresh fix may still correct
+         */
+        offerAutoCenter: function() {
+            if (!autoCenter) return;
+
+            if (this.location === LocationState.Preset) {
+                if (this.gpsCoordinates) autoCenter.offer([this.gpsCoordinates.lng, this.gpsCoordinates.lat], true);
+            } else if (autoCenterFix) {
+                autoCenter.offer(autoCenterFix, true);
+            } else if (this.location === LocationState.Live && this.gpsCoordinates) {
+                autoCenter.offer([this.gpsCoordinates.lng, this.gpsCoordinates.lat], false);
+            }
         },
         syncGeolocateControl: function() {
             if (!this._map) return;
@@ -657,6 +683,11 @@ export const useMapStore = defineStore('cloudtak', {
             return this._destroying;
         },
         _destroy: async function() {
+            if (stopAutoCenterWatch) stopAutoCenterWatch();
+            stopAutoCenterWatch = null;
+            autoCenter = null;
+            autoCenterFix = null;
+
             // Capture current worker instances to avoid races with $reset()/state() creating new ones.
             const currentWorker = this._worker;
             const currentRawWorker = this._rawWorker;
@@ -1411,7 +1442,18 @@ export const useMapStore = defineStore('cloudtak', {
 
             this.loadingStage = 'Creating map…';
             mapgl.setWorkerUrl(maplibreWorkerUrl);
+            // Before the map reads and rewrites the URL hash
+            const autoCenterArmed = armedAtBoot(window.location.hash, awayLongEnough(localStore(), Date.now()));
             const map = new mapgl.Map(init);
+            autoCenter = createAutoCenter(map, { armed: autoCenterArmed });
+
+            if (stopAutoCenterWatch) stopAutoCenterWatch();
+            stopAutoCenterWatch = watchAway(document, localStore(), () => {
+                autoCenter?.arm();
+                // A fix from before the break is stale now
+                autoCenterFix = null;
+                this.offerAutoCenter();
+            });
 
             // A worker restart or real context loss rebuilds the style from a
             // snapshot that lacks any updateData diff still in flight to the
@@ -1505,6 +1547,7 @@ export const useMapStore = defineStore('cloudtak', {
                 };
             }
             this.syncGeolocateControl();
+            this.offerAutoCenter();
             await this.restoreNavigation();
 
             await this.worker.profile.load();
