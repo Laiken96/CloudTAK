@@ -15,9 +15,17 @@ export default class ServerManager {
     static async get(): Promise<Server> {
         const server = await db.server.get('server');
 
-        if (server) return server;
+        // PzBat12: a stored "unconfigured" never counts, the server may have been configured since. A browser that
+        // opened CloudTAK in the minutes before the first setup kept showing the setup page (26.11.2026).
+        if (server && server.status !== 'unconfigured') return server;
 
-        return await ServerManager.sync();
+        try {
+            return await ServerManager.sync();
+        } catch (err) {
+            // A configured server answers 401 before the login: forget the stale answer, so nothing reads it again
+            if (server) await db.server.delete('server');
+            throw err;
+        }
     }
 
     static async sync(): Promise<Server> {
