@@ -3,7 +3,7 @@
 #
 #   packaging/deb/build-deb.sh <version> <image-tag> [ausgabeordner]
 #
-# <image-tag> ist der Tag der Container-Images in ghcr.io/laiken96/cloudtak-*
+# <image-tag> ist der Tag der Container-Images in ghcr.io/pzbat12/cloudtak-*
 # (in der Pipeline der volle Commit-SHA). Das Paket ist fest an diese Images
 # gebunden: Paket-Update = Image-Update.
 set -euo pipefail
