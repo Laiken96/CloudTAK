@@ -11,14 +11,14 @@
 services:
     api:
         build: !reset null
-        image: ghcr.io/laiken96/cloudtak-api:${CLOUDTAK_IMAGE_TAG:-pzbat12}
+        image: ghcr.io/pzbat12/cloudtak-api:${CLOUDTAK_IMAGE_TAG:-pzbat12}
         # Nur Caddy (HTTPS) auf demselben Server spricht mit der API
         ports: !override
             - "127.0.0.1:5000:5000"
 
     tiles:
         build: !reset null
-        image: ghcr.io/laiken96/cloudtak-pmtiles:${CLOUDTAK_IMAGE_TAG:-pzbat12}
+        image: ghcr.io/pzbat12/cloudtak-pmtiles:${CLOUDTAK_IMAGE_TAG:-pzbat12}
         ports: !override
             - "127.0.0.1:5002:5002"
         # Interne Dienste sprechen die API im Docker-Netz an
@@ -27,13 +27,13 @@ services:
 
     events:
         build: !reset null
-        image: ghcr.io/laiken96/cloudtak-events:${CLOUDTAK_IMAGE_TAG:-pzbat12}
+        image: ghcr.io/pzbat12/cloudtak-events:${CLOUDTAK_IMAGE_TAG:-pzbat12}
         environment:
             - API_URL=http://api:5000
 
     retention:
         build: !reset null
-        image: ghcr.io/laiken96/cloudtak-retention:${CLOUDTAK_IMAGE_TAG:-pzbat12}
+        image: ghcr.io/pzbat12/cloudtak-retention:${CLOUDTAK_IMAGE_TAG:-pzbat12}
         environment:
             API_URL: http://api:5000
 

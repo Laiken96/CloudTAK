@@ -8,7 +8,7 @@ selbst läuft in fertigen Container-Images.
 
 ```
 Änderung am Mac ──git push──▶ GitHub Actions (Pipeline "PzBat12 Build")
-  (Branch pzbat12)               1. baut die Container-Images → ghcr.io/laiken96/cloudtak-*
+  (Branch pzbat12)               1. baut die Container-Images → ghcr.io/pzbat12/cloudtak-*
                                  2. baut das Paket cloudtak-pzbat12_<version>_all.deb
                                  3. veröffentlicht es als GitHub-Release
                                           │
@@ -21,7 +21,7 @@ Server ◀──── sudo apt install ./cloudtak-pzbat12_<version>_all.deb  (v
   Paket-Update ist damit das Update der ganzen Anwendung, ein älteres Paket
   installieren ist der Weg zurück.
 - Auf den Server kommt nichts automatisch: neue Version = neues Paket installieren.
-- Releases: https://github.com/Laiken96/CloudTAK/releases
+- Releases: https://github.com/pzbat12/s3-cloudtak/releases
 
 ### Eigene Änderungen
 
@@ -47,7 +47,7 @@ Texte der Oberfläche: `app/src/i18n/de.json` (englischer Text → deutsch).
 ## Installation
 
 ```bash
-curl -LO https://github.com/Laiken96/CloudTAK/releases/latest/download/cloudtak-pzbat12.deb
+curl -LO https://github.com/pzbat12/s3-cloudtak/releases/latest/download/cloudtak-pzbat12.deb
 sudo apt install ./cloudtak-pzbat12.deb          # bringt Docker, Compose und Caddy mit
 sudo cloudtak-pzbat12 setup cloudtak.example.ch  # Domain anpassen
 ```
@@ -105,7 +105,7 @@ Neues Paket aus den Releases installieren, das Paket lädt die passenden Images
 und startet neu:
 
 ```bash
-curl -LO https://github.com/Laiken96/CloudTAK/releases/latest/download/cloudtak-pzbat12.deb
+curl -LO https://github.com/pzbat12/s3-cloudtak/releases/latest/download/cloudtak-pzbat12.deb
 sudo apt install ./cloudtak-pzbat12.deb
 ```
 
@@ -177,4 +177,4 @@ gebunden. Für Video in `docker-compose.local.yml` beim Dienst `media` mit
 
 CloudTAK steht unter AGPL-3.0. Wer die geänderte Version als Dienst anbietet,
 muss den Quellcode zugänglich machen. Das erfüllt der öffentliche Fork
-`github.com/Laiken96/CloudTAK` (Branch `pzbat12`).
+`github.com/pzbat12/s3-cloudtak` (Branch `pzbat12`).
