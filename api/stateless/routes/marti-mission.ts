@@ -291,10 +291,22 @@ export default async function router(schema: Schema, config: ConfigStateless) {
         try {
             const { api, creatorUid } = await missionControl.scoped(req);
 
-            const mission = await api.Mission.create({
-                ...req.body,
+            // PzBat12: node-tak's create() replaces the created Mission with the reply of
+            // the keyword update, which lacks the creator's Mission token. Without that
+            // token the creator cannot subscribe to a password protected Mission (TAK
+            // Server answers 403), so set the keywords here and keep the token
+            const { keywords, ...body } = req.body;
+
+            let mission = await api.Mission.create({
+                ...body,
                 creatorUid,
             });
+
+            if (keywords !== undefined) {
+                const token = mission.token;
+                mission = await api.Mission.setKeywords(mission.name, keywords, { token });
+                if (token) mission.token = token;
+            }
 
             res.json(mission);
         } catch (err) {
