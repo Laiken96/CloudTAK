@@ -442,6 +442,7 @@
                                         :key='cot.properties.id'
                                         :inline='true'
                                         label='Course'
+                                        :unit='units.display_angle'
                                         :model-value='Number(cot.properties.course)'
                                     />
                                 </div>
@@ -459,6 +460,7 @@
                             v-else-if='hasCourse'
                             :key='cot.properties.id'
                             label='Course'
+                            :unit='units.display_angle'
                             :model-value='Number(cot.properties.course)'
                         />
 
@@ -721,7 +723,8 @@ const units = ref({
     display_speed: 'km/h',
     display_elevation: 'meter',
     display_distance: 'meter',
-    display_area: 'hectare'
+    display_area: 'hectare',
+    display_angle: 'deg'
 });
 
 const username = ref<string | undefined>();
@@ -819,6 +822,11 @@ onMounted(async () => {
     const displayArea = await ProfileConfig.get('display_area');
     if (displayArea && displayArea.value) {
         units.value.display_area = displayArea.value;
+    }
+
+    const displayAngle = await ProfileConfig.get('display_angle');
+    if (displayAngle && displayAngle.value) {
+        units.value.display_angle = displayAngle.value;
     }
 
     interval.value = setInterval(async () => {

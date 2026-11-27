@@ -6,6 +6,7 @@ import FeatureHistory from '../../base/feature-history.ts';
 import COT from '../../base/cot.ts';
 import { DrawToolMode } from './draw.ts';
 import { isMeasuring } from '../../base/measure-tool.ts';
+import { formatDirection } from '../../utils/direction.ts';
 import { isPlacingTarget } from '../../base/point-target-tool.ts';
 import type { Feature } from '../../types.ts';
 import type { useMapStore } from '../map.ts';
@@ -169,11 +170,25 @@ export function historyPointFeature(row: DBFeatureHistory): Feature {
     } as Feature;
 }
 
+/** Units of the popup: speed as display::speed, directions as display::angle */
+export type PopupUnits = { speed: string; angle: string };
+
+/** Speed from m/s in the profile unit: "8 km/h", "5 mi/h", "2.3 m/s" */
+function speedText(metresPerSecond: number, unit: string): string {
+    if (unit === 'km/h') return `${Math.round(metresPerSecond * 3.6)} km/h`;
+    if (unit === 'mi/h') return `${Math.round(metresPerSecond * 2.23694)} mi/h`;
+    return `${metresPerSecond.toFixed(1)} m/s`;
+}
+
 /**
  * @param typeName Human readable CoT type, as the feature views show it;
  *                 falls back to the raw type code until it is resolved
  */
-export function defaultPopup(row: DBFeatureHistory, typeName?: string): string {
+export function defaultPopup(
+    row: DBFeatureHistory,
+    typeName?: string,
+    units: PopupUnits = { speed: 'm/s', angle: 'deg' },
+): string {
     const lines = [
         `<div class='cloudtak-history-popup-title'>${escapeHtml(row.callsign)}</div>`,
     ];
@@ -185,10 +200,10 @@ export function defaultPopup(row: DBFeatureHistory, typeName?: string): string {
     const speed = row.properties.speed;
     const course = row.properties.course;
     if (typeof speed === 'number' && Number.isFinite(speed)) {
-        lines.push(`<div>Speed: ${escapeHtml(speed.toFixed(1))} m/s</div>`);
+        lines.push(`<div>Speed: ${escapeHtml(speedText(speed, units.speed))}</div>`);
     }
     if (typeof course === 'number' && Number.isFinite(course)) {
-        lines.push(`<div>Course: ${escapeHtml(Math.round(course))}°</div>`);
+        lines.push(`<div>Course: ${escapeHtml(formatDirection(course, units.angle))}</div>`);
     }
 
     return lines.join('');
@@ -481,7 +496,11 @@ export default class HistoryLayer {
             }
         }
 
-        return defaultPopup(row, this.typeNames.get(row.type));
+        return defaultPopup(row, this.typeNames.get(row.type), this.popupUnits());
+    }
+
+    private popupUnits(): PopupUnits {
+        return { speed: this.mapStore.speedUnit, angle: this.mapStore.angleUnit };
     }
 
     /** Resolve the row's type name once, re-rendering the popup if it is still hovered */
@@ -492,7 +511,7 @@ export default class HistoryLayer {
             this.typeNames.set(row.type, resolved.name);
 
             if (this.hovered === row.id && this.popup && this.popup.isOpen()) {
-                this.popup.setHTML(defaultPopup(row, resolved.name));
+                this.popup.setHTML(defaultPopup(row, resolved.name, this.popupUnits()));
             }
         }).catch((err) => {
             console.warn('History popup type lookup failed', err);
@@ -567,7 +586,7 @@ export default class HistoryLayer {
             this.popup.setDOMContent(content);
         }
 
-        if (content === defaultPopup(row, this.typeNames.get(row.type))) this.resolveTypeName(row);
+        if (content === defaultPopup(row, this.typeNames.get(row.type), this.popupUnits())) this.resolveTypeName(row);
 
         this.popup
             .setLngLat(row.geometry.coordinates.slice(0, 2) as [number, number])

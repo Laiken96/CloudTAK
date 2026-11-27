@@ -91,6 +91,13 @@ describe('historyPointFeature', () => {
 });
 
 describe('defaultPopup', () => {
+    it('shows speed and course in the profile units', () => {
+        const html = defaultPopup(row('alpha', '2026-10-26T10:00:00.000Z', [1, 1], { speed: 2.345, course: 90.4 }), undefined, { speed: 'km/h', angle: 'mil' });
+
+        expect(html).toContain('Speed: 8 km/h');
+        expect(html).toContain('Course: 1607 A‰');
+    });
+
     it('escapes the callsign and includes motion when present', () => {
         const html = defaultPopup(row('alpha', '2026-10-26T10:00:00.000Z', [1, 1], { speed: 2.345, course: 90.4 }));
 

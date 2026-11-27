@@ -20,7 +20,8 @@ import type { UnitOption } from '../util/UnitSwitcher.vue';
 const UNITS: Array<UnitOption> = [
     { value: 'deg', label: 'deg', title: 'Degrees' },
     { value: 'rad', label: 'rad', title: 'Radians' },
-    { value: 'mil', label: 'mil', title: 'Mil-Radians' },
+    // Artilleriepromille: 6400 to the circle, like NATO mils
+    { value: 'mil', label: 'A‰', title: 'Mil-Radians' },
 ];
 
 const emit = defineEmits([
@@ -64,6 +65,11 @@ const config = ref({
     bearing: toCustom(mode.value, props.modelValue)
 });
 
+// The profile unit may arrive after mounting
+watch(() => props.unit, (nextUnit) => {
+    changeMode(nextUnit);
+});
+
 watch(config.value, () => {
     emit(
         'update:modelValue',
@@ -89,7 +95,8 @@ function toCustom(mode: string, degrees: number): number {
     } else if (mode === 'rad') {
         return Math.round((degrees * 0.0174533) * 1000) / 1000;
     } else if (mode === 'mil') {
-        return Math.round((degrees * 17.777778) * 1000) / 1000;
+        // Whole mils, 0 to 6399, as written in the Swiss Army
+        return Math.round(((degrees % 360) + 360) % 360 * 6400 / 360) % 6400;
     } else {
         throw new Error(`Invalid Bearing Unit: ${mode}`);
     }

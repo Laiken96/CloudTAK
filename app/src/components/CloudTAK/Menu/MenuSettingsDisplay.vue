@@ -88,6 +88,7 @@ import {
     IconPolygon,
     IconGauge,
     IconAtom,
+    IconCompass,
     IconWorld,
     IconBrightness,
     IconCrosshair,
@@ -178,6 +179,13 @@ const settings: SettingItem[] = [
         icon: IconGauge,
         type: 'enum',
         options: ['m/s', 'km/h', 'mi/h'],
+    },
+    {
+        key: 'display_angle',
+        label: 'Direction Unit',
+        icon: IconCompass,
+        type: 'enum',
+        options: ['deg', 'mil'],
     },
     {
         key: 'display_radiation_dose',
@@ -295,6 +303,7 @@ watch(
         mapStore.updateDistanceUnit(newProfile.display_distance);
         mapStore.elevationUnit = newProfile.display_elevation;
         mapStore.speedUnit = newProfile.display_speed;
+        mapStore.angleUnit = newProfile.display_angle || 'deg';
 
         // Immediately update coordinate format and icon rotation to avoid requiring page reload
         mapStore.coordFormat = (newProfile.display_coordinate as CoordMode) || 'lv95';

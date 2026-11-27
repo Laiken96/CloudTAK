@@ -247,6 +247,13 @@ export enum Profile_Area {
     HECTARE = 'hectare',
 }
 
+// Unit for directions (course, heading, bearing); mils are the Swiss artillery
+// mils (Artilleriepromille, 6400 to the circle). Stored as text, no migration
+export enum Profile_Angle {
+    DEGREES = 'deg',
+    MILS = 'mil',
+}
+
 export enum Profile_Radiation_Dose {
     SIEVERTS = 'sieverts',
     REMS = 'rems',

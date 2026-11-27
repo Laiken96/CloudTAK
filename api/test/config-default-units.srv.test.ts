@@ -66,6 +66,10 @@ test('GET api/config/display', async () => {
                 value: 'sieverts',
                 options: ['sieverts', 'rems'],
             },
+            angle: {
+                value: 'deg',
+                options: ['deg', 'mil'],
+            },
         });
     } catch (err) {
         assert.ifError(err);
@@ -199,6 +203,7 @@ test('GET api/profile', async () => {
             display_text: 'Medium',
             display_icon_rotation: true,
             display_radiation_dose: 'rems',
+            display_angle: 'deg',
             display_wakelock: 'Charging',
             notification_contact: true,
             notification_import: true,

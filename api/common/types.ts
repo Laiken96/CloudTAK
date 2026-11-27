@@ -2,7 +2,7 @@ import { createSelectSchema } from 'drizzle-typebox';
 import { Type, Static } from '@sinclair/typebox';
 import * as schemas from './schema.js';
 import { TAKGroup, TAKRole } from '@tak-ps/node-tak/lib/api/types';
-import { Profile_Coordinate, Profile_Projection, Profile_Menu_Visibility, Profile_Zoom, Profile_Style, Profile_Stale, Profile_Distance, Profile_Elevation, Profile_Area, Profile_Speed, Profile_Text, Profile_Radiation_Dose, Profile_Wake_Lock } from './enums.js';
+import { Profile_Coordinate, Profile_Projection, Profile_Menu_Visibility, Profile_Zoom, Profile_Style, Profile_Stale, Profile_Distance, Profile_Elevation, Profile_Area, Profile_Speed, Profile_Text, Profile_Radiation_Dose, Profile_Angle, Profile_Wake_Lock } from './enums.js';
 import { VideoLease_SourceType, CoreEventBoardColumn_Type, CoreEventEffect_Status, CoreEntityTimeline_Type, LayerMapping_Destination } from './enums.js';
 import { Capabilities, InvocationType } from '@tak-ps/etl';
 import { CoreEventSchema, CoreDeviceSchema, CoreEntityLinkSchema, CoreEntityStyleSchema, withoutHints } from './core-schema.js';
@@ -584,6 +584,7 @@ export const Profile = Type.Object({
     display_area: Type.Enum(Profile_Area),
     display_speed: Type.Enum(Profile_Speed),
     display_radiation_dose: Type.Enum(Profile_Radiation_Dose),
+    display_angle: Type.Enum(Profile_Angle),
     display_wakelock: Type.Enum(Profile_Wake_Lock),
 
     notification_contact: Type.Boolean(),
@@ -929,6 +930,7 @@ export const FullConfig = Type.Object({
     'display::text': Type.Enum(Profile_Text),
     'display::icon_rotation': Type.Boolean(),
     'display::radiation_dose': Type.Enum(Profile_Radiation_Dose),
+    'display::angle': Type.Enum(Profile_Angle),
     'group::Yellow': Type.String(),
     'group::Cyan': Type.String(),
     'group::Green': Type.String(),

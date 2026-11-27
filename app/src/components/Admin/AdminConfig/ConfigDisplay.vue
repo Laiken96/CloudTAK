@@ -91,7 +91,7 @@ import {
     IconEye
 } from '@tabler/icons-vue';
 
-type DisplayKey = 'stale' | 'distance' | 'elevation' | 'area' | 'speed' | 'projection' | 'zoom' | 'style' | 'coordinate' | 'text' | 'icon_rotation' | 'radiation_dose';
+type DisplayKey = 'stale' | 'distance' | 'elevation' | 'area' | 'speed' | 'projection' | 'zoom' | 'style' | 'coordinate' | 'text' | 'icon_rotation' | 'radiation_dose' | 'angle';
 type DisplayConfigKey = `display::${DisplayKey}`;
 type DisplayResponse = paths['/api/config/display']['get']['responses']['200']['content']['application/json'];
 type DisplayConfig = {
@@ -114,6 +114,7 @@ const displayKeys: DisplayConfigKey[] = [
     'display::text',
     'display::icon_rotation',
     'display::radiation_dose',
+    'display::angle',
 ];
 
 function createDisplayConfig(): DisplayConfig {
@@ -130,6 +131,7 @@ function createDisplayConfig(): DisplayConfig {
         'display::text': 'Medium',
         'display::icon_rotation': true,
         'display::radiation_dose': 'sieverts',
+        'display::angle': 'deg',
     };
 }
 
@@ -147,6 +149,7 @@ function createDisplayOptions(): DisplayOptions {
         'display::text': [],
         'display::icon_rotation': [],
         'display::radiation_dose': [],
+        'display::angle': [],
     };
 }
 
@@ -154,6 +157,7 @@ function labelForKey(key: DisplayConfigKey): string {
     if (key === 'display::icon_rotation') return 'Rotate Icons with Course';
     if (key === 'display::coordinate') return 'Coordinate Format';
     if (key === 'display::style') return 'Light / Dark Style';
+    if (key === 'display::angle') return 'Direction Unit';
 
     return key
         .replace('display::', '')
@@ -200,6 +204,7 @@ async function fetch(): Promise<void> {
             'display::text': data.text.options,
             'display::icon_rotation': data.icon_rotation.options,
             'display::radiation_dose': data.radiation_dose.options,
+            'display::angle': data.angle.options,
         };
 
         config.value = {
@@ -215,6 +220,7 @@ async function fetch(): Promise<void> {
             'display::text': data.text.value,
             'display::icon_rotation': data.icon_rotation.value,
             'display::radiation_dose': data.radiation_dose.value,
+            'display::angle': data.angle.value,
         };
     } catch (error) {
         err.value = error instanceof Error ? error : new Error(String(error));
