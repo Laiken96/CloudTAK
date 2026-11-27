@@ -18,6 +18,12 @@
             />
         </div>
 
+        <!-- PzBat12: planning mode (prototype) - next to the mission, never over the menu -->
+        <PlanningBanner
+            v-if='!compact'
+            variant='topbar'
+        />
+
         <div
             class='d-flex align-items-center flex-shrink-0 cloudtak-top-bar-section'
             :class='{ "cloudtak-panel px-2": !compact }'
@@ -137,6 +143,8 @@ import {
     IconX,
 } from '@tabler/icons-vue';
 import ActiveMission from './ActiveMission.vue';
+// PzBat12: planning mode (prototype)
+import PlanningBanner from './Planning/PlanningBanner.vue';
 import Notifications from './Notifications.vue';
 import DrawTools from './DrawTools.vue';
 import SimpleModeExit from './util/SimpleModeExit.vue';
