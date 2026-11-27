@@ -597,4 +597,119 @@ test('PATCH: api/marti/missions/:guid - rejects an empty password', async () => 
     }
 });
 
+// TAK Server only returns the creator's Mission token on create - the reply of the
+// keyword update carries none, like the real server
+function mockCreateMission(calls: Array<{ method: string; url: URL; auth?: string }>) {
+    flight.tak.mockMarti.push(async (request: IncomingMessage, response: ServerResponse) => {
+        if (!request.method || !request.url) return false;
+
+        const url = new URL(request.url, 'http://127.0.0.1');
+
+        if (request.method === 'POST' && url.pathname === '/Marti/api/missions/Test%20Mission') {
+            calls.push({ method: request.method, url });
+            response.setHeader('Content-Type', 'application/json');
+            response.write(JSON.stringify({ data: [{ ...PASSWORD_MISSION, passwordProtected: true, token: 'owner-token' }] }));
+            response.end();
+            return true;
+        }
+
+        if (request.method === 'PUT' && url.pathname === '/Marti/api/missions/Test%20Mission/keywords') {
+            calls.push({
+                method: request.method,
+                url,
+                auth: request.headers['missionauthorization'] as string | undefined,
+            });
+            response.setHeader('Content-Type', 'application/json');
+            response.write(JSON.stringify({ data: [{ ...PASSWORD_MISSION, passwordProtected: true, keywords: ['alpha'] }] }));
+            response.end();
+            return true;
+        }
+
+        return false;
+    });
+}
+
+test('POST: api/marti/mission - keeps the creator token when keywords are set', async () => {
+    const calls: Array<{ method: string; url: URL; auth?: string }> = [];
+    mockCreateMission(calls);
+
+    try {
+        const res = await flight.fetch('/api/marti/mission', {
+            method: 'POST',
+            auth: {
+                bearer: flight.token.admin,
+            },
+            body: {
+                name: 'Test Mission',
+                group: ['original-group'],
+                password: 'secret',
+                keywords: ['alpha'],
+            },
+        }, true);
+
+        const keywords = calls.find(c => c.method === 'PUT');
+        assert.ok(keywords);
+        assert.equal(keywords.auth, 'Bearer owner-token');
+
+        assert.equal(res.body.token, 'owner-token');
+        assert.deepEqual(res.body.keywords, ['alpha']);
+    } catch (err) {
+        assert.ifError(err);
+    } finally {
+        flight.tak.reset();
+    }
+});
+
+test('POST: api/marti/mission - keeps the creator token when keywords are empty', async () => {
+    const calls: Array<{ method: string; url: URL; auth?: string }> = [];
+    mockCreateMission(calls);
+
+    try {
+        const res = await flight.fetch('/api/marti/mission', {
+            method: 'POST',
+            auth: {
+                bearer: flight.token.admin,
+            },
+            body: {
+                name: 'Test Mission',
+                group: ['original-group'],
+                password: 'secret',
+                keywords: [],
+            },
+        }, true);
+
+        assert.equal(res.body.token, 'owner-token');
+    } catch (err) {
+        assert.ifError(err);
+    } finally {
+        flight.tak.reset();
+    }
+});
+
+test('POST: api/marti/mission - without keywords only creates', async () => {
+    const calls: Array<{ method: string; url: URL; auth?: string }> = [];
+    mockCreateMission(calls);
+
+    try {
+        const res = await flight.fetch('/api/marti/mission', {
+            method: 'POST',
+            auth: {
+                bearer: flight.token.admin,
+            },
+            body: {
+                name: 'Test Mission',
+                group: ['original-group'],
+            },
+        }, true);
+
+        assert.deepEqual(calls.map(c => c.method), ['POST']);
+        assert.equal(calls[0].url.searchParams.has('keywords'), false);
+        assert.equal(res.body.token, 'owner-token');
+    } catch (err) {
+        assert.ifError(err);
+    } finally {
+        flight.tak.reset();
+    }
+});
+
 flight.landing();
