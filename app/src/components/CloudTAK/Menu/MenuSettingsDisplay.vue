@@ -297,7 +297,7 @@ watch(
         mapStore.speedUnit = newProfile.display_speed;
 
         // Immediately update coordinate format and icon rotation to avoid requiring page reload
-        mapStore.coordFormat = (newProfile.display_coordinate as CoordMode) || 'dd';
+        mapStore.coordFormat = (newProfile.display_coordinate as CoordMode) || 'lv95';
         mapStore.updateIconRotation(newProfile.display_icon_rotation as unknown as boolean);
 
         await deviceStore.wakeLock.applyPreference(newProfile.display_wakelock);

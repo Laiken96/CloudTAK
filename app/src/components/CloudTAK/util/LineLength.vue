@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<{
     geometry: Geometry;
     unit?: string;
 }>(), {
-    unit: 'mile'
+    unit: 'kilometer'
 });
 
 const mode = ref(props.unit === 'kilometer' ? 'kilometer' : props.unit === 'meter' ? 'meter' : 'mile');

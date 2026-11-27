@@ -31,7 +31,7 @@ const props = defineProps({
     },
     unit: {
         type: String,
-        default: 'mi/h'
+        default: 'km/h'
     }
 ,
     inline: {

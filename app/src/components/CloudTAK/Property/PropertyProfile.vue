@@ -145,11 +145,11 @@ const props = defineProps({
     },
     distanceUnit: {
         type: String,
-        default: 'mile'
+        default: 'kilometer'
     },
     elevationUnit: {
         type: String,
-        default: 'feet'
+        default: 'meter'
     }
 });
 

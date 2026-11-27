@@ -41,7 +41,7 @@ const props = defineProps({
     },
     unit: {
         type: String,
-        default: 'mile'
+        default: 'kilometer'
     },
     hover: {
         type: Boolean,

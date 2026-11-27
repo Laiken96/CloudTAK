@@ -251,10 +251,10 @@ export const useMapStore = defineStore('cloudtak', {
             hasSnapping: false,
             channel: markRaw(new BroadcastChannel("cloudtak")),
             zoom: 'conditional',
-            distanceUnit: 'meter',
+            distanceUnit: 'kilometer',
             elevationUnit: 'meter',
-            speedUnit: 'm/s',
-            coordFormat: 'dd',
+            speedUnit: 'km/h',
+            coordFormat: 'lv95',
             defaultPointType: 'u-d-p',
             toastOffset: { x: 70, y: 60 },
             manualLocationMode: false,
@@ -1554,7 +1554,7 @@ export const useMapStore = defineStore('cloudtak', {
 
             this.callsign = (await ProfileConfig.get('tak_callsign'))?.value || 'Unknown';
             this.zoom = (await ProfileConfig.get('display_zoom'))?.value || 'conditional';
-            this.coordFormat = (await ProfileConfig.get('display_coordinate'))?.value || 'dd';
+            this.coordFormat = (await ProfileConfig.get('display_coordinate'))?.value || 'lv95';
             this.defaultPointType = normalizePointType((await ProfileConfig.get('tak_type'))?.value);
 
             // Colour the self-location puck with the user's TAK team colour to
@@ -1570,9 +1570,9 @@ export const useMapStore = defineStore('cloudtak', {
                 this.updateIconRotation(icon_rotation as unknown as boolean);
             }, 100);
 
-            this.distanceUnit = (await ProfileConfig.get('display_distance'))?.value || 'meter';
+            this.distanceUnit = (await ProfileConfig.get('display_distance'))?.value || 'kilometer';
             this.elevationUnit = (await ProfileConfig.get('display_elevation'))?.value || 'meter';
-            this.speedUnit = (await ProfileConfig.get('display_speed'))?.value || 'm/s';
+            this.speedUnit = (await ProfileConfig.get('display_speed'))?.value || 'km/h';
 
             this.updateDistanceUnit(this.distanceUnit);
 

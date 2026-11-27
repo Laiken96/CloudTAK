@@ -29,7 +29,8 @@ export const FullConfigDefaults: Partial<Static<typeof FullConfig>> = {
     'map::bearing': 0,
     'display::style': Profile_Style.SYSTEM_DEFAULT,
     'display::radiation_dose': Profile_Radiation_Dose.SIEVERTS,
-    'display::area': Profile_Area.ACRE,
+    // PzBat12: Swiss default, see ProfileConfigDefaults
+    'display::area': Profile_Area.HECTARE,
     'proxy::enabled': false,
     'scim::enabled': false,
     'proxy::whitelist': [],

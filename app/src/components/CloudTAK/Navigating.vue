@@ -118,8 +118,8 @@ import ProfileConfig from '../../base/profile.ts';
 const mapStore = useMapStore();
 
 const units = ref({
-    display_speed: 'mi/h',
-    display_distance: 'mile'
+    display_speed: 'km/h',
+    display_distance: 'kilometer'
 });
 
 onMounted(async () => {

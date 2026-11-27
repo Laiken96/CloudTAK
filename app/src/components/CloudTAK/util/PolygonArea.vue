@@ -26,13 +26,13 @@ const props = withDefaults(defineProps<{
     geometry: Geometry;
     unit?: string;
 }>(), {
-    unit: 'acre'
+    unit: 'hectare'
 });
 
-const mode = ref(props.unit || 'acre');
+const mode = ref(props.unit || 'hectare');
 
 watch(() => props.unit, (unit) => {
-    mode.value = unit || 'acre';
+    mode.value = unit || 'hectare';
 });
 
 const inMode = computed(() => {

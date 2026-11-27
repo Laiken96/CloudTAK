@@ -59,7 +59,7 @@ const emit = defineEmits<{
 const mapStore = useMapStore();
 
 const radius = ref(0.1);
-const displayUnit = ref('mile');
+const displayUnit = ref('kilometer');
 
 onMounted(async () => {
     const displayDistance = await ProfileConfig.get('display_distance');
