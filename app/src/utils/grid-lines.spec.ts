@@ -9,6 +9,10 @@ import {
     gridZones,
     latBand,
     lineDigits,
+    LV95_BOUNDS,
+    lv95Grid,
+    lv95MajorStep,
+    lv95Step,
     metersPerPixel,
     mgrsSquareLabels,
     mgrsGrid,
@@ -22,6 +26,7 @@ import {
     type LngLat,
 } from './grid-lines.ts';
 import { formatCoordPair } from './coordinateFormat.ts';
+import { wgsToLv95 } from './lv95.ts';
 
 const PORRENTRUY: LngLat = [7.0536, 47.4508];
 
@@ -229,6 +234,113 @@ describe('mgrsGrid', () => {
     });
 });
 
+describe('lv95Grid', () => {
+    const view: Bounds = { west: 6.9, east: 7.2, south: 47.35, north: 47.55 };
+
+    /** LV95 metres as CloudTAK's coordinate display writes them */
+    function lv95Shown([lng, lat]: LngLat): { e: number; n: number } {
+        const [e, n] = formatCoordPair(lat, lng, 'lv95').split(' / ').map((v) => Number(v.replace(/\D/g, '')));
+        return { e, n };
+    }
+
+    it('chooses a round step whose lines stay 64 px apart', () => {
+        expect(lv95Step(1)).toEqual(100);
+        expect(lv95Step(2)).toEqual(200);
+        expect(lv95Step(10)).toEqual(1000);
+        expect(lv95Step(16)).toEqual(2000);
+        expect(lv95Step(1000)).toEqual(100000);
+        expect(lv95Step(2000)).toBeNull();
+    });
+
+    it('draws the next power of ten stronger', () => {
+        expect(lv95MajorStep(100)).toEqual(1000);
+        expect(lv95MajorStep(1000)).toEqual(10000);
+        expect(lv95MajorStep(2000)).toEqual(10000);
+        expect(lv95MajorStep(5000)).toEqual(10000);
+    });
+
+    it('draws the 1 km lines around Porrentruy, labelled in whole metres', () => {
+        const grid = lv95Grid(view, 10);
+
+        expect(grid.lines.length).toBeGreaterThan(30);
+        expect(grid.labels).toEqual([]);
+
+        for (const line of grid.lines) {
+            for (const p of line.coords) expect(within(p, view)).toBe(true);
+        }
+
+        const [E, N] = wgsToLv95(PORRENTRUY[1], PORRENTRUY[0]);
+        const e = Math.floor(E / 1000) * 1000;
+        const n = Math.floor(N / 1000) * 1000;
+        const label = (v: number) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+        expect(grid.lines.some((l) => l.axis === 'e' && l.label === label(e))).toBe(true);
+        expect(grid.lines.some((l) => l.axis === 'n' && l.label === label(n))).toBe(true);
+        expect(label(e)).toMatch(/^2 5\d\d 000$/);
+        expect(label(n)).toMatch(/^1 2\d\d 000$/);
+
+        for (const line of grid.lines) {
+            const value = Number(line.label!.replace(/ /g, ''));
+            expect(value % 1000).toEqual(0);
+            expect(line.kind).toEqual(value % 10000 === 0 ? 'square' : 'line');
+        }
+    });
+
+    it('puts every line on its LV95 value, also between its points', () => {
+        for (const line of lv95Grid(view, 10).lines) {
+            const value = Number(line.label!.replace(/ /g, ''));
+
+            for (let i = 0; i < line.coords.length - 1; i++) {
+                const [a, b] = [line.coords[i], line.coords[i + 1]];
+
+                for (const t of [0, 0.25, 0.5, 0.75]) {
+                    const [E, N] = wgsToLv95(a[1] + t * (b[1] - a[1]), a[0] + t * (b[0] - a[0]));
+                    expect(Math.abs((line.axis === 'e' ? E : N) - value)).toBeLessThan(0.05);
+                }
+            }
+        }
+    });
+
+    it('agrees with the LV95 coordinates CloudTAK shows', () => {
+        const grid = lv95Grid(view, 10);
+
+        for (const axis of ['e', 'n'] as const) {
+            const line = grid.lines.find((l) => l.axis === axis)!;
+            const value = Number(line.label!.replace(/ /g, ''));
+            const [lng, lat] = line.coords[Math.floor(line.coords.length / 2)];
+
+            // 3 m to either side of the line, across it
+            const d = 3 / 75000;
+            const before = lv95Shown(axis === 'e' ? [lng - d, lat] : [lng, lat - d]);
+            const after = lv95Shown(axis === 'e' ? [lng + d, lat] : [lng, lat + d]);
+            expect(before[axis]).toBeLessThan(value);
+            expect(after[axis]).toBeGreaterThan(value);
+        }
+    });
+
+    it('shows the 100 km lines over all of Switzerland', () => {
+        const swiss: Bounds = { west: 5.9, east: 10.5, south: 45.8, north: 47.8 };
+        const labels = lv95Grid(swiss, 1000).lines.map((l) => l.label);
+
+        expect(labels).toContain('2 600 000');
+        expect(labels).toContain('2 700 000');
+        expect(labels).toContain('1 200 000');
+    });
+
+    it('stays inside the LV95 area', () => {
+        const across: Bounds = { west: 4.5, east: 6.5, south: 45, north: 46.5 };
+        const grid = lv95Grid(across, 100);
+
+        expect(grid.lines.length).toBeGreaterThan(0);
+        for (const line of grid.lines) {
+            for (const p of line.coords) expect(within(p, LV95_BOUNDS)).toBe(true);
+        }
+
+        expect(lv95Grid({ west: 2.2, east: 2.5, south: 48.8, north: 48.9 }, 10)).toEqual({ lines: [], labels: [] });
+        expect(lv95Grid(view, 5000)).toEqual({ lines: [], labels: [] });
+    });
+});
+
 describe('graticule', () => {
     it('chooses round steps in degrees or in minutes and seconds', () => {
         expect(graticuleStep('Decimal Degrees', 10, 47)).toEqual(0.01);
@@ -278,6 +390,23 @@ describe('edgeLabels', () => {
 
         expect(top.map((l) => l.text)).toContain('53');
         expect(left.map((l) => l.text)).toContain('56');
+    });
+
+    it('labels LV95 lines where the LV95 area ends on screen', () => {
+        // 300 x 200 px across the northern edge of the area at 48.1°, 1000 px per degree
+        const north: Bounds = { west: 8.4, east: 8.7, south: 47.95, north: 48.15 };
+        const proj = ([lng, lat]: LngLat): [number, number] => [(lng - north.west) * 1000, (north.north - lat) * 1000];
+        const unproj = ([x, y]: [number, number]): LngLat => [north.west + x / 1000, north.north - y / 1000];
+
+        const grid = lv95Grid(north, 30);
+        expect(edgeLabels(grid.lines, proj, unproj, 300, 200).filter((l) => l.anchor === 'top')).toEqual([]);
+
+        const top = edgeLabels(grid.lines, proj, unproj, 300, 200, 3, true).filter((l) => l.anchor === 'top');
+        expect(top.length).toBeGreaterThan(5);
+        for (const l of top) {
+            expect(l.text).toMatch(/^2 \d{3} 000$/);
+            expect(proj(l.at)[1]).toBeCloseTo(50 + 3, 6);
+        }
     });
 
     it('keeps the top left and lower left corners free', () => {

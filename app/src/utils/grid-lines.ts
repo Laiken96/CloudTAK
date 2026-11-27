@@ -2,7 +2,7 @@
  * Grid lines as ATAK draws them (`com.atakmap.android.gridlines`, ATAK-CIV
  * 5.5.1.10): an MGRS grid, or a latitude/longitude graticule in decimal
  * degrees or in degrees, minutes and seconds, in white, magenta, green or
- * yellow.
+ * yellow. In addition to ATAK, the Swiss grid LV95 (see lv95Grid).
  *
  * MGRS shows the grid zone boundaries, the 100 km squares and the finest of
  * the 10 km, 1 km and 100 m lines that are still far enough apart on screen.
@@ -14,6 +14,8 @@
  * within a zone), so the lines agree with the MGRS coordinates CloudTAK shows.
  */
 
+import { LV95_AREA, formatLv95Value, lv95ToLngLat, wgsToLv95 } from './lv95.ts';
+
 export type LngLat = [number, number];
 
 export interface Bounds {
@@ -23,10 +25,10 @@ export interface Bounds {
     north: number;
 }
 
-export type GridType = 'MGRS' | 'Decimal Degrees' | 'Degrees, Minutes, Seconds';
+export type GridType = 'MGRS' | 'LV95' | 'Decimal Degrees' | 'Degrees, Minutes, Seconds';
 
-/** The grid types of ATAK's grid line preferences */
-export const GRID_TYPES: GridType[] = ['MGRS', 'Decimal Degrees', 'Degrees, Minutes, Seconds'];
+/** The grid types of ATAK's grid line preferences, plus the Swiss grid LV95 */
+export const GRID_TYPES: GridType[] = ['MGRS', 'LV95', 'Decimal Degrees', 'Degrees, Minutes, Seconds'];
 
 /** The grid colours of ATAK's grid line preferences (white is ATAK's default) */
 export const GRID_COLORS: Array<{ name: string; value: string }> = [
@@ -490,6 +492,118 @@ export function mgrsGrid(view: Bounds, mpp: number): Grid {
     return { lines, labels };
 }
 
+/* --------------------------------------------------------------- LV95 ---- */
+
+/** Where LV95 lines are drawn: the window in which CloudTAK shows LV95 coordinates */
+export const LV95_BOUNDS: Bounds = {
+    west: LV95_AREA.lngMin,
+    south: LV95_AREA.latMin,
+    east: LV95_AREA.lngMax,
+    north: LV95_AREA.latMax
+};
+
+/** Spacings of the LV95 lines [m] */
+const LV95_STEPS = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+
+/** Closest two LV95 lines may come on screen: room for a label like `2 601 300` [px] */
+const LV95_MIN_PX = 64;
+
+/** Spacing of the LV95 lines [m]: the finest round step that stays 64 px apart, null beyond 100 km */
+export function lv95Step(mpp: number): number | null {
+    for (const step of LV95_STEPS) {
+        if (step / mpp >= LV95_MIN_PX) return step;
+    }
+    return null;
+}
+
+/** Spacing of the stronger lines [m]: the next power of ten above the step (10 km for 1, 2 and 5 km) */
+export function lv95MajorStep(step: number): number {
+    return 10 ** (Math.floor(Math.log10(step) + 1e-9) + 1);
+}
+
+/** LV95 extent of a box, from points along its edges */
+function lv95Extent(box: Bounds): { minE: number; maxE: number; minN: number; maxN: number } {
+    let minE = Infinity, maxE = -Infinity, minN = Infinity, maxN = -Infinity;
+    const steps = 8;
+
+    for (let i = 0; i <= steps; i++) {
+        const f = i / steps;
+        const lng = box.west + (box.east - box.west) * f;
+        const lat = box.south + (box.north - box.south) * f;
+
+        for (const [x, y] of [[lng, box.south], [lng, box.north], [box.west, lat], [box.east, lat]]) {
+            const [E, N] = wgsToLv95(y, x);
+            minE = Math.min(minE, E);
+            maxE = Math.max(maxE, E);
+            minN = Math.min(minN, N);
+            maxN = Math.max(maxN, N);
+        }
+    }
+
+    return { minE, maxE, minN, maxN };
+}
+
+/**
+ * Points along an LV95 line, 1 km apart, so the straight pieces between them
+ * stay within a few centimetres of the line (64 points at most: far out, where
+ * they lie further apart, a metre is a fraction of a pixel)
+ */
+function lv95Line(axis: 'e' | 'n', value: number, from: number, to: number): LngLat[] {
+    const count = Math.min(64, Math.max(1, Math.ceil((to - from) / 1000)));
+    const coords: LngLat[] = [];
+
+    for (let i = 0; i <= count; i++) {
+        const along = from + (to - from) * i / count;
+        coords.push(axis === 'e' ? lv95ToLngLat(value, along) : lv95ToLngLat(along, value));
+    }
+
+    return coords;
+}
+
+/**
+ * The Swiss grid LV95 for a map view, as printed on the Swiss national maps:
+ * lines of constant easting and northing at a round step from 100 m to
+ * 100 km (see lv95Step), every line at the next power of ten drawn stronger.
+ * Each line carries its value in whole metres (`2 601 000`), the notation of
+ * CloudTAK's LV95 coordinates, for the top and left screen edge
+ * (edgeLabels). Only drawn in the LV95 window around Switzerland and
+ * Liechtenstein, where CloudTAK shows LV95; the lines use the same
+ * conversion, so they agree with the coordinates shown.
+ *
+ * @param view - area to cover, usually the visible map grown a little
+ * @param mpp  - ground metres per screen pixel
+ */
+export function lv95Grid(view: Bounds, mpp: number): Grid {
+    const area = intersect(view, LV95_BOUNDS);
+    const step = lv95Step(mpp);
+    if (!area || step === null) return { lines: [], labels: [] };
+
+    const major = lv95MajorStep(step);
+    const ext = lv95Extent(area);
+    const first = { e: Math.ceil(ext.minE / step), n: Math.ceil(ext.minN / step) };
+    const last = { e: Math.floor(ext.maxE / step), n: Math.floor(ext.maxN / step) };
+
+    if ((last.e - first.e) + (last.n - first.n) > MAX_LINES) return { lines: [], labels: [] };
+
+    const lines: GridLine[] = [];
+    for (const axis of ['e', 'n'] as const) {
+        for (let k = first[axis]; k <= last[axis]; k++) {
+            const value = k * step;
+            const coords = axis === 'e'
+                ? lv95Line('e', value, ext.minN, ext.maxN)
+                : lv95Line('n', value, ext.minE, ext.maxE);
+
+            // The stronger lines are drawn like the 100 km lines of MGRS
+            const kind: GridLineKind = value % major === 0 ? 'square' : 'line';
+            const label = formatLv95Value(value, ' ');
+
+            for (const run of clipLine(coords, area)) lines.push({ coords: run, kind, axis, label });
+        }
+    }
+
+    return { lines, labels: [] };
+}
+
 /* --------------------------------------------------------- graticule ---- */
 
 const DD_STEPS = [30, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001];
@@ -583,6 +697,8 @@ const CORNER_PX = 28;
  * @param project   - map position to screen pixel
  * @param unproject - screen pixel to map position
  * @param inset     - distance of the labels from the edge [px]
+ * @param ends      - label a line that ends on screen at its top or left end
+ *                    instead (LV95, whose area may end on screen)
  */
 export function edgeLabels(
     lines: GridLine[],
@@ -590,7 +706,8 @@ export function edgeLabels(
     unproject: (xy: [number, number]) => LngLat,
     width: number,
     height: number,
-    inset = 3
+    inset = 3,
+    ends = false
 ): EdgeLabel[] {
     const labels: EdgeLabel[] = [];
 
@@ -617,6 +734,7 @@ export function edgeLabels(
         const pts = line.coords.map(project);
         const order: Array<'top' | 'left'> = line.axis === 'e' ? ['top', 'left'] : ['left', 'top'];
 
+        let placed = false;
         for (const edge of order) {
             const pos = crossing(pts, edge);
             if (pos === null) continue;
@@ -626,8 +744,28 @@ export function edgeLabels(
                 text: line.label,
                 anchor: edge
             });
+            placed = true;
             break;
         }
+
+        if (placed || !ends) continue;
+
+        // The grid ends on screen: label the line at its upper or left end
+        const first = pts[0], last = pts[pts.length - 1];
+        const [x, y] = line.axis === 'e'
+            ? (first[1] <= last[1] ? first : last)
+            : (first[0] <= last[0] ? first : last);
+
+        const room = line.axis === 'e'
+            ? x >= CORNER_PX && x <= width - inset && y >= 0 && y <= height
+            : y >= CORNER_PX && y <= height - CORNER_PX && x >= 0 && x <= width;
+        if (!room) continue;
+
+        labels.push({
+            at: unproject(line.axis === 'e' ? [x, y + inset] : [x + inset, y]),
+            text: line.label,
+            anchor: line.axis === 'e' ? 'top' : 'left'
+        });
     }
 
     return labels;

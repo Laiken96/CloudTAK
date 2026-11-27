@@ -21,6 +21,13 @@ describe('GridLines', () => {
         expect(await GridLines.load()).toEqual({ visible: true, type: 'Degrees, Minutes, Seconds', color: '#ff00ff' });
     });
 
+    it('keeps the Swiss grid LV95', async () => {
+        await GridLines.update({ type: 'LV95' });
+
+        GridLines.state.loaded = false;
+        expect((await GridLines.load()).type).toEqual('LV95');
+    });
+
     it('falls back to the defaults for stored values it does not know', () => {
         expect(GridLines.parse('{"visible":"yes","type":"UTM","color":"red"}')).toEqual(GRID_LINES_DEFAULTS);
         expect(GridLines.parse('not json')).toEqual(GRID_LINES_DEFAULTS);

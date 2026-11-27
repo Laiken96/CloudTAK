@@ -8,6 +8,7 @@ import {
     edgeLabels,
     graticule,
     graticuleStep,
+    lv95Grid,
     metersPerPixel,
     mgrsGrid,
     mgrsSquareLabels,
@@ -215,7 +216,9 @@ export default class GridLinesLayer {
 
         const grid = type === 'MGRS'
             ? mgrsGrid(view, mpp)
-            : graticule(view, type, graticuleStep(type, mpp, lat));
+            : type === 'LV95'
+                ? lv95Grid(view, mpp)
+                : graticule(view, type, graticuleStep(type, mpp, lat));
 
         this.lines = grid.lines;
         this.labels = grid.labels;
@@ -244,7 +247,9 @@ export default class GridLinesLayer {
         };
         const unproject = (xy: [number, number]): LngLat => map.unproject(xy).toArray() as LngLat;
 
-        const labels = edgeLabels(this.lines, project, unproject, canvas.clientWidth, canvas.clientHeight);
+        // The LV95 area may end on screen, its lines are then labelled where they end
+        const ends = GridLines.state.type === 'LV95';
+        const labels = edgeLabels(this.lines, project, unproject, canvas.clientWidth, canvas.clientHeight, 3, ends);
 
         if (this.corner) {
             const corner = squareCornerLabel(this.labels, project, unproject, canvas.clientWidth, canvas.clientHeight);
