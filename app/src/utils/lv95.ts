@@ -15,7 +15,7 @@
  * The window around Switzerland and Liechtenstein in which the approximation
  * is valid (covers Chancy as well as Samnaun), as in the Einheitsfeuerplan
  */
-const LV95_AREA = { latMin: 45.5, latMax: 48.1, lngMin: 5.5, lngMax: 11.0 } as const;
+export const LV95_AREA = { latMin: 45.5, latMax: 48.1, lngMin: 5.5, lngMax: 11.0 } as const;
 
 /** LV03 is LV95 without the leading 2 and 1 of the false origin */
 const LV03_OFFSET = { E: 2000000, N: 1000000 } as const;
@@ -144,14 +144,18 @@ export function parseSwissGrid(text: string): SwissGridPair | null {
     return null;
 }
 
-/** 2570875 -> `2 570 875` (thin spaces) */
-function group(v: number): string {
-    return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SPACE);
-}
-
 /** `2 600 000 / 1 200 000`: whole metres for display, as the Einheitsfeuerplan */
 export function formatLv95(E: number, N: number): string {
-    return `${group(bankersRound(E))} / ${group(bankersRound(N))}`;
+    return `${formatLv95Value(E)} / ${formatLv95Value(N)}`;
+}
+
+/**
+ * `2 600 000`: one LV95 value in whole metres, digits grouped by thin spaces or
+ * by the given separator (map labels use a plain space, whose glyph every map
+ * font has)
+ */
+export function formatLv95Value(v: number, separator = THIN_SPACE): string {
+    return String(bankersRound(v)).replace(/\B(?=(\d{3})+(?!\d))/g, separator);
 }
 
 /** `2600000 1200000`: the same whole metres without groups, to copy or type over */

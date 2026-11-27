@@ -220,7 +220,7 @@ export default class MenuManager {
                 label: 'Grid Lines',
                 route: '/menu/grid-lines',
                 tooltip: 'Grid Lines',
-                description: 'MGRS grid or latitude/longitude lines, as in ATAK',
+                description: 'MGRS or LV95 grid or latitude/longitude lines',
                 icon: IconGrid4x4,
             },
             {

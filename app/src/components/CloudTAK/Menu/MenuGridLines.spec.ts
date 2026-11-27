@@ -54,4 +54,13 @@ describe('MenuGridLines', () => {
         await vi.waitFor(async () => expect((await stored()).type).toEqual('Decimal Degrees'));
         expect(wrapper.text()).toContain('Meridians and parallels');
     });
+
+    it('offers the Swiss grid LV95', async () => {
+        const wrapper = await render();
+        expect(wrapper.findAll('select option').map((o) => o.text())).toContain('LV95');
+
+        await wrapper.find('select').setValue('LV95');
+        await vi.waitFor(async () => expect((await stored()).type).toEqual('LV95'));
+        expect(wrapper.text()).toContain('2 600 000 / 1 200 000');
+    });
 });

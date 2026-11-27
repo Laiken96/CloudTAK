@@ -65,6 +65,12 @@
                     numbers stand at the top and left edge, as in ATAK: 53 is the 1 km line
                     of 32T LT 53 56.
                 </template>
+                <template v-else-if='GridLines.state.type === "LV95"'>
+                    Swiss grid lines at a round step from 100 km down to 100 m that fits the
+                    screen, labelled at the top and left edge in whole metres, as in
+                    2 600 000 / 1 200 000. Drawn only around Switzerland and Liechtenstein,
+                    where coordinates are shown in LV95.
+                </template>
                 <template v-else>
                     Meridians and parallels at a round step that fits the screen, labelled
                     at the top and left edge.

@@ -393,7 +393,7 @@ export const HELP_ENTRIES: HelpEntry[] = [
         id: 'menu-grid-lines',
         section: 'menu',
         menuKey: 'grid-lines',
-        description: 'MGRS grid or latitude and longitude lines on the map, as in ATAK. Choose the type and the colour.',
+        description: 'MGRS grid, Swiss grid LV95 or latitude and longitude lines on the map. Choose the type and the colour.',
     },
     {
         id: 'menu-files',
