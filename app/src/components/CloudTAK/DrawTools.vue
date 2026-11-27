@@ -102,12 +102,15 @@ import {
     IconRoute2,
     IconRuler2,
     IconViewfinder,
+    IconPencilBolt,
 } from '@tabler/icons-vue';
 import { useRouter } from 'vue-router';
 import { useMapStore } from '../../stores/map';
 import { startMedevac } from './Medevac/medevac-draw.ts';
 import { startMeasure } from '../../base/measure-tool.ts';
 import { startPointTarget } from '../../base/point-target-tool.ts';
+// PzBat12: planning mode (prototype)
+import { planning } from './Planning/planning.ts';
 import { useFloatStore } from '../../stores/float.ts';
 import {
     TablerNone,
@@ -131,6 +134,8 @@ type DrawToolItem = {
 };
 
 const drawTools: DrawToolItem[] = [
+    // PzBat12: planning mode (prototype) - draw a draft, share it in one step
+    { key: 'planning', label: 'Plan an action', icon: IconPencilBolt, action: () => { planning.dialog = 'start'; } },
     { key: 'coordinate', label: 'Coordinate Input', icon: IconCursorText, action: () => { openPane('coordinate-input', 'Coordinate Entry', CoordInput, 420); } },
     { key: 'event', label: 'Create Event', icon: IconCalendarEvent, action: () => { openPane('create-event', 'Create Event', CreateCoreEntity, 640, 600); } },
     { key: 'quick_pic', label: 'Quick Pic', icon: IconCamera, action: () => { openPane('quick-pic', 'Quick Pic', QuickPicInput, 300); } },

@@ -113,6 +113,8 @@
                 v-if='mode === "Default"'
                 :menu-shown='!noMenuShown'
             />
+            <!-- PzBat12: planning mode (prototype) -->
+            <PlanningLayer v-if='mode === "Default"' />
             <div
                 v-if='mapStore.navigation.active'
                 class='position-absolute start-50 translate-middle-x'
@@ -380,6 +382,8 @@ import { simpleMode } from '../../stores/modules/simple-mode.ts';
 import {useRoute, useRouter } from 'vue-router';
 import Navigating from './Navigating.vue';
 import TopBar from './TopBar.vue';
+// PzBat12: planning mode (prototype)
+import PlanningLayer from './Planning/PlanningLayer.vue';
 import DrawOverlay from './util/DrawOverlay.vue';
 import WarnChannels from './util/WarnChannels.vue';
 import SearchBox from './util/SearchBox.vue';
