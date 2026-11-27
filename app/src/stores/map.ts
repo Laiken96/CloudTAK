@@ -38,7 +38,7 @@ import OverlayManager from '../base/overlay.ts';
 import { invalidateOfflinePMTiles } from './modules/pmtiles.ts';
 import { FeatureVisibility } from './modules/feature-visibility.ts';
 import Subscription from '../base/subscription.ts';
-import { renderMissionFeature } from '../base/subscription-feature.ts';
+import { renderMissionFeature, renderMissionDerived } from '../base/subscription-feature.ts';
 import { missionFiles } from '../base/mission-files.ts';
 import Filter from '../base/filter.ts';
 import { getRuntimeToken, serverUrl } from '../std.js';
@@ -1071,8 +1071,11 @@ export const useMapStore = defineStore('cloudtak', {
             // PzBat12: read-only objects of the files attached to the Mission
             collection.features.push(...await missionFiles.features(subscription, collection.features));
 
+            // PzBat12: tactical graphics and sensor cones are drawn from their derived features
+            const derived = renderMissionDerived(collection.features);
+
             // @ts-expect-error Source.setData is not defined
-            oStore.setData(collection);
+            oStore.setData({ ...collection, features: [...collection.features, ...derived] });
 
             return true;
         },
@@ -1090,7 +1093,8 @@ export const useMapStore = defineStore('cloudtak', {
 
             // An add replaces any existing feature with the same id
             oStore.updateData({
-                add: body.add ? [renderMissionFeature(body.add)] : undefined,
+                // PzBat12: with the derived features of a tactical graphic
+                add: body.add ? [renderMissionFeature(body.add), ...renderMissionDerived([body.add])] : undefined,
                 remove: body.remove ? [body.remove] : undefined
             }).catch((err: unknown) => {
                 // Not fatal - the full render after the write still paints it

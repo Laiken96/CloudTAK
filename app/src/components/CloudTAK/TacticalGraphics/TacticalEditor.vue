@@ -3,7 +3,57 @@
         :name='entry ? entry.label : "Tactical Graphic"'
         :loading='loading'
         :none='!loading && (!cot || !entry || !draft)'
+        :back='false'
     >
+        <!-- Opened right after drawing the menu has no history to go back to - always offer the way back -->
+        <template #header>
+            <div
+                class='d-flex align-items-center flex-grow-1'
+                style='min-width: 0'
+            >
+                <TablerIconButton
+                    title='Back'
+                    data-testid='tactical-back'
+                    @click='back'
+                >
+                    <IconCircleArrowLeft
+                        :size='32'
+                        stroke='1'
+                    />
+                </TablerIconButton>
+                <div
+                    class='strong user-select-none text-truncate px-2'
+                    v-text='entry ? entry.label : $tr("Tactical Graphic")'
+                />
+            </div>
+        </template>
+
+        <template #footer>
+            <div
+                v-if='cot && entry && draft'
+                class='p-2 border-top'
+            >
+                <button
+                    v-if='editable'
+                    type='button'
+                    class='btn btn-primary w-100'
+                    data-testid='tactical-save'
+                    @click='save'
+                >
+                    Save
+                </button>
+                <button
+                    v-else
+                    type='button'
+                    class='btn w-100'
+                    data-testid='tactical-close'
+                    @click='back'
+                >
+                    Back
+                </button>
+            </div>
+        </template>
+
         <div
             v-if='cot && entry && draft'
             class='d-flex flex-column gap-3 py-2'
@@ -187,9 +237,9 @@
 
 <script setup lang='ts'>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { TablerInput, TablerInlineAlert } from '@tak-ps/vue-tabler';
-import { IconArrowsExchange } from '@tabler/icons-vue';
+import { useRoute, useRouter } from 'vue-router';
+import { TablerInput, TablerInlineAlert, TablerIconButton } from '@tak-ps/vue-tabler';
+import { IconArrowsExchange, IconCircleArrowLeft } from '@tabler/icons-vue';
 import MenuTemplate from '../util/MenuTemplate.vue';
 import TacticalPreview from './TacticalPreview.vue';
 import type COT from '../../../base/cot.ts';
@@ -212,6 +262,7 @@ const AFFILIATION_CHOICES: Array<{ code: Affiliation; label: string }> = [
 ];
 
 const route = useRoute();
+const router = useRouter();
 const mapStore = useMapStore();
 
 const loading = ref(true);
@@ -264,11 +315,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-    if (persistTimeout) {
-        clearTimeout(persistTimeout);
-        persistTimeout = undefined;
-        void persist();
-    }
+    void flush();
 
     if (cot.value && cot.value._liveQuerySubscription) {
         cot.value._liveQuerySubscription.unsubscribe();
@@ -336,6 +383,33 @@ function setEntry(member: CatalogEntry): void {
     if (!draft.value) return;
     entry.value = member;
     draft.value = { ...draft.value, sig: member.sig };
+}
+
+/** Write an edit still waiting for its debounce */
+async function flush(): Promise<void> {
+    if (!persistTimeout) return;
+
+    clearTimeout(persistTimeout);
+    persistTimeout = undefined;
+    await persist();
+}
+
+/** Save and close: the graphic is on the map */
+async function save(): Promise<void> {
+    await flush();
+    await router.push('/');
+}
+
+/** Save and return to the object */
+async function back(): Promise<void> {
+    await flush();
+
+    const previous = router.options.history.state.back;
+    if (previous && String(previous).startsWith('/cot/')) {
+        router.back();
+    } else {
+        await router.replace(`/cot/${String(route.params.uid)}`);
+    }
 }
 
 async function persist(): Promise<void> {

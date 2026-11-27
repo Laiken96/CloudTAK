@@ -7,7 +7,7 @@ import Subscription from './subscription.ts';
 import type Atlas from '../workers/atlas.ts';
 import { server } from '../std.ts';
 import { bbox } from '@turf/bbox';
-import type { BBox, FeatureCollection as GeoJSONFeatureCollection } from 'geojson'
+import type { BBox, FeatureCollection as GeoJSONFeatureCollection, Feature as GeoJSONFeature } from 'geojson'
 import type { Feature, FeatureCollection } from '../types.ts';
 import type { paths } from '@cloudtak/api-types';
 import { WorkerMessageType } from '../utils/events.ts';
@@ -75,6 +75,16 @@ export function renderMissionFeature(feat: Feature): Feature {
         },
         geometry: feat.geometry,
     };
+}
+
+/**
+ * PzBat12: render-only companions of Mission features - the arcs, labels and
+ * arrows of tactical graphics and sensor cones. The Mission layers hide the
+ * drawn line of a tactical graphic as the CoT layers do, so without these
+ * a tactical graphic in a Mission does not show at all
+ */
+export function renderMissionDerived(features: Feature[]): GeoJSONFeature[] {
+    return features.flatMap((feat) => COT.as_derived(feat));
 }
 
 function isPending(row: DBSubscriptionFeature): boolean {
