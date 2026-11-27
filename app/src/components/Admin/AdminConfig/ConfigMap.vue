@@ -225,8 +225,8 @@ const config = ref<{
     'map::basemap': number | null;
     'map::terrain': number | null;
 }>({
-    'map::center': '40,-100', // Default Lat,Lng
-    'map::zoom': 4,
+    'map::center': '46.8182,8.2275', // Default Lat,Lng (Switzerland)
+    'map::zoom': 7,
     'map::bearing': 0,
     'map::pitch': 0,
     'map::basemap': null,

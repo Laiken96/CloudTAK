@@ -718,10 +718,10 @@ const subscription = ref<Subscription | undefined>();
 
 const share = ref(false);
 const units = ref({
-    display_speed: 'mi/h',
-    display_elevation: 'feet',
-    display_distance: 'mile',
-    display_area: 'acre'
+    display_speed: 'km/h',
+    display_elevation: 'meter',
+    display_distance: 'meter',
+    display_area: 'hectare'
 });
 
 const username = ref<string | undefined>();

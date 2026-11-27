@@ -23,19 +23,19 @@ test('GET api/config/display', async () => {
                 options: ['Immediate', '10 Minutes', '30 Minutes', '1 Hour', 'Never'],
             },
             distance: {
-                value: 'mile',
+                value: 'meter',
                 options: ['meter', 'kilometer', 'mile'],
             },
             elevation: {
-                value: 'feet',
+                value: 'meter',
                 options: ['meter', 'feet'],
             },
             area: {
-                value: 'acre',
+                value: 'hectare',
                 options: ['square meter', 'square feet', 'acre', 'hectare'],
             },
             speed: {
-                value: 'mi/h',
+                value: 'km/h',
                 options: ['m/s', 'km/h', 'mi/h'],
             },
             projection: {
@@ -51,7 +51,7 @@ test('GET api/config/display', async () => {
                 options: ['System Default', 'Light', 'Dark'],
             },
             coordinate: {
-                value: 'dd',
+                value: 'lv95',
                 options: ['dd', 'dm', 'dms', 'mgrs', 'utm', 'lv95'],
             },
             text: {
@@ -191,11 +191,11 @@ test('GET api/profile', async () => {
             display_distance: 'kilometer',
             display_elevation: 'meter',
             display_area: 'hectare',
-            display_speed: 'mi/h',
+            display_speed: 'km/h',
             display_projection: 'globe',
             display_zoom: 'conditional',
             display_style: 'Light',
-            display_coordinate: 'dd',
+            display_coordinate: 'lv95',
             display_text: 'Medium',
             display_icon_rotation: true,
             display_radiation_dose: 'rems',

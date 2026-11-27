@@ -155,10 +155,10 @@ defineProps({
 
 const emit = defineEmits([ 'close' ]);
 
-const distanceUnit = ref('mile');
+const distanceUnit = ref('meter');
 
 onMounted(async () => {
-    distanceUnit.value = (await ProfileConfig.get('display_distance'))?.value || 'mile';
+    distanceUnit.value = (await ProfileConfig.get('display_distance'))?.value || 'meter';
 });
 
 const center = mapStore.map.getCenter();

@@ -2,6 +2,7 @@
     <PropertyMeasureRow
         :label='label'
         :model-value='config.distance'
+        :display='decimalComma(config.distance)'
         :unit='mode'
         :units='UNITS'
         :edit='edit'
@@ -16,6 +17,7 @@
 import { ref, watch } from 'vue';
 import PropertyMeasureRow from '../util/PropertyMeasureRow.vue';
 import type { UnitOption } from '../util/UnitSwitcher.vue';
+import { decimalComma, metricUnit } from '../../../utils/metric-distance.ts';
 
 const UNITS: Array<UnitOption> = [
     { value: 'feet', label: 'ft', title: 'Feet' },
@@ -41,7 +43,7 @@ const props = defineProps({
     },
     unit: {
         type: String,
-        default: 'mile'
+        default: 'meter'
     },
     hover: {
         type: Boolean,
@@ -53,7 +55,8 @@ const props = defineProps({
     }
 })
 
-const mode = ref(props.unit);
+// The meter setting shows km from 1000 m
+const mode = ref(metricUnit(props.unit, props.modelValue));
 
 const config = ref({
     // Units coming into props should always be kilometers
@@ -74,8 +77,8 @@ watch(() => props.modelValue, (nextDistance) => {
 });
 
 watch(() => props.unit, (nextUnit) => {
-    mode.value = nextUnit;
-    config.value.distance = toCustom(nextUnit, props.modelValue);
+    mode.value = metricUnit(nextUnit, props.modelValue);
+    config.value.distance = toCustom(mode.value, props.modelValue);
 });
 
 /**

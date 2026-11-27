@@ -253,8 +253,8 @@ export const useMapStore = defineStore('cloudtak', {
             zoom: 'conditional',
             distanceUnit: 'meter',
             elevationUnit: 'meter',
-            speedUnit: 'm/s',
-            coordFormat: 'dd',
+            speedUnit: 'km/h',
+            coordFormat: 'lv95',
             defaultPointType: 'u-d-p',
             toastOffset: { x: 70, y: 60 },
             manualLocationMode: false,
@@ -825,7 +825,7 @@ export const useMapStore = defineStore('cloudtak', {
         returnHome: async function(): Promise<void> {
             const cfg = await Config.list(
                 ['map::center', 'map::zoom', 'map::pitch', 'map::bearing'],
-                { defaults: { 'map::center': '-100,40', 'map::zoom': 4, 'map::pitch': 0, 'map::bearing': 0 } }
+                { defaults: { 'map::center': '8.2275,46.8182', 'map::zoom': 7, 'map::pitch': 0, 'map::bearing': 0 } }
             );
             this.map.flyTo({
                 zoom: Number(cfg['map::zoom']),
@@ -1370,8 +1370,9 @@ export const useMapStore = defineStore('cloudtak', {
             const sprites = IconManager.defaultSprite();
 
             this.loadingStage = 'Loading map configuration…';
-            let initCenter = '-100,40';
-            let initZoom = 4;
+            // PzBat12: start over Switzerland unless the server sets another view
+            let initCenter = '8.2275,46.8182';
+            let initZoom = 7;
             let initPitch = 0;
             let initBearing = 0;
 
@@ -1385,8 +1386,8 @@ export const useMapStore = defineStore('cloudtak', {
                     'map::basemap::favs'
                 ], {
                     defaults: {
-                        'map::center': '-100,40',
-                        'map::zoom': 4,
+                        'map::center': '8.2275,46.8182',
+                        'map::zoom': 7,
                         'map::pitch': 0,
                         'map::bearing': 0,
                         'map::basemap': null,
@@ -1554,7 +1555,7 @@ export const useMapStore = defineStore('cloudtak', {
 
             this.callsign = (await ProfileConfig.get('tak_callsign'))?.value || 'Unknown';
             this.zoom = (await ProfileConfig.get('display_zoom'))?.value || 'conditional';
-            this.coordFormat = (await ProfileConfig.get('display_coordinate'))?.value || 'dd';
+            this.coordFormat = (await ProfileConfig.get('display_coordinate'))?.value || 'lv95';
             this.defaultPointType = normalizePointType((await ProfileConfig.get('tak_type'))?.value);
 
             // Colour the self-location puck with the user's TAK team colour to
@@ -1572,7 +1573,7 @@ export const useMapStore = defineStore('cloudtak', {
 
             this.distanceUnit = (await ProfileConfig.get('display_distance'))?.value || 'meter';
             this.elevationUnit = (await ProfileConfig.get('display_elevation'))?.value || 'meter';
-            this.speedUnit = (await ProfileConfig.get('display_speed'))?.value || 'm/s';
+            this.speedUnit = (await ProfileConfig.get('display_speed'))?.value || 'km/h';
 
             this.updateDistanceUnit(this.distanceUnit);
 

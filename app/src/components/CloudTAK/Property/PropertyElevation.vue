@@ -30,7 +30,7 @@ const props = defineProps({
     },
     unit: {
         type: String,
-        default: 'feet'
+        default: 'meter'
     }
 })
 

@@ -7,16 +7,18 @@ import {
 import { ProfileResponse } from '../../../common/types.js';
 import ProfileOverlayControl from '../../../common/control/profile-overlay.js';
 
+// PzBat12: unit defaults follow Swiss practice (metric, LV95 coordinates);
+// distance "meter" shows metres and switches to km from 1000 m in the app
 export const ProfileConfigDefaults = {
     'display::stale': Profile_Stale.TenMinutes,
-    'display::distance': Profile_Distance.MILE,
-    'display::elevation': Profile_Elevation.FEET,
-    'display::area': Profile_Area.ACRE,
-    'display::speed': Profile_Speed.MPH,
+    'display::distance': Profile_Distance.METER,
+    'display::elevation': Profile_Elevation.METER,
+    'display::area': Profile_Area.HECTARE,
+    'display::speed': Profile_Speed.KMH,
     'display::projection': Profile_Projection.GLOBE,
     'display::zoom': Profile_Zoom.CONDITIONAL,
     'display::style': Profile_Style.SYSTEM_DEFAULT,
-    'display::coordinate': Profile_Coordinate.DD,
+    'display::coordinate': Profile_Coordinate.LV95,
     'display::text': Profile_Text.Medium,
     'display::icon_rotation': true,
     'display::radiation_dose': Profile_Radiation_Dose.SIEVERTS,
@@ -191,19 +193,19 @@ export default class ProfileControl {
                 options: Object.values(Profile_Stale),
             },
             distance: {
-                value: toEnum.fromString(Type.Enum(Profile_Distance), final.distance || Profile_Distance.MILE),
+                value: toEnum.fromString(Type.Enum(Profile_Distance), final.distance || ProfileConfigDefaults['display::distance']),
                 options: Object.values(Profile_Distance),
             },
             elevation: {
-                value: toEnum.fromString(Type.Enum(Profile_Elevation), final.elevation || Profile_Elevation.FEET),
+                value: toEnum.fromString(Type.Enum(Profile_Elevation), final.elevation || ProfileConfigDefaults['display::elevation']),
                 options: Object.values(Profile_Elevation),
             },
             area: {
-                value: toEnum.fromString(Type.Enum(Profile_Area), final.area || Profile_Area.ACRE),
+                value: toEnum.fromString(Type.Enum(Profile_Area), final.area || ProfileConfigDefaults['display::area']),
                 options: Object.values(Profile_Area),
             },
             speed: {
-                value: toEnum.fromString(Type.Enum(Profile_Speed), final.speed || Profile_Speed.MPH),
+                value: toEnum.fromString(Type.Enum(Profile_Speed), final.speed || ProfileConfigDefaults['display::speed']),
                 options: Object.values(Profile_Speed),
             },
             projection: {
@@ -219,7 +221,7 @@ export default class ProfileControl {
                 options: Object.values(Profile_Style),
             },
             coordinate: {
-                value: toEnum.fromString(Type.Enum(Profile_Coordinate), final.coordinate || Profile_Coordinate.DD),
+                value: toEnum.fromString(Type.Enum(Profile_Coordinate), final.coordinate || ProfileConfigDefaults['display::coordinate']),
                 options: Object.values(Profile_Coordinate),
             },
             text: {

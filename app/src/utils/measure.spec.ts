@@ -94,11 +94,11 @@ describe('formatDistance', () => {
     });
 
     it('shows km with two decimals from 1000 m', () => {
-        expect(formatDistance(1000)).toBe('1.00 km');
+        expect(formatDistance(1000)).toBe('1,00 km');
         // Rounds to 1000 m - shown as km, never as "1000 m"
-        expect(formatDistance(999.6)).toBe('1.00 km');
-        expect(formatDistance(2345)).toBe('2.35 km');
-        expect(formatDistance(BERN_THUN)).toBe('26.02 km');
+        expect(formatDistance(999.6)).toBe('1,00 km');
+        expect(formatDistance(2345)).toBe('2,35 km');
+        expect(formatDistance(BERN_THUN)).toBe('26,02 km');
     });
 
     it('shows a dash for nonsense', () => {
