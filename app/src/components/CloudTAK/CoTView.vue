@@ -720,7 +720,7 @@ const share = ref(false);
 const units = ref({
     display_speed: 'km/h',
     display_elevation: 'meter',
-    display_distance: 'kilometer',
+    display_distance: 'meter',
     display_area: 'hectare'
 });
 

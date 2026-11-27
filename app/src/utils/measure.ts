@@ -9,6 +9,7 @@
  */
 import { distance } from '@turf/distance';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
+import { formatMetric } from './metric-distance.ts';
 
 /** [longitude, latitude] */
 export type LngLat = [number, number];
@@ -101,14 +102,9 @@ export function removeLastPoint<T>(points: readonly T[]): T[] {
     return points.slice(0, -1);
 }
 
-/** Metric distance: whole metres below 1000 m ("850 m"), from there km with two decimals ("2.35 km") */
+/** Metric distance: whole metres below 1000 m ("850 m"), from there km with two decimals ("2,35 km") */
 export function formatDistance(metres: number): string {
-    if (!Number.isFinite(metres) || metres < 0) return '–';
-
-    const rounded = Math.round(metres);
-    if (rounded < 1000) return `${rounded} m`;
-
-    return `${(metres / 1000).toFixed(2)} km`;
+    return formatMetric(metres, 2);
 }
 
 /** Whole degrees, 0 to 359 */

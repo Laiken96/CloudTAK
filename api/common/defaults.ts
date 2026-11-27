@@ -23,8 +23,9 @@ export const FullConfigDefaults: Partial<Static<typeof FullConfig>> = {
     'notification::push::firebase::project_id': '',
     'notification::push::firebase::client_email': '',
     'notification::push::firebase::private_key': '',
-    'map::center': '-100,40',
-    'map::zoom': 4,
+    // PzBat12: the map starts over Switzerland (geographic centre, lng,lat)
+    'map::center': '8.2275,46.8182',
+    'map::zoom': 7,
     'map::pitch': 0,
     'map::bearing': 0,
     'display::style': Profile_Style.SYSTEM_DEFAULT,

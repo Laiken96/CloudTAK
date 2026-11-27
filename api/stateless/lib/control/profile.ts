@@ -7,10 +7,11 @@ import {
 import { ProfileResponse } from '../../../common/types.js';
 import ProfileOverlayControl from '../../../common/control/profile-overlay.js';
 
-// PzBat12: unit defaults follow Swiss practice (metric, LV95 coordinates)
+// PzBat12: unit defaults follow Swiss practice (metric, LV95 coordinates);
+// distance "meter" shows metres and switches to km from 1000 m in the app
 export const ProfileConfigDefaults = {
     'display::stale': Profile_Stale.TenMinutes,
-    'display::distance': Profile_Distance.KILOMETER,
+    'display::distance': Profile_Distance.METER,
     'display::elevation': Profile_Elevation.METER,
     'display::area': Profile_Area.HECTARE,
     'display::speed': Profile_Speed.KMH,

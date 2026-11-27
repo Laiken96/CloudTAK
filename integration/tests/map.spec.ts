@@ -31,14 +31,14 @@ test.describe('Map: smoke, page shell', () => {
         // View state lives in the URL hash: #zoom/lat/lng, optionally /bearing/pitch when either is non-zero (hash: true in stores/map.ts).
         await expect(page).toHaveURL(/#-?\d+(\.\d+)?\/-?\d+(\.\d+)?\/-?\d+(\.\d+)?(\/-?\d+(\.\d+)?){0,2}$/);
 
-        // Default view is a server-wide setting: map::center "-100,40" and
-        // map::zoom 4 (api/common/defaults.ts), not per-user. If the staging
+        // Default view is a server-wide setting: map::center "8.2275,46.8182" and
+        // map::zoom 7 (api/common/defaults.ts), not per-user. If the staging
         // server overrides these, update the expected values here.
         const hash = map.hash();
         expect(hash, 'URL hash should parse as zoom/lat/lng').not.toBeNull();
-        expect(hash?.zoom).toBeCloseTo(4, 1);
-        expect(hash?.lat).toBeCloseTo(40, 1);
-        expect(hash?.lng).toBeCloseTo(-100, 1);
+        expect(hash?.zoom).toBeCloseTo(7, 1);
+        expect(hash?.lat).toBeCloseTo(46.8182, 1);
+        expect(hash?.lng).toBeCloseTo(8.2275, 1);
 
         // Hash and live map state agree.
         expect(state?.zoom).toBeCloseTo(hash?.zoom as number, 1);

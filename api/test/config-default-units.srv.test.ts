@@ -23,7 +23,7 @@ test('GET api/config/display', async () => {
                 options: ['Immediate', '10 Minutes', '30 Minutes', '1 Hour', 'Never'],
             },
             distance: {
-                value: 'kilometer',
+                value: 'meter',
                 options: ['meter', 'kilometer', 'mile'],
             },
             elevation: {

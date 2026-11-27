@@ -116,9 +116,9 @@ describe('MeasurePanel', () => {
         const wrapper = await mountPanel();
 
         expect(wrapper.text()).toContain('Total');
-        expect(text(wrapper, 'measure-total')).toMatch(/^\d\.\d\d km$/);
+        expect(text(wrapper, 'measure-total')).toMatch(/^\d,\d\d km$/);
         expect(text(wrapper, 'measure-segments')).toBe('2 segments');
-        expect(text(wrapper, 'measure-last-segment')).toBe('Last segment 1.52 km');
+        expect(text(wrapper, 'measure-last-segment')).toBe('Last segment 1,52 km');
         expect(text(wrapper, 'measure-bearing')).toMatch(/^90°\s*·\s*1600 A‰$/);
     });
 

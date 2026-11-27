@@ -114,12 +114,13 @@ import {
 import { TablerIconButton } from '@tak-ps/vue-tabler';
 import { useMapStore } from '../../stores/map.ts';
 import ProfileConfig from '../../base/profile.ts';
+import { decimalComma, formatMetric } from '../../utils/metric-distance.ts';
 
 const mapStore = useMapStore();
 
 const units = ref({
     display_speed: 'km/h',
-    display_distance: 'kilometer'
+    display_distance: 'meter'
 });
 
 onMounted(async () => {
@@ -139,9 +140,9 @@ const state = computed(() => mapStore.navigation.state);
 function formatDistance(km: number): string {
     const unit = units.value.display_distance;
     if (unit === 'meter') {
-        return `${Math.round(km * 1000).toLocaleString()} m`;
+        return formatMetric(km * 1000);
     } else if (unit === 'kilometer') {
-        return `${(km).toFixed(km < 10 ? 2 : 1)} km`;
+        return `${decimalComma(km.toFixed(km < 10 ? 2 : 1))} km`;
     } else {
         return `${(km * 0.621371).toFixed(km * 0.621371 < 10 ? 2 : 1)} mi`;
     }

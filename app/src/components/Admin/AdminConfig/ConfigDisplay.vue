@@ -119,7 +119,7 @@ const displayKeys: DisplayConfigKey[] = [
 function createDisplayConfig(): DisplayConfig {
     return {
         'display::stale': '10 Minutes',
-        'display::distance': 'kilometer',
+        'display::distance': 'meter',
         'display::elevation': 'meter',
         'display::area': 'hectare',
         'display::speed': 'km/h',

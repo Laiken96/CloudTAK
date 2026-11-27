@@ -123,6 +123,7 @@ import { IconChartLine, IconArrowUp, IconArrowDown } from '@tabler/icons-vue';
 import { TablerBadge, TablerInlineAlert, TablerLoading, TablerRefreshButton } from '@tak-ps/vue-tabler';
 import SlideDownHeader from '../util/SlideDownHeader.vue';
 import { server, std, stdurl } from '../../../std.ts';
+import { metricUnit } from '../../../utils/metric-distance.ts';
 
 type ElevationSample = {
     distance: number;
@@ -145,7 +146,7 @@ const props = defineProps({
     },
     distanceUnit: {
         type: String,
-        default: 'kilometer'
+        default: 'meter'
     },
     elevationUnit: {
         type: String,
@@ -381,8 +382,14 @@ function renderChart(): void {
     }
 }
 
+// The meter setting draws the distance axis in km for lines from 1000 m
+const profileDistanceUnit = computed(() => {
+    const lastKm = samples.value.length ? samples.value[samples.value.length - 1].distance : 0;
+    return metricUnit(props.distanceUnit, lastKm);
+});
+
 function convertDistance(kilometers: number): number {
-    switch (props.distanceUnit) {
+    switch (profileDistanceUnit.value) {
         case 'meter': return kilometers * 1000;
         case 'kilometer': return kilometers;
         case 'mile': return kilometers * 0.621371;
@@ -399,11 +406,11 @@ function convertElevation(meters: number): number {
 }
 
 function distanceUnitLabel(): string {
-    switch (props.distanceUnit) {
+    switch (profileDistanceUnit.value) {
         case 'meter': return 'm';
         case 'kilometer': return 'km';
         case 'mile': return 'mi';
-        default: return props.distanceUnit;
+        default: return profileDistanceUnit.value;
     }
 }
 

@@ -159,7 +159,7 @@ test('GET api/config (user - map keys)', async () => {
 
         assert.equal(res.status, 200);
         assert.deepEqual(res.body, {
-            'map::center': '-100,40',
+            'map::center': '8.2275,46.8182',
         });
     } catch (err) {
         assert.ifError(err);
