@@ -15,9 +15,11 @@ import { reactive } from 'vue';
 import { v4 as randomUUID } from 'uuid';
 import KV from '../../../base/kv.ts';
 import { OriginMode } from '../../../base/cot.ts';
+import OverlayManager from '../../../base/overlay.ts';
+import { server } from '../../../std.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import PathManager from '../../../utils/path-manager.ts';
-import type { Feature } from '../../../types.ts';
+import type { Feature, Mission_Create } from '../../../types.ts';
 
 /** Folder that holds one sub-folder per plan */
 export const PLAN_ROOT = '/Planung';
@@ -158,6 +160,71 @@ export async function publishToMission(guid: string): Promise<number> {
     await mapStore.refresh();
 
     return feats.length;
+}
+
+/**
+ * Keep the open plan as a data package on the TAK Server - a snapshot for
+ * ATAK or for later. The plan itself is not changed
+ */
+export async function savePackage(name: string, groups: string[]): Promise<void> {
+    const feats = await planFeatures();
+
+    const res = await server.PUT('/api/marti/package', {
+        body: {
+            type: 'FeatureCollection',
+            name,
+            public: true,
+            groups,
+            keywords: [],
+            assets: [],
+            basemaps: [],
+            destinations: [],
+            features: feats.map((f) => ({ id: f.properties.id || f.id, type: f.type, properties: f.properties, geometry: f.geometry })),
+        }
+    });
+
+    if (res.error) throw new Error(res.error.message);
+}
+
+/**
+ * Create a new Data Sync for the open plan and move the plan into it - with
+ * a data package of the plan first when asked. Returns the new Mission guid
+ */
+export async function publishToNewMission(opts: {
+    name: string;
+    groups: string[];
+    password?: string;
+    withPackage: boolean;
+}): Promise<string> {
+    // The package reads the objects while they are still in the plan; a
+    // failure here stops before anything is created or moved
+    if (opts.withPackage) await savePackage(opts.name, opts.groups);
+
+    const body: Mission_Create = {
+        name: opts.name,
+        group: opts.groups,
+        description: '',
+        keywords: [],
+        defaultRole: 'MISSION_SUBSCRIBER',
+    };
+    if (opts.password) body.password = opts.password;
+
+    const res = await server.POST('/api/marti/mission', { body });
+    if (res.error) throw new Error(res.error.message);
+
+    // Subscribes and loads the Data Sync onto the map - the plan can then move in
+    await OverlayManager.createLoaded({
+        name: res.data.name,
+        url: `/mission/${encodeURIComponent(res.data.guid)}`,
+        type: 'geojson',
+        mode: 'mission',
+        token: res.data.token,
+        mode_id: res.data.guid,
+    });
+
+    await publishToMission(res.data.guid);
+
+    return res.data.guid;
 }
 
 /** Delete every object of the open plan and leave planning mode */

@@ -2651,5 +2651,15 @@
     "The objects stay in your own objects in the folder Planung. Continue the draft any time with Plan an action.": "Die Objekte bleiben bei deinen eigenen Objekten im Ordner «Planung». Mit «Aktion planen» setzt du den Entwurf jederzeit fort.",
     "Discard draft": "Entwurf verwerfen",
     "Continue planning": "Weiter planen",
-    "Delete {count} objects of the plan? This cannot be undone.": "{count} Objekte des Plans löschen? Das lässt sich nicht rückgängig machen."
+    "Delete {count} objects of the plan? This cannot be undone.": "{count} Objekte des Plans löschen? Das lässt sich nicht rückgängig machen.",
+    "Creates the Data Sync on the TAK Server and moves all {count} objects into it. Planning ends.": "Legt den Data Sync auf dem TAK-Server an und verschiebt alle {count} Objekte hinein. Die Planung endet.",
+    "Name of the Data Sync": "Name des Data Sync",
+    "Also save as data package": "Zusätzlich als Datenpaket sichern",
+    "A snapshot of the plan for ATAK or for later, for the same channels.": "Eine Momentaufnahme des Plans für ATAK oder für später, für dieselben Kanäle.",
+    "Create Data Sync and publish": "Data Sync anlegen und Plan übernehmen",
+    "Choose at least one channel.": "Wähle mindestens einen Kanal.",
+    "Into a new Data Sync": "In einen neuen Data Sync",
+    "Creates the Data Sync with the name of the plan, optionally with a data package. Planning ends.": "Legt einen Data Sync mit dem Namen des Plans an, auf Wunsch mit Datenpaket. Die Planung endet.",
+    "Contains Invalid Character": "Enthält ein ungültiges Zeichen",
+    "Cannot be empty": "Darf nicht leer sein"
 }
