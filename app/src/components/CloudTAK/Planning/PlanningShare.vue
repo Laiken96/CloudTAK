@@ -41,6 +41,83 @@
                     The plan has no objects yet. Draw something first.
                 </div>
             </template>
+            <template v-else-if='mode === "new-mission"'>
+                <div
+                    v-text='$tr("Creates the Data Sync on the TAK Server and moves all {count} objects into it. Planning ends.", { count: feats.length })'
+                />
+
+                <TablerAlert
+                    v-if='error'
+                    :err='error'
+                />
+
+                <TablerInput
+                    v-model='newMission.name'
+                    label='Name of the Data Sync'
+                    :error='nameError'
+                    data-testid='planning-new-name'
+                />
+
+                <div>
+                    <label class='form-label'>Channels</label>
+                    <GroupSelect
+                        v-model='newMission.groups'
+                        :active='true'
+                        direction='IN'
+                    />
+                </div>
+
+                <TablerToggle
+                    v-model='newMission.passwordProtected'
+                    label='Password protected'
+                />
+                <TablerInput
+                    v-if='newMission.passwordProtected'
+                    v-model='newMission.password'
+                    type='password'
+                    autocomplete='new-password'
+                    label='Password'
+                />
+
+                <label
+                    class='form-check'
+                    data-testid='planning-new-package'
+                >
+                    <input
+                        v-model='newMission.withPackage'
+                        class='form-check-input'
+                        type='checkbox'
+                    >
+                    <span class='form-check-label'>Also save as data package</span>
+                    <span class='form-check-description'>A snapshot of the plan for ATAK or for later, for the same channels.</span>
+                </label>
+
+                <div class='d-flex gap-2'>
+                    <button
+                        type='button'
+                        class='btn'
+                        :disabled='busy'
+                        @click='mode = "choose"'
+                    >
+                        Back
+                    </button>
+                    <button
+                        type='button'
+                        class='btn btn-primary flex-grow-1'
+                        data-testid='planning-new-create'
+                        :disabled='!canCreate || busy'
+                        @click='createAndPublish'
+                    >
+                        Create Data Sync and publish
+                    </button>
+                </div>
+                <div
+                    v-if='!newMission.groups.length'
+                    class='small text-secondary'
+                >
+                    Choose at least one channel.
+                </div>
+            </template>
             <template v-else-if='mode === "mission"'>
                 <div>
                     The objects move into the Data Sync. Everyone in it sees them, ATAK included. Planning ends.
@@ -117,6 +194,23 @@
                 <button
                     type='button'
                     class='btn w-100 planning-option'
+                    data-testid='planning-share-new-mission'
+                    @click='openNewMission'
+                >
+                    <IconCirclePlus
+                        :size='28'
+                        stroke='1.5'
+                        class='flex-shrink-0'
+                    />
+                    <span class='text-start'>
+                        <span class='d-block fw-bold'>Into a new Data Sync</span>
+                        <span class='d-block small text-secondary'>Creates the Data Sync with the name of the plan, optionally with a data package. Planning ends.</span>
+                    </span>
+                </button>
+
+                <button
+                    type='button'
+                    class='btn w-100 planning-option'
                     data-testid='planning-share-users'
                     @click='mode = "users"'
                 >
@@ -154,21 +248,43 @@
 
 <script setup lang='ts'>
 import { ref, computed, onMounted } from 'vue';
-import { TablerModal, TablerLoading } from '@tak-ps/vue-tabler';
-import { IconShare2, IconCloudPin, IconUsers, IconPackageExport } from '@tabler/icons-vue';
+import { TablerModal, TablerLoading, TablerInput, TablerToggle, TablerAlert } from '@tak-ps/vue-tabler';
+import { IconShare2, IconCloudPin, IconCirclePlus, IconUsers, IconPackageExport } from '@tabler/icons-vue';
 import Share from '../util/Share.vue';
+import GroupSelect from '../util/GroupSelect.vue';
 import ShareToPackage from '../util/ShareToPackage.vue';
 import EmptyInfo from '../util/EmptyInfo.vue';
 import Subscription from '../../../base/subscription.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import type { Feature } from '../../../types.ts';
-import { planning, planName, planFeatures, publishToMission } from './planning.ts';
+import { planning, planName, planFeatures, publishToMission, publishToNewMission } from './planning.ts';
 
 const emit = defineEmits<{ close: [] }>();
 
 const mapStore = useMapStore();
 
-const mode = ref<'choose' | 'mission' | 'users' | 'package'>('choose');
+const mode = ref<'choose' | 'mission' | 'new-mission' | 'users' | 'package'>('choose');
+const error = ref<Error | undefined>();
+
+const newMission = ref({
+    name: '',
+    groups: [] as string[],
+    passwordProtected: false,
+    password: '',
+    withPackage: true,
+});
+
+/** As MissionCreate.vue: the characters the TAK Server accepts in a Mission name */
+const nameError = computed<string>(() => {
+    // eslint-disable-next-line no-useless-escape
+    if (!newMission.value.name.match(/^[\p{L}\p{N}\w\d\s\.\(\)!=@#$&^*_\-\+\[\]\{\}:,\.\/\|\\]*$/u)) return 'Contains Invalid Character';
+    if (!newMission.value.name.trim()) return 'Cannot be empty';
+    return '';
+});
+
+const canCreate = computed(() => !nameError.value
+    && newMission.value.groups.length > 0
+    && (!newMission.value.passwordProtected || newMission.value.password.length > 0));
 const loading = ref(true);
 const busy = ref(false);
 const feats = ref<Feature[]>([]);
@@ -191,6 +307,30 @@ onMounted(async () => {
         loading.value = false;
     }
 });
+
+function openNewMission(): void {
+    newMission.value.name = name.value;
+    error.value = undefined;
+    mode.value = 'new-mission';
+}
+
+async function createAndPublish(): Promise<void> {
+    busy.value = true;
+    error.value = undefined;
+    try {
+        await publishToNewMission({
+            name: newMission.value.name.trim(),
+            groups: newMission.value.groups,
+            password: newMission.value.passwordProtected ? newMission.value.password : undefined,
+            withPackage: newMission.value.withPackage,
+        });
+        emit('close');
+    } catch (err) {
+        error.value = err instanceof Error ? err : new Error(String(err));
+    } finally {
+        busy.value = false;
+    }
+}
 
 async function publish(): Promise<void> {
     if (!selected.value) return;
