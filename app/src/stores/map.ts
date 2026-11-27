@@ -165,6 +165,8 @@ export const useMapStore = defineStore('cloudtak', {
         distanceUnit: string;
         elevationUnit: string;
         speedUnit: string;
+        /** Directions: 'deg' or 'mil' (Artilleriepromille) */
+        angleUnit: string;
         coordFormat: string;
         defaultPointType: string;
         manualLocationMode: boolean;
@@ -254,6 +256,7 @@ export const useMapStore = defineStore('cloudtak', {
             distanceUnit: 'meter',
             elevationUnit: 'meter',
             speedUnit: 'km/h',
+            angleUnit: 'deg',
             coordFormat: 'lv95',
             defaultPointType: 'u-d-p',
             toastOffset: { x: 70, y: 60 },
@@ -1574,6 +1577,7 @@ export const useMapStore = defineStore('cloudtak', {
             this.distanceUnit = (await ProfileConfig.get('display_distance'))?.value || 'meter';
             this.elevationUnit = (await ProfileConfig.get('display_elevation'))?.value || 'meter';
             this.speedUnit = (await ProfileConfig.get('display_speed'))?.value || 'km/h';
+            this.angleUnit = (await ProfileConfig.get('display_angle'))?.value || 'deg';
 
             this.updateDistanceUnit(this.distanceUnit);
 

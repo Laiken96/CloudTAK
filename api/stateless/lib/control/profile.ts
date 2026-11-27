@@ -2,7 +2,7 @@ import { Static, Type } from '@sinclair/typebox';
 import { TAKRole, TAKGroup } from '@tak-ps/node-tak/lib/api/types';
 import type ConfigStateless from '../../config.js';
 import {
-    toEnum, Profile_Stale, Profile_Speed, Profile_Elevation, Profile_Area, Profile_Distance, Profile_Text, Profile_Projection, Profile_Zoom, Profile_Style, Profile_Coordinate, Profile_Radiation_Dose, Profile_Wake_Lock,
+    toEnum, Profile_Stale, Profile_Speed, Profile_Elevation, Profile_Area, Profile_Distance, Profile_Text, Profile_Projection, Profile_Zoom, Profile_Style, Profile_Coordinate, Profile_Radiation_Dose, Profile_Wake_Lock, Profile_Angle,
 } from '../../../common/enums.js';
 import { ProfileResponse } from '../../../common/types.js';
 import ProfileOverlayControl from '../../../common/control/profile-overlay.js';
@@ -22,6 +22,7 @@ export const ProfileConfigDefaults = {
     'display::text': Profile_Text.Medium,
     'display::icon_rotation': true,
     'display::radiation_dose': Profile_Radiation_Dose.SIEVERTS,
+    'display::angle': Profile_Angle.DEGREES,
     'display::wakelock': Profile_Wake_Lock.CHARGING,
 
     'geometry::point::type': 'u-d-p',
@@ -121,6 +122,12 @@ export const DefaultUnits = Type.Object({
         }),
         options: Type.Array(Type.String()),
     }),
+    angle: Type.Object({
+        value: Type.Enum(Profile_Angle, {
+            default: ProfileConfigDefaults['display::angle'],
+        }),
+        options: Type.Array(Type.String()),
+    }),
 });
 
 export default class ProfileControl {
@@ -177,6 +184,7 @@ export default class ProfileControl {
             'display::text',
             'display::icon_rotation',
             'display::radiation_dose',
+            'display::angle',
         ];
 
         const final: Record<string, string> = {};
@@ -235,6 +243,10 @@ export default class ProfileControl {
             radiation_dose: {
                 value: toEnum.fromString(Type.Enum(Profile_Radiation_Dose), final.radiation_dose || Profile_Radiation_Dose.SIEVERTS),
                 options: Object.values(Profile_Radiation_Dose),
+            },
+            angle: {
+                value: toEnum.fromString(Type.Enum(Profile_Angle), final.angle || ProfileConfigDefaults['display::angle']),
+                options: Object.values(Profile_Angle),
             },
         };
     }

@@ -33,6 +33,7 @@
 
         <PropertyBearing
             v-model='config.bearing'
+            :unit='mapStore.angleUnit'
             :edit='true'
             :hover='true'
         />

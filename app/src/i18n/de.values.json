@@ -51,5 +51,7 @@
     "none": "Keine",
     "Permanent": "Permanent",
     "16 Hours": "16 Stunden",
-    "lv95": "LV95"
+    "lv95": "LV95",
+    "deg": "Grad (°)",
+    "mil": "Artilleriepromille (A‰)"
 }

@@ -46,6 +46,7 @@ export default class UserControl {
             'display::text': ProfileConfigDefaults['display::text'],
             'display::icon_rotation': ProfileConfigDefaults['display::icon_rotation'],
             'display::radiation_dose': ProfileConfigDefaults['display::radiation_dose'],
+            'display::angle': ProfileConfigDefaults['display::angle'],
         };
 
         const systemDisplayDefaults = await this.config.models.Setting.typedMany(displayDefaults);

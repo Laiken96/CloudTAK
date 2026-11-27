@@ -69,6 +69,8 @@
 <script setup lang='ts'>
 import { computed } from 'vue';
 import { LocationState } from '../../../utils/events.ts';
+import { formatDirection } from '../../../utils/direction.ts';
+import { MILS_UNIT } from '../../../utils/measure.ts';
 import { useMapStore } from '../../../stores/map.ts';
 import { useAppStore } from '../../../stores/app.ts';
 import { DrawToolMode } from '../../../stores/modules/draw.ts';
@@ -151,8 +153,8 @@ const speedText = computed(() => {
 
 const headingText = computed(() => {
     const heading = mapStore.deviceHeading ?? (isLive.value ? mapStore.gpsHeading : null);
-    if (heading === null) return '--°';
-    return `${((Math.round(heading) % 360) + 360) % 360}°`;
+    if (heading === null) return mapStore.angleUnit === 'mil' ? `-- ${MILS_UNIT}` : '--°';
+    return formatDirection(heading, mapStore.angleUnit);
 });
 </script>
 

@@ -431,6 +431,7 @@ import OverlayManager from '../../base/overlay.ts';
 import { cutOverlayFeature } from './util/featureCut.ts';
 import { isIOSPlatform, isNativePlatform, addAppLifecycleListeners } from '../../utils/capacitor.ts';
 import { TimeoutError } from '../../utils/async.ts';
+import { formatDirection } from '../../utils/direction.ts';
 import { copyFeatureToClipboard, readFeatureFromClipboard } from '../../stores/device/clipboard.ts';
 import MissionInviteModal from './Menu/Mission/MissionInviteModal.vue';
 import TutorialTour from '../../tutorial/TutorialTour.vue';
@@ -575,11 +576,7 @@ const displayZoom = computed(() => {
 })
 
 const humanBearing = computed(() => {
-    if (mapStore.bearing < 0) {
-        return Math.round(mapStore.bearing * -1) + '°'
-    } else {
-        return Math.round(360 - mapStore.bearing) + '°';
-    }
+    return formatDirection(mapStore.bearing < 0 ? mapStore.bearing * -1 : 360 - mapStore.bearing, mapStore.angleUnit);
 })
 
 const humanPitch = computed(() => {

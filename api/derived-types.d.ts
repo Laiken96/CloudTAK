@@ -2301,6 +2301,7 @@ export interface paths {
                             "display::text"?: "Small" | "Medium" | "Large";
                             "display::icon_rotation"?: boolean;
                             "display::radiation_dose"?: "sieverts" | "rems";
+                            "display::angle"?: "deg" | "mil";
                             "group::Yellow"?: string;
                             "group::Cyan"?: string;
                             "group::Green"?: string;
@@ -2595,6 +2596,7 @@ export interface paths {
                         "display::text"?: "Small" | "Medium" | "Large";
                         "display::icon_rotation"?: boolean;
                         "display::radiation_dose"?: "sieverts" | "rems";
+                        "display::angle"?: "deg" | "mil";
                         "group::Yellow"?: string;
                         "group::Cyan"?: string;
                         "group::Green"?: string;
@@ -2814,6 +2816,7 @@ export interface paths {
                             "display::text"?: "Small" | "Medium" | "Large";
                             "display::icon_rotation"?: boolean;
                             "display::radiation_dose"?: "sieverts" | "rems";
+                            "display::angle"?: "deg" | "mil";
                             "group::Yellow"?: string;
                             "group::Cyan"?: string;
                             "group::Green"?: string;
@@ -3065,6 +3068,11 @@ export interface paths {
                             radiation_dose: {
                                 /** @default sieverts */
                                 value: "sieverts" | "rems";
+                                options: string[];
+                            };
+                            angle: {
+                                /** @default deg */
+                                value: "deg" | "mil";
                                 options: string[];
                             };
                         };
@@ -55574,6 +55582,7 @@ export interface paths {
                             display_area: "square meter" | "square feet" | "acre" | "hectare";
                             display_speed: "m/s" | "km/h" | "mi/h";
                             display_radiation_dose: "sieverts" | "rems";
+                            display_angle: "deg" | "mil";
                             display_wakelock: "Default" | "Charging" | "Always On";
                             notification_contact: boolean;
                             notification_import: boolean;
@@ -55708,6 +55717,7 @@ export interface paths {
                         display_area?: "square meter" | "square feet" | "acre" | "hectare";
                         display_speed?: "m/s" | "km/h" | "mi/h";
                         display_radiation_dose?: "sieverts" | "rems";
+                        display_angle?: "deg" | "mil";
                         display_wakelock?: "Default" | "Charging" | "Always On";
                         notification_contact?: boolean;
                         notification_import?: boolean;
@@ -55773,6 +55783,7 @@ export interface paths {
                             display_area: "square meter" | "square feet" | "acre" | "hectare";
                             display_speed: "m/s" | "km/h" | "mi/h";
                             display_radiation_dose: "sieverts" | "rems";
+                            display_angle: "deg" | "mil";
                             display_wakelock: "Default" | "Charging" | "Always On";
                             notification_contact: boolean;
                             notification_import: boolean;
@@ -59736,6 +59747,7 @@ export interface paths {
                             display_area: "square meter" | "square feet" | "acre" | "hectare";
                             display_speed: "m/s" | "km/h" | "mi/h";
                             display_radiation_dose: "sieverts" | "rems";
+                            display_angle: "deg" | "mil";
                             display_wakelock: "Default" | "Charging" | "Always On";
                             notification_contact: boolean;
                             notification_import: boolean;
@@ -60024,6 +60036,7 @@ export interface paths {
                             display_area: "square meter" | "square feet" | "acre" | "hectare";
                             display_speed: "m/s" | "km/h" | "mi/h";
                             display_radiation_dose: "sieverts" | "rems";
+                            display_angle: "deg" | "mil";
                             display_wakelock: "Default" | "Charging" | "Always On";
                             notification_contact: boolean;
                             notification_import: boolean;
