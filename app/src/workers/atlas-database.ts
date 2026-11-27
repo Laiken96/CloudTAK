@@ -126,6 +126,17 @@ export default class AtlasDatabase {
         };
     }
 
+    /**
+     * PzBat12: planning mode (components/CloudTAK/Planning) - folder of the
+     * open plan. New objects go there as personal objects, never into the
+     * Active Mission and never to the TAK Server
+     */
+    plan?: string;
+
+    async setPlan(path?: string): Promise<void> {
+        this.plan = path ? AtlasDatabase.normalizePath(path) : undefined;
+    }
+
     async makeActiveMission(guid? : string): Promise<void> {
         if (guid) {
             this.mission = guid;
@@ -1184,9 +1195,16 @@ export default class AtlasDatabase {
             feat.properties.remarks = await StickyHashtags.apply(feat.properties.remarks);
         }
 
+        // PzBat12: planning mode - a new own object belongs to the open plan,
+        // unless it is explicitly filed into a Mission (publishing the plan)
+        const plan = this.plan;
+        const planned = !exists && !!opts.authored && plan !== undefined
+            && !(feat.origin && feat.origin.mode === OriginMode.MISSION);
+        if (planned) feat.path = plan;
+
         if (
             !exists && (
-                (this.mission && opts.authored) // Authored CoT and we have an active Mission
+                (this.mission && opts.authored && !planned) // Authored CoT and we have an active Mission
                 || (
                     feat.origin && feat.origin.mode === "Mission"
                     && feat.origin.mode_id
